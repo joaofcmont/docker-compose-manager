@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Docker Compose Manager</title>
+</head>
+<header>
+</header>
+<body>
+<div class="content">
+  <button *ngIf="!isComposeFormPage" class="big-button" (click)="onButtonClick()">Generate Docker Compose File
+  </button>
+</div>
+  <router-outlet></router-outlet>
+  </body>
+</html>

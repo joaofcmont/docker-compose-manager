@@ -1,0 +1,24 @@
+.form-container {
+    padding: 20px; /* Adjust padding as needed */
+    background-color: #fff;
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.4);
+    border-radius: 8px;
+    width: 100%;
+    max-width: 500px;
+    min-height: 400px; /* Set a minimum height for better appearance */
+    overflow: auto; /* Allow scrolling if content exceeds height */
+    box-sizing: border-box;
+    margin: 20px; /* Add margin to position it better */
+  }
+  
+  // Optional: Centering adjustments
+  h1 {
+    text-align: center;
+    font-weight: bold;
+    font-size: 2em;
+  }
+  
+  h3 {
+    text-align: center;
+  }
+  

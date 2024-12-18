@@ -6,13 +6,7 @@ body {
   margin: 0;
   padding: 0;
   overflow: hidden;
-}
-
-body {
-  justify-content: center;
   align-items: center;
-  height: 100vh;
-  box-sizing: border-box;
 }
 
 input[type="text"],
@@ -33,9 +27,11 @@ button {
   font-weight: bold;
   transition: background-color 0.3s ease;
 
+  &:enabled{
   &:hover {
     background-color: #0056b3;
   }
+}
 
   &:active {
     background-color: #003f7f;

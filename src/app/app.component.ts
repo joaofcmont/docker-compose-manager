@@ -2,6 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
 import { Router, NavigationEnd, RouterModule } from '@angular/router';
 import { HomeComponent } from "./home/home.component";
+import { FormGroup } from '@angular/forms';
 
 @Component({
   selector: 'app-root',
@@ -11,6 +12,7 @@ import { HomeComponent } from "./home/home.component";
   styleUrls: ['./app.component.scss'],
 })
 export class AppComponent {
+
   constructor(private router: Router) {}
 
   navigateHome() {

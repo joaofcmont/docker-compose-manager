@@ -4,104 +4,67 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Docker Compose Form</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            background-color: #f4f4f9;
-        }
-        .form-container {
-            padding: 20px;
-            background-color: #fff;
-            box-shadow: 0 0 15px rgba(0, 0, 0, 0.4);
-            border-radius: 8px;
-        }
-        input[type="text"],
-        input[type="number"],
-        input[type="email"],
-        textarea,
-        button {
-            width: 100%;
-            padding: 10px;
-            margin: 8px 0;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-        }
-        button {
-            background-color: #007BFF;
-            color: white;
-            font-weight: bold;
-        }
-        button:hover {
-            background-color: #0056b3;
-        }
-    </style>
+
 </head>
 <body>
     <div class="form-container">
         <h2>Create Docker Compose File</h2>
-        <form id="composeForm">
-            <label for="serviceName">Service Name</label>
-            <input type="text" id="serviceName" name="serviceName" placeholder="Enter service name" required pattern="[a-zA-Z0-9-_]+" title="Letters, numbers, dashes, and underscores only">
-        
-            <label for="dockerImage">Docker Image</label>
-            <input type="text" id="dockerImage" name="dockerImage" placeholder="e.g., nginx:latest" required pattern="^[a-zA-Z0-9\-_]+:[a-zA-Z0-9\.\-_]+$" title="Format: name:tag (e.g., nginx:latest)">
-        
-            <label for="hostPort">Host Port</label>
-            <input type="number" id="hostPort" name="hostPort" placeholder="Port to expose on host" min="1" max="65535" required step="1">
-        
-            <label for="containerPort">Container Port</label>
-            <input type="number" id="containerPort" name="containerPort" placeholder="Port inside the container" min="1" max="65535" required step="1">
-        
-            <label for="environment">Environment Variables (key=value)</label>
-            <textarea id="environment" name="environment" rows="3" placeholder="VAR1=value1, VAR2=value2"></textarea>
-        
-            <label for="volumes">Volumes (Host path to Container path)</label>
-            <textarea id="volumes" name="volumes" rows="2" placeholder="./data:/var/lib/data"></textarea>
-        
-            <button type="button" [disabled]="composeForm.invalid" onclick="generateComposeFile()" >Generate Compose File</button>
+        <form [formGroup]="composeForm" (ngSubmit)="generateDockerComposeFile()">
+          <label for="serviceName">Service Name</label>
+          <input 
+            type="text" 
+            id="serviceName" 
+            formControlName="serviceName"
+            placeholder="Enter service name" 
+            title="Letters, numbers, dashes, and underscores only">
+      
+          <label for="dockerImage">Docker Image</label>
+          <input 
+            type="text" 
+            id="dockerImage" 
+            formControlName="dockerImage"
+            placeholder="e.g., nginx:latest" 
+            title="Format: name:tag (e.g., nginx:latest)">
+      
+          <label for="hostPort">Host Port</label>
+          <input 
+            type="number" 
+            id="hostPort" 
+            formControlName="hostPort"
+            placeholder="Port to expose on host" 
+            min="1" 
+            max="65535">
+      
+          <label for="containerPort">Container Port</label>
+          <input 
+            type="number" 
+            id="containerPort" 
+            formControlName="containerPort"
+            placeholder="Port inside the container" 
+            min="1" 
+            max="65535">
+      
+          <label for="environment">Environment Variables (key=value)</label>
+          <textarea 
+            id="environment" 
+            formControlName="environment"
+            rows="3" 
+            placeholder="VAR1=value1, VAR2=value2"></textarea>
+      
+          <label for="volumes">Volumes (Host path to Container path)</label>
+          <textarea 
+            id="volumes" 
+            formControlName="volumes"
+            rows="2" 
+            placeholder="./data:/var/lib/data"></textarea>
+      
+          <button type="submit">Generate Docker Compose File</button>
         </form>
-    </div>
-
-    <script>
-        function generateComposeFile() {
-            const serviceName = document.getElementById('serviceName').value;
-            const dockerImage = document.getElementById('dockerImage').value;
-            const hostPort = document.getElementById('hostPort').value;
-            const containerPort = document.getElementById('containerPort').value;
-            const environment = document.getElementById('environment').value.split(',');
-            const volumes = document.getElementById('volumes').value.split(',');
-
-            let composeContent = `
-version: "3.8"
-
-services:
-  ${serviceName}:
-    image: ${dockerImage}
-    ports:
-      - "${hostPort}:${containerPort}"
-`;
-
-            if (environment.length > 0 && environment[0]) {
-                composeContent += `    environment:\n`;
-                environment.forEach(env => {
-                    composeContent += `      - ${env.trim()}\n`;
-                });
-            }
-
-            if (volumes.length > 0 && volumes[0]) {
-                composeContent += `    volumes:\n`;
-                volumes.forEach(volume => {
-                    composeContent += `      - ${volume.trim()}\n`;
-                });
-            }
-
-            document.getElementById('output').innerText = composeContent;
-        }
-    </script>
-
+        
+        <div *ngIf="composeForm.get('serviceName')?.invalid && composeForm.get('serviceName')?.touched">
+          <small class="error">Service name is required</small>
+        </div>
+      </div>
+   
 </body>
 </html>

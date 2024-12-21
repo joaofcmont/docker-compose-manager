@@ -1,40 +1,75 @@
 import { Injectable } from '@angular/core';
 
+interface DockerComposeConfig {
+  serviceName: string;
+  dockerImage: string;
+  hostPort: string;
+  containerPort: string;
+  environment: string;
+  volumes: string;
+}
+
 @Injectable({
   providedIn: 'root'
 })
 export class DockerComposeService {
-  constructor() { }
 
-  submitApplication(formData: any) {
-    console.log('Received form data:', formData);
-    this.generateDockerComposeFile(formData);
-  }
-
-  private generateDockerComposeFile(data: any) {
-    // This is a simple example. In a real scenario, you'd want to use a proper YAML library
-    let yamlContent = 'version: "3"\nservices:\n';
-    
-    if (data.serviceName && data.image) {
-      yamlContent += `  ${data.serviceName}:\n`;
-      yamlContent += `    image: ${data.image}\n`;
-      
-      if (data.ports) {
-        yamlContent += '    ports:\n';
-        data.ports.split(',').forEach((port: string) => {
-          yamlContent += `      - "${port.trim()}"\n`;
-        });
-      }
-      
-      if (data.environment) {
-        yamlContent += '    environment:\n';
-        Object.entries(data.environment).forEach(([key, value]) => {
-          yamlContent += `      - ${key}=${value}\n`;
-        });
-      }
+  generateAndDownloadFile(config: DockerComposeConfig, filename: string = 'docker-compose.yml'): void {
+    this.validateConfig(config);
+    console.log('Received config:', config);
+    const dockerComposeContent = this.generateDockerComposeContent(config);
+    console.log('Generated content:', dockerComposeContent);
+    this.downloadFile(dockerComposeContent, filename);
     }
 
-    console.log('Generated Docker Compose YAML:', yamlContent);
-    // Here you would typically save this to a file or send it to a backend
+    previewDockerComposeContent(config: DockerComposeConfig): string {
+      return this.generateDockerComposeContent(config);
+    }
+
+  private generateDockerComposeContent(config: DockerComposeConfig): string {
+    const { serviceName, dockerImage, hostPort, containerPort, environment, volumes } = config;
+
+    return `version: '3'
+services:
+  ${serviceName}:
+    image: ${dockerImage}
+    ports:
+      - "${hostPort}:${containerPort}"
+    ${this.formatEnvironment(environment)}
+    ${this.formatVolumes(volumes)}`;
+  }
+  
+  private validateConfig(config: DockerComposeConfig): void {
+    if (!config.serviceName || !config.dockerImage || !config.hostPort || !config.containerPort) {
+      throw new Error('Missing required fields in Docker Compose configuration');
+    }
+  }
+
+  private formatEnvironment(environment: string): string {
+    if (!environment.trim()) return '';
+    const envVars = environment.split('\n').filter(line => line.trim() !== '');
+    if (envVars.length === 0) return '';
+    return `environment:
+      ${envVars.join('\n      ')}`;
+  }
+
+  private formatVolumes(volumes: string): string {
+    if (!volumes.trim()) return '';
+    const volumeMappings = volumes.split('\n').filter(line => line.trim() !== '');
+    if (volumeMappings.length === 0) return '';
+    return `volumes:
+      ${volumeMappings.join('\n      ')}`;
+  }
+
+  private downloadFile(content: string, filename: string): void {
+    const blob = new Blob([content], { type: 'text/yaml' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    window.URL.revokeObjectURL(url);
   }
 }

@@ -10,6 +10,38 @@
     box-sizing: border-box;
     margin: 20px; /* Add margin to position it better */
   }
+
+  body {
+    font-family: Arial, sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    background-color: #f4f4f9;
+}
+
+.form-container {
+    padding: 20px;
+    background-color: #fff;
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.4);
+    border-radius: 8px;
+}
+
+button {
+    width: 100%;
+    padding: 10px;
+    margin: 8px 0;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    background-color: #007BFF;
+    color: white;
+    font-weight: bold;
+
+    &:hover {
+        background-color: #0056b3;
+    }
+}
+
   
   h1 {
     text-align: center;
@@ -22,7 +54,7 @@
   }
 
   button {
-    background-color: #007bff;
+    background-color: #1D63ED;
     color: white;
     font-weight: bold;
     cursor: pointer;
@@ -40,6 +72,8 @@
       cursor: not-allowed; /* Cursor indicating the button is disabled */
       box-shadow: none; /* Remove shadow when disabled */
     }
+
+    
   }
   
   

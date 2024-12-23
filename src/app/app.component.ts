@@ -1,10 +1,7 @@
 import { CommonModule } from '@angular/common';
-import { Component } from '@angular/core';
-import { Router, NavigationEnd, RouterModule } from '@angular/router';
-import { HomeComponent } from "./home/home.component";
-import { FormGroup } from '@angular/forms';
-import { inject } from "@vercel/analytics"
-
+import { Component, OnInit } from '@angular/core';
+import { Router, RouterModule } from '@angular/router';
+import { inject } from '@vercel/analytics'; 
 
 @Component({
   selector: 'app-root',
@@ -13,9 +10,15 @@ import { inject } from "@vercel/analytics"
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.scss'],
 })
-export class AppComponent {
+export class AppComponent implements OnInit{
 
   constructor(private router: Router) {}
+
+  ngOnInit(): void {
+    inject();
+  
+}
+
 
   navigateHome() {
     this.router.navigate(['/home']);

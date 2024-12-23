@@ -3,6 +3,8 @@ import { Component } from '@angular/core';
 import { Router, NavigationEnd, RouterModule } from '@angular/router';
 import { HomeComponent } from "./home/home.component";
 import { FormGroup } from '@angular/forms';
+import { Analytics } from "@vercel/analytics/react"
+
 
 @Component({
   selector: 'app-root',

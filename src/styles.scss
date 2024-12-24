@@ -2,11 +2,16 @@ html,
 body {
   background-color: #f4f4f9;
   font-family: Arial, sans-serif;
+  overflow: auto;
+  align-items: center;
+  background: url('https://media.giphy.com/media/3q3SUqPnxZGQpMNcjc/giphy.gif') no-repeat center center fixed;
+  background-size: cover; /* Ensure the background covers the entire viewport */
+  font-family: Arial, sans-serif;
   height: 100%;
   margin: 0;
   padding: 0;
-  overflow: auto;
-  align-items: center;
+  flex-direction: column; /* Align items in a column */
+  justify-content: center; /* Center the content vertically */
 }
 
 input[type="text"],
@@ -44,7 +49,8 @@ pre {
   border-radius: 5px;
 }
 
-h2, h3 {
+h2, h3 , h1{
   text-align: center;
+  color: white;
 }
 

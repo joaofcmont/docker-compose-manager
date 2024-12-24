@@ -5,28 +5,61 @@ html {
   margin: 0;
   display: flex;
   flex-direction: column;
-  overflow: hidden;
+  overflow: auto;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; /* Modern font */
 }
 
 /* Header stays at the top */
 .header {
   background-color: #f8f9fa;
-  padding: 16px;
+  padding: 20px;
   text-align: center;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Add a subtle shadow */
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  font-size: 24px; /* Make the header title larger for better readability */
 }
 
-/* Content centers button both vertically and horizontally */
+
+/* Content centers text and button both vertically and horizontally */
 .content {
   flex: 1;
   align-items: center; /* Vertical centering */
   justify-content: center; /* Horizontal centering */
+  display: flex;
+  flex-direction: column;
   height: 100vh; /* Full height of viewport */
+  text-align: center;
+  padding: 20px;
+  gap: 0; /* Remove default gap between flex items */
+  box-sizing: border-box; /* To avoid overflow issues */
+}
+
+/* Styling for Paragraphs */
+ p {
+  font-size: 18px;
+  line-height: 1.8;
+  color: white;
+  margin-bottom: 20px;
+  text-align: center;
+  max-width: 700px; /* Prevents text from stretching too wide on large screens */
+  margin-left: auto;
+  margin-right: auto;
+  font-family: monospace;
+  padding: 0 15px; /* Padding to ensure text doesn't touch the sides */
+  font-weight: 300; /* Lighter font weight for better readability */
+}
+
+/* AdSense Ad Unit Styling */
+.adsbygoogle {
+  margin: 20px 0;
   text-align: center;
 }
 
 /* Button Styling */
 .big-button {
-  width: 200px;
+  width: 250px;
   height: 60px;
   font-size: 18px;
   background-color: #1D63ED;
@@ -35,17 +68,63 @@ html {
   border-radius: 8px;
   cursor: pointer;
   font-weight: bold;
+  position: relative;
   display: flex;
   align-items: center;
+  top: -120px;
   justify-content: center;
-  transition: background-color 0.3s ease;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); /* Add subtle shadow for depth */
+  transform: scale(1);
 }
 
-/* Hover Effect */
+/* Hover Effect for Button */
 .big-button:hover {
   background-color: #0056b3;
+  transform: scale(1.05); /* Slightly increase the button size */
 }
 
 .big-button:active {
   background-color: #003f7f;
+  transform: scale(0.98); /* Slightly shrink on click for interaction feedback */
+}
+
+/* Media Queries for Responsiveness */
+
+/* For tablets and below */
+@media (max-width: 768px) {
+  .header {
+    font-size: 20px; /* Smaller font for smaller screens */
+    padding: 15px;
+  }
+
+  .content p {
+    font-size: 16px; /* Smaller font on mobile */
+    line-height: 1.6;
+    padding: 0 10px;
+  }
+
+  .big-button {
+    width: 200px;
+    font-size: 16px; /* Make the button slightly smaller on mobile */
+  }
+}
+
+/* For mobile phones */
+@media (max-width: 480px) {
+  .header {
+    font-size: 18px; /* Even smaller for phones */
+    padding: 10px;
+  }
+
+  .content p {
+    font-size: 14px; /* Font size reduced for very small screens */
+    line-height: 1.5;
+    padding: 0 5px;
+  }
+
+  .big-button {
+    width: 180px; /* Smaller button for mobile */
+    font-size: 14px;
+  }
 }

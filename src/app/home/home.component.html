@@ -5,14 +5,27 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Docker Compose Manager</title>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
 </head>
 <header>
 </header>
 <body>
-<div class="content">
-  <button *ngIf="!isComposeFormPage" class="big-button" (click)="onButtonClick()">Generate Docker Compose File
-  </button>
-</div>
+  <p>Docker Compose Manager helps you generate Docker Compose YAML files with ease. It simplifies the configuration of multi-container applications using Docker.</p>
+  <p>To get started, click the "Generate Docker Compose File" button to create a customized configuration for your project.</p>
+
+  <!-- AdSense Ad Unit -->
+  <ins class="adsbygoogle"
+       style="display:block"
+       data-ad-client="ca-pub-8922143154605739"
+       data-ad-slot="1234567890"
+       data-ad-format="auto"></ins>
+  <script>
+       (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+
+  <div class="content">
+    <button *ngIf="!isComposeFormPage" class="big-button" (click)="onButtonClick()">Generate Docker Compose File</button>
+  </div>
   <router-outlet></router-outlet>
-  </body>
+</body>
 </html>

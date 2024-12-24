@@ -1,28 +1,33 @@
 import { CommonModule } from '@angular/common';
-import { Component } from '@angular/core';
+import { Component, OnDestroy } from '@angular/core';
 import { NavigationEnd, Router, RouterModule } from '@angular/router';
+import { Subscription } from 'rxjs';
+import { filter } from 'rxjs/operators';
 
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [RouterModule,CommonModule],
+  imports: [RouterModule, CommonModule],
   templateUrl: './home.component.html',
   styleUrl: './home.component.scss'
 })
-export class HomeComponent {
-  isComposeFormPage: boolean = false; 
+export class HomeComponent implements OnDestroy {
+  private routerSubscription: Subscription;
+  isComposeFormPage = false;
 
-  constructor(private router: Router) {}
-
-  ngOnInit() {
-    this.router.events.subscribe((event) => {
-      if (event instanceof NavigationEnd) {
-        this.isComposeFormPage = this.router.url.includes('compose-form');
-      }
+  constructor(private router: Router) {
+    this.routerSubscription = this.router.events.pipe(
+      filter(event => event instanceof NavigationEnd)
+    ).subscribe(() => {
+      this.isComposeFormPage = this.router.url.includes('compose-form');
     });
   }
 
-  onButtonClick() {
+  onButtonClick(): void {
     this.router.navigate(['/compose-form']);
+  }
+
+  ngOnDestroy(): void {
+    this.routerSubscription?.unsubscribe();
   }
 }

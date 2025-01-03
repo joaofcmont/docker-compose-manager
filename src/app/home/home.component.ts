@@ -33,4 +33,9 @@ export class HomeComponent implements OnDestroy {
   scrollToKeyCapabilities(): void {
     this.viewportScroller.scrollToAnchor('key-capabilities');
 }
+
+  scrollToContactForm(): void{
+    this.viewportScroller.scrollToAnchor('contact')
+}
+
 }

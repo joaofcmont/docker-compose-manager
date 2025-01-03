@@ -36,7 +36,7 @@ header {
         text-decoration: none;
         color: $gray;
         font-size: 1rem;
-        transition: color 0.3s ease;
+        transition: color 0.3s;
         &:hover { color: $secondary-color; }
       }
 
@@ -51,9 +51,9 @@ header {
   }
 }
 
-.logo{
+// Logo
+.logo {
   height: 48px;
-  width: auto;
 }
 
 // Main Content Styles
@@ -103,7 +103,7 @@ main {
     border: none;
     border-radius: 5px;
     cursor: pointer;
-    transition: background-color 0.3s ease;
+    transition: background-color 0.3s;
     width: 100%;
     margin-top: 1rem;
     background-color: $primary-color;
@@ -141,7 +141,7 @@ main {
     border: none;
     border-radius: 5px;
     cursor: pointer;
-    transition: background-color 0.3s ease;
+    transition: background-color 0.3s;
     background-color: $primary-color;
     color: $white;
     width: 80%;

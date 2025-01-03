@@ -4,14 +4,17 @@ $secondary-color: #333;
 $background-color: #f8f8f8;
 $white: #fff;
 $gray: #666;
-$light-gray: #f5f5f5;
-$border-color: #ddd;
 
 // Mixins
 @mixin flex-center {
   display: flex;
   justify-content: center;
   align-items: center;
+}
+
+.logo{
+  height: 48px;
+  width: auto;
 }
 
 @mixin button-style {
@@ -43,11 +46,6 @@ header {
     @include flex-center;
     justify-content: space-between;
 
-    .logo {
-      height: 48px;
-      width: auto;
-    }
-
     ul {
       list-style: none;
       display: flex;
@@ -66,12 +64,6 @@ header {
         }
       }
 
-      li:nth-last-child(2) a {
-        background: $light-gray;
-        padding: 0.5rem 1rem;
-        border-radius: 4px;
-      }
-
       li:last-child a {
         background: $secondary-color;
         color: $white;
@@ -84,11 +76,6 @@ header {
         }
       }
     }
-  }
-
-  .auth-nav {
-    gap: 50px;
-    justify-content: flex-end;
   }
 }
 
@@ -144,7 +131,7 @@ main {
       width: 100%;
       padding: 10px;
       border-radius: 5px;
-      border: 1px solid $border-color;
+      border: 1px solid $gray;
       font-size: 1rem;
 
       &:focus {
@@ -190,13 +177,6 @@ main {
   }
 }
 
-.template-header,
-.preview-header {
-  @include flex-center;
-  justify-content: space-between;
-  margin-bottom: 1rem;
-}
-
 #import-section {
   margin: 20px;
   @include flex-center;
@@ -205,7 +185,7 @@ main {
 
   input[type="file"] {
     padding: 10px;
-    border: 1px solid $border-color;
+    border: 1px solid $gray;
     margin-bottom: 10px;
     width: 80%;
     max-width: 300px;

@@ -3,7 +3,7 @@ $primary-color: #17191E; // Dark Blue/Black
 $secondary-color: #D3D3D3; // Grey
 $bg-color: #FFFFFF; // White
 $text-color: #1E1E1E; // Dark Grey for text
-$footer-bg: #17191E; // Dark background for footer
+$footer-bg: $primary-color; // Dark background for footer
 $footer-text-color: #FFFFFF; // White for footer text
 $hero-bg: $primary-color; // Hero section background color
 $btn-hover-color: #D3D3D3; // Grey hover for buttons
@@ -32,35 +32,33 @@ body {
   line-height: 1.6;
 }
 
-h1, h2, h3 {
-  margin-bottom: 20px;
-}
-
 // Header & Navigation Styling
 header {
   background-color: $primary-color;
   padding: 15px 0;
 
-  nav ul {
-    display: flex;
-    justify-content: center;
-    list-style: none;
-  }
+  nav {
+    ul {
+      display: flex;
+      justify-content: center;
+      list-style: none;
 
-  nav ul li {
-    margin: 0 20px;
-  }
+      li {
+        margin: 0 20px;
 
-  nav ul li a {
-    color: $footer-text-color;
-    text-decoration: none;
-    font-weight: bold;
-    font-size: 1rem;
-    transition: color 0.3s;
-  }
+        a {
+          color: $footer-text-color;
+          text-decoration: none;
+          font-weight: bold;
+          font-size: 1rem;
+          transition: color 0.3s;
 
-  nav ul li a:hover {
-    color: $secondary-color;
+          &:hover {
+            color: $secondary-color;
+          }
+        }
+      }
+    }
   }
 }
 
@@ -85,12 +83,11 @@ header {
     padding: 15px 30px;
     background-color: $secondary-color;
     color: $text-color;
-    border: none;
     border-radius: 5px;
     cursor: pointer;
     font-size: 1rem;
     transition: background-color 0.3s;
-    
+
     &:hover {
       background-color: $btn-hover-color;
     }
@@ -100,7 +97,6 @@ header {
 // Use Cases Section Styling
 #use-cases {
   padding: 50px $base-padding;
-  background-color: $bg-color;
 
   h2 {
     font-size: 2rem;
@@ -111,66 +107,65 @@ header {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
     gap: 30px;
-  }
 
-  .use-case-item {
-    background-color: $secondary-color;
-    padding: 20px;
-    border-radius: $border-radius;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-    transition: box-shadow 0.3s;
+    .use-case-item {
+      background-color: $secondary-color;
+      padding: $base-padding; // Use variable for consistency
+      border-radius: $border-radius;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      transition: box-shadow .3s;
 
-    h3 {
-      font-size: 1.5rem;
-      margin-bottom: 10px;
-    }
+      h3 {
+        font-size: 1.5rem;
+        margin-bottom: .5rem; // Adjusted for consistency
+      }
 
-    p {
-      font-size: 1rem;
-      color: $text-color;
-    }
+      p {
+        font-size: .95rem; // Slightly smaller for better readability
+        color: $text-color;
+      }
 
-    &:hover {
-      box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+      &:hover {
+        box-shadow: 0 0 15px rgba(0,0,0,0.2);
+      }
     }
   }
 }
 
 // AdSense Section Styling
 .ads {
-  text-align: center;
-  margin: 30px 0;
+   text-align:center; 
+   margin:.5rem auto; 
 }
 
 // Footer Styling
 footer {
-  background-color: $footer-bg;
-  color: $footer-text-color;
-  text-align: center;
-  padding: 20px;
+   background-color:$footer-bg; 
+   color:$footer-text-color; 
+   text-align:center; 
+   padding:$base-padding; 
 }
 
 // Responsive Design (Media Queries)
-@media (max-width: 768px) {
-  .hero {
-    padding: 40px $base-padding;
-  }
+@media (max-width :768px) {  
+   .hero {    
+     padding :40px $base-padding;   
+   } 
 
-  .cta {
-    width: 100%;
-    padding: 15px 0;
-  }
+   .cta {    
+     width :100%;    
+     padding :15px ;   
+   } 
 
-  .use-case-list {
-    grid-template-columns: 1fr;
-  }
+   .use-case-list {    
+     grid-template-columns :1fr;   
+   } 
 
-  nav ul {
-    flex-direction: column;
-  }
+   nav ul {    
+     flex-direction :column;   
+   } 
 
-  nav ul li {
-    margin-bottom: 10px;
-  }
+   nav ul li {    
+     margin-bottom :10px;   
+   } 
 }
-

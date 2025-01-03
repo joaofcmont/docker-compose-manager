@@ -148,42 +148,93 @@ nav li:last-child a:hover {
   background: #444;
 }
 
-/* Use Cases Section */
-#use-cases {
+/* Key-Capabilities Section */
+#key-capabilities {
   padding: 4rem 2rem;
   background-color: #f8f8f8;
   max-width: 1200px;
   margin: 0 auto;
 }
 
-#use-cases h2 {
+#key-capabilities h2 {
   text-align: center;
   font-size: 2rem;
   margin-bottom: 3rem;
   color: #333;
 }
 
-.use-case-list {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 2rem;
+.key-capabilities-section {
+    text-align: center;
+    padding: 50px 20px;
+    background-color: #f9f9f9;
+    min-height: 600px;
 }
 
-.use-case-item {
-  padding: 2rem;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+.key-capabilities-section h2 {
+    font-size: 2rem;
+    margin-bottom: 10px;
 }
 
-.use-case-item h3 {
-  font-size: 1.25rem;
-  margin-bottom: 1rem;
-  color: #333;
+.key-capabilities-section .subheading {
+    font-size: 1.2rem;
+    color: #555;
+    margin-bottom: 30px;
 }
 
-.use-case-item p {
-  color: #666;
+.capabilities-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-auto-rows: auto; 
+    gap: 20px;
+    max-width: 1200px;
+    margin: 0 auto;
 }
+
+.capability-item {
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.capability-item:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 6px 10px rgba(0, 0, 0, 0.15);
+}
+
+.icon-container {
+    font-size: 2rem;
+    color: #007BFF; /* Use your theme's primary color */
+    margin-bottom: 15px;
+}
+
+.capability-item h3 {
+    font-size: 1.2rem;
+    margin-bottom: 10px;
+    color: #333;
+}
+
+.capability-item p {
+    font-size: 0.95rem;
+    color: #666;
+    line-height: 1.5;
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+  .capabilities-grid {
+      grid-template-columns: repeat(2, 1fr); /* 2 columns for medium screens */
+  }
+}
+
+@media (max-width: 768px) {
+  .capabilities-grid {
+      grid-template-columns: 1fr; /* 1 column for small screens */
+  }
+}
+
 
 /* Footer */
 footer {

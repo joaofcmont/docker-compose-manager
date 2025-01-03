@@ -13,7 +13,7 @@
         <nav>
             <img src="assets/docker-mark-blue.png" alt="Docker Compose Manager Icon" class="logo">
             <ul>
-                <li><a href="#solutions">Solutions</a></li>
+                <li><a (click)="scrollToKeyCapabilities()">Solutions</a></li>
                 <li><a href="#pricing">Pricing</a></li>
                 <li><a href="#contact">Contact</a></li>
             </ul>
@@ -28,36 +28,61 @@
     <section class="hero">
         <h1>Docker Compose Manager</h1>
         <p>Simplifies the configuration of multi-container applications using Docker</p>
-        <button class="cta">Try it out</button>
+        <button (click)="onButtonClick()" class="cta">Try it out</button>
     </section>
 
     <!-- Main Content Section -->
     <main>
 
-
-        <!-- Use Cases Section -->
-        <section id="use-cases">
-            <h2>Use Cases</h2>
-            <div class="use-case-list">
-                <div class="use-case-item">
-                    <h3>UI Design</h3>
-                    <p>Design, prototype, and test Docker Compose configurations with ease.</p>
-                </div>
-                <div class="use-case-item">
-                    <h3>UX Design</h3>
-                    <p>Optimize user flows for Docker-based applications and services.</p>
-                </div>
-                <div class="use-case-item">
-                    <h3>Prototyping</h3>
-                    <p>Quickly prototype Docker Compose environments with real-time feedback.</p>
-                </div>
-                <div class="use-case-item">
-                    <h3>Wireframing</h3>
-                    <p>Create wireframes for multi-container applications to visualize architecture.</p>
-                </div>
-            </div>
-        </section>
-
+        <!-- Key Capabilities -->
+        <section id="key-capabilities" class="key-capabilities-section">
+          <h2>Key Capabilities</h2>
+          <p class="subheading">Explore the powerful features of our Docker Compose Manager.</p>
+          <div class="capabilities-grid">
+              <div class="capability-item">
+                  <div class="icon-container">
+                      <i class="fas fa-cogs"></i> <!-- Replace with your desired icon -->
+                  </div>
+                  <h3>Visual Configuration Interface</h3>
+                  <p>Design and manage Docker Compose configurations with an intuitive interface.</p>
+              </div>
+              <div class="capability-item">
+                  <div class="icon-container">
+                      <i class="fas fa-layer-group"></i>
+                  </div>
+                  <h3>Multi-Service Support</h3>
+                  <p>Easily configure and manage multiple services in a single environment.</p>
+              </div>
+              <div class="capability-item">
+                  <div class="icon-container">
+                      <i class="fas fa-sliders-h"></i>
+                  </div>
+                  <h3>Environment Variables Management</h3>
+                  <p>Handle environment variables seamlessly for your services.</p>
+              </div>
+              <div class="capability-item">
+                  <div class="icon-container">
+                      <i class="fas fa-database"></i>
+                  </div>
+                  <h3>Volume Mapping</h3>
+                  <p>Map volumes efficiently to manage persistent data.</p>
+              </div>
+              <div class="capability-item">
+                  <div class="icon-container">
+                      <i class="fas fa-network-wired"></i>
+                  </div>
+                  <h3>Network Configuration</h3>
+                  <p>Customize network settings for seamless communication between services.</p>
+              </div>
+              <div class="capability-item">
+                  <div class="icon-container">
+                      <i class="fas fa-project-diagram"></i>
+                  </div>
+                  <h3>Service Dependencies</h3>
+                  <p>Define and manage service dependencies with ease.</p>
+              </div>
+          </div>
+      </section>
 
         <!-- Footer Section -->
         <footer>

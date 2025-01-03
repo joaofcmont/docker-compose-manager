@@ -1,4 +1,4 @@
-import { CommonModule } from '@angular/common';
+import { CommonModule, ViewportScroller } from '@angular/common';
 import { Component, OnDestroy } from '@angular/core';
 import { NavigationEnd, Router, RouterModule } from '@angular/router';
 import { Subscription } from 'rxjs';
@@ -15,7 +15,7 @@ export class HomeComponent implements OnDestroy {
   private routerSubscription: Subscription;
   isComposeFormPage = false;
 
-  constructor(private router: Router) {
+  constructor(private router: Router, private viewportScroller: ViewportScroller) {
     this.routerSubscription = this.router.events.pipe(
       filter(event => event instanceof NavigationEnd)
     ).subscribe(() => {
@@ -30,4 +30,7 @@ export class HomeComponent implements OnDestroy {
   ngOnDestroy(): void {
     this.routerSubscription?.unsubscribe();
   }
+  scrollToKeyCapabilities(): void {
+    this.viewportScroller.scrollToAnchor('key-capabilities');
+}
 }

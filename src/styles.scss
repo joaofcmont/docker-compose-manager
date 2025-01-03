@@ -21,6 +21,10 @@ $border-radius: 8px;
   box-sizing: border-box;
 }
 
+html {
+  scroll-behavior: smooth;
+}
+
 body {
   font-family: $font-family;
   background-color: $bg-color;

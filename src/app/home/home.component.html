@@ -1,32 +1,179 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-  <meta name="google-adsense-account" content="ca-pub-8922143154605739">
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Docker Compose Manager</title>
-  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Docker Compose Manager</title>
 </head>
-<header>
-</header>
+
 <body>
-  
-  <p>Docker Compose Manager helps you generate Docker Compose YAML files with ease. It simplifies the configuration of multi-container applications using Docker.</p>
-  <p>To get started, click the "Generate Docker Compose File" button to create a customized configuration for your project.</p>
+    <!-- Header with Navigation -->
+    <header>
+        <nav>
+          <a href="/">
+            <img src="assets/docker-mark-blue.png" alt="Docker Compose Manager Icon" class="logo">
+            </a>
+            <ul>
+                <li><a (click)="scrollToKeyCapabilities()">Solutions</a></li>
+                <li><a (click)="scrollToPricing()">Pricing</a></li>
+                <li><a (click)="scrollToContactForm()">Contact</a></li>
+            </ul>
+          
+        </nav>
+    </header>
 
-  <!-- AdSense Ad Unit -->
-  <ins class="adsbygoogle"
-       style="display:block"
-       data-ad-client="ca-pub-8922143154605739"
-       data-ad-slot="1234567890"
-       data-ad-format="auto"></ins>
-  <script>
-       (adsbygoogle = window.adsbygoogle || []).push({});
-  </script>
+    <!-- Hero Section -->
+    <section class="hero">
+        <h1>Docker Compose Manager</h1>
+        <p>Simplifies the configuration of multi-container applications using Docker</p>
+        <button (click)="onButtonClick()" class="cta">Try it out</button>
+    </section>
 
-  <div class="content">
-    <button *ngIf="!isComposeFormPage" class="big-button" (click)="onButtonClick()">Generate Docker Compose File</button>
-  </div>
-  <router-outlet></router-outlet>
+    <!-- Main Content Section -->
+    <main>
+
+        <!-- Key Capabilities -->
+        <section id="key-capabilities" class="key-capabilities-section">
+          <h2>Key Capabilities</h2>
+          <p class="subheading">Explore the powerful features of our Docker Compose Manager.</p>
+          <div class="capabilities-grid">
+              <div class="capability-item">
+                  <div class="icon-container">
+                      <i class="fas fa-cogs"></i> <!-- Replace with your desired icon -->
+                  </div>
+                  <h3>Visual Configuration Interface</h3>
+                  <p>Design and manage Docker Compose configurations with an intuitive interface.</p>
+              </div>
+              <div class="capability-item">
+                  <div class="icon-container">
+                      <i class="fas fa-layer-group"></i>
+                  </div>
+                  <h3>Multi-Service Support</h3>
+                  <p>Easily configure and manage multiple services in a single environment.</p>
+              </div>
+              <div class="capability-item">
+                  <div class="icon-container">
+                      <i class="fas fa-sliders-h"></i>
+                  </div>
+                  <h3>Environment Variables Management</h3>
+                  <p>Handle environment variables seamlessly for your services.</p>
+              </div>
+              <div class="capability-item">
+                  <div class="icon-container">
+                      <i class="fas fa-database"></i>
+                  </div>
+                  <h3>Volume Mapping</h3>
+                  <p>Map volumes efficiently to manage persistent data.</p>
+              </div>
+              <div class="capability-item">
+                  <div class="icon-container">
+                      <i class="fas fa-network-wired"></i>
+                  </div>
+                  <h3>Network Configuration</h3>
+                  <p>Customize network settings for seamless communication between services.</p>
+              </div>
+              <div class="capability-item">
+                  <div class="icon-container">
+                      <i class="fas fa-project-diagram"></i>
+                  </div>
+                  <h3>Service Dependencies</h3>
+                  <p>Define and manage service dependencies with ease.</p>
+              </div>
+          </div>
+      </section>
+
+      <!-- Pricing Section-->
+
+      <section id="pricing" class="pricing-section">
+        <h2>Pricing</h2>
+        <p class="subheading">Choose the plan that works best for you</p>
+        
+        <div class="pricing-toggle">
+        </div>
+        
+        <div class="pricing-cards">
+            <div class="pricing-card">
+                <h3>Free</h3>
+                <div class="price">
+                    <span class="currency">$</span>0<span class="period">/mo</span>
+                </div>
+                <ul>
+                    <li>Generate files fast ✅</li>
+                    <li>Live file generation ❌</li>
+                    <li>Service Templates ❌</li>
+                    <li>Configuration Validation ❌</li>
+                    <li>Import Functionality ❌</li>
+                </ul>
+                <button>Already in use</button>
+            </div>
+    
+            <div class="pricing-card featured">
+                <h3>Apprentice Tier</h3>
+                <div class="price">
+                    <span class="currency">$</span>3<span class="period">/mo</span>
+                </div>
+                <ul>
+                  <li>Generate files fast ✅</li>
+                  <li>Live file generation ✅</li>
+                  <li>Service Templates ✅</li>
+                  <li>Configuration Validation ❌</li>
+                  <li>Import Functionality ❌</li>
+                </ul>
+                <button>Get it now</button>
+            </div>
+    
+            <div class="pricing-card">
+                <h3>Pro Tier</h3>
+                <div class="price">
+                    <span class="currency">$</span>3.5<span class="period">/mo</span>
+                </div>
+                <ul>
+                  <li>Generate files fast ✅</li>
+                  <li>Live file generation ✅</li>
+                  <li>Service Templates ✅</li>
+                  <li>Configuration Validation ✅</li>
+                  <li>Import Functionality ✅</li>
+                </ul>
+                <button>Get it now</button>
+            </div>
+        </div>
+    </section>
+
+      <!--Contact Form Section-->
+
+       <!-- Contact Section -->
+       <section id="contact" class="contact-section">
+        <h2>Contact Us</h2>
+        <p class="subheading">We'd love to hear from you! Please reach out with any questions or feedback.</p>
+
+        <form action="mailto:jfcm98647@example.com" method="post" enctype="text/plain">
+            <div class="form-group">
+                <label for="name">Your Name</label>
+                <input type="text" id="name" name="name" required />
+            </div>
+
+            <div class="form-group">
+                <label for="email">Your Email</label>
+                <input type="email" id="email" name="email" required />
+            </div>
+
+            <div class="form-group">
+                <label for="message">Your Message</label>
+                <textarea id="message" name="message" rows="5" required></textarea>
+            </div>
+
+            <button type="submit" class="cta" >Send Message</button>
+        </form>
+    </section>
+       
+
+        <!-- Footer Section -->
+        <footer>
+            <p>© 2025 Docker Compose Manager. All rights reserved.</p>
+        </footer>
+    </main>
+
 </body>
+
 </html>

@@ -25,6 +25,7 @@ export class DockerComposeService {
     previewDockerComposeContent(config: DockerComposeConfig): string {
       return this.generateDockerComposeContent(config);
     }
+    
 
   private generateDockerComposeContent(config: DockerComposeConfig): string {
     const { serviceName, dockerImage, hostPort, containerPort, environment, volumes } = config;

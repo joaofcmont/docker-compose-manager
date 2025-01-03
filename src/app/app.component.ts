@@ -1,4 +1,4 @@
-import { CommonModule } from '@angular/common';
+import { CommonModule, ViewportScroller } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { Router, RouterModule } from '@angular/router';
 import { inject } from '@vercel/analytics'; 
@@ -12,15 +12,14 @@ import { inject } from '@vercel/analytics';
 })
 export class AppComponent implements OnInit{
 
-  constructor(private router: Router) {}
+  constructor(private router: Router, private viewportScroller: ViewportScroller) {}
 
   ngOnInit(): void {
     inject();
   
 }
-
-
   navigateHome() {
     this.router.navigate(['/home']);
   }
+
 }

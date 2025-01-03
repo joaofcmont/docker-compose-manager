@@ -1,66 +1,122 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta name="google-adsense-account" content="ca-pub-8922143154605739">
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Docker Compose Form</title>
-
-</head>
 <body>
-    <div class="form-container">
-        <h2>Create Docker Compose File</h2>
-        <form [formGroup]="composeForm" (ngSubmit)="generateDockerComposeFile()">
-          <label for="serviceName">Service Name</label>
-          <input 
-            type="text" 
-            id="serviceName" 
-            formControlName="serviceName"
-            placeholder="Enter service name" 
-            title="Letters, numbers, dashes, and underscores only">
-      
-          <label for="dockerImage">Docker Image</label>
-          <input 
-            type="text" 
-            id="dockerImage" 
-            formControlName="dockerImage"
-            placeholder="e.g., nginx:latest" 
-            title="Format: name:tag (e.g., nginx:latest)">
-      
-          <label for="hostPort">Host Port</label>
-          <input 
-            type="number" 
-            id="hostPort" 
-            formControlName="hostPort"
-            placeholder="Port to expose on host" 
-            min="1" 
-            max="65535">
-      
-          <label for="containerPort">Container Port</label>
-          <input 
-            type="number" 
-            id="containerPort" 
-            formControlName="containerPort"
-            placeholder="Port inside the container" 
-            min="1" 
-            max="65535">
-      
-          <label for="environment">Environment Variables (key=value)</label>
-          <textarea 
-            id="environment" 
-            formControlName="environment"
-            rows="3" 
-            placeholder="VAR1=value1, VAR2=value2"></textarea>
-      
-          <label for="volumes">Volumes (Host path to Container path)</label>
-          <textarea 
-            id="volumes" 
-            formControlName="volumes"
-            rows="2" 
-            placeholder="./data:/var/lib/data"></textarea>
-      
-          <button type="submit">Generate Docker Compose File</button>
-        </form>
-      </div> 
+  <!-- Header with Navigation -->
+  <header>
+    <nav>
+      <a href="/">
+        <img src="assets/docker-mark-blue.png" alt="Docker Compose Manager Icon" class="logo">
+      </a>
+        <ul>
+            <li><a href="#solutions">Solutions</a></li>
+            <li><a href="#pricing">Pricing</a></li>
+            <li><a href="#contact">Contact</a></li>
+        </ul>
+
+    </nav>
+</header>
+
+  <!-- Main Content Section -->
+  <main>
+      <div class="content-header">
+          <h1>Create Docker Compose File</h1>
+          <p class="subheading">Configure your multi-container application with ease</p>
+      </div>
+
+      <section id="import-section">
+        <p>Upload your Docker Compose YAML file to start working with it.</p>
+    
+        <!-- File input to upload Docker Compose file -->
+        <input type="file" (change)="onFileSelected($event)" accept=".yaml, .yml" />
+        
+        <!-- Button to trigger the import logic -->
+        <button (click)="importFile()" [disabled]="!selectedFile">Import</button>
+    </section>
+
+      <div class="container">
+          <!-- Form Section -->
+          <div class="form-container">
+              <form [formGroup]="composeForm" (ngSubmit)="generateDockerComposeFile()">
+                  <div class="form-group">
+                      <label for="serviceTemplate">Service Template</label>
+                      <select id="serviceTemplate" formControlName="serviceTemplate">
+                          <option value="">Select a template</option>
+                          <option value="nginx">Nginx</option>
+                          <option value="postgres">PostgreSQL</option>
+                          <option value="redis">Redis</option>
+                      </select>
+                  </div>
+
+                  <div class="form-group">
+                      <label for="serviceName">Service Name</label>
+                      <input 
+                          type="text" 
+                          id="serviceName" 
+                          formControlName="serviceName"
+                          placeholder="Enter service name">
+                  </div>
+
+                  <div class="form-group">
+                      <label for="dockerImage">Docker Image</label>
+                      <input 
+                          type="text" 
+                          id="dockerImage" 
+                          formControlName="dockerImage"
+                          placeholder="e.g., nginx:latest">
+                  </div>
+
+                  <div class="form-group">
+                      <label for="hostPort">Host Port</label>
+                      <input 
+                          type="number" 
+                          id="hostPort" 
+                          formControlName="hostPort"
+                          placeholder="Port to expose on host" 
+                          min="1" 
+                          max="65535">
+                  </div>
+
+                  <div class="form-group">
+                      <label for="containerPort">Container Port</label>
+                      <input 
+                          type="number" 
+                          id="containerPort" 
+                          formControlName="containerPort"
+                          placeholder="Port inside the container" 
+                          min="1" 
+                          max="65535">
+                  </div>
+
+                  <div class="form-group">
+                      <label for="environment">Environment Variables (key=value)</label>
+                      <textarea 
+                          id="environment" 
+                          formControlName="environment"
+                          rows="3" 
+                          placeholder="VAR1=value1, VAR2=value2"></textarea>
+                  </div>
+
+                  <div class="form-group">
+                      <label for="volumes">Volumes (Host path to Container path)</label>
+                      <textarea 
+                          id="volumes" 
+                          formControlName="volumes"
+                          rows="2" 
+                          placeholder="./data:/var/lib/data"></textarea>
+                  </div>
+
+                  <button type="submit" class="cta">Generate Docker Compose File</button>
+              </form>
+          </div>
+
+          <!-- YAML Preview Section -->
+          <div class="yaml-preview">
+              <h3>Live YAML Preview</h3>
+              <pre>{{ yamlPreview }}</pre>
+          </div>
+      </div>
+  </main>
+
+  <!-- Footer Section -->
+  <footer>
+      <p>© 2025 Docker Compose Manager. All rights reserved.</p>
+  </footer>
 </body>
-</html>

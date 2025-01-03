@@ -11,10 +11,12 @@
     <!-- Header with Navigation -->
     <header>
         <nav>
+          <a href="/">
             <img src="assets/docker-mark-blue.png" alt="Docker Compose Manager Icon" class="logo">
+            </a>
             <ul>
                 <li><a (click)="scrollToKeyCapabilities()">Solutions</a></li>
-                <li><a >Pricing</a></li>
+                <li><a (click)="scrollToPricing()">Pricing</a></li>
                 <li><a (click)="scrollToContactForm()">Contact</a></li>
             </ul>
           
@@ -80,6 +82,63 @@
               </div>
           </div>
       </section>
+
+      <!-- Pricing Section-->
+
+      <section id="pricing" class="pricing-section">
+        <h2>Pricing</h2>
+        <p class="subheading">Choose the plan that works best for you</p>
+        
+        <div class="pricing-toggle">
+        </div>
+        
+        <div class="pricing-cards">
+            <div class="pricing-card">
+                <h3>Free</h3>
+                <div class="price">
+                    <span class="currency">$</span>0<span class="period">/mo</span>
+                </div>
+                <ul>
+                    <li>Generate files fast ✅</li>
+                    <li>Live file generation ❌</li>
+                    <li>Service Templates ❌</li>
+                    <li>Configuration Validation ❌</li>
+                    <li>Import Functionality ❌</li>
+                </ul>
+                <button>Already in use</button>
+            </div>
+    
+            <div class="pricing-card featured">
+                <h3>Apprentice Tier</h3>
+                <div class="price">
+                    <span class="currency">$</span>3<span class="period">/mo</span>
+                </div>
+                <ul>
+                  <li>Generate files fast ✅</li>
+                  <li>Live file generation ✅</li>
+                  <li>Service Templates ✅</li>
+                  <li>Configuration Validation ❌</li>
+                  <li>Import Functionality ❌</li>
+                </ul>
+                <button>Get it now</button>
+            </div>
+    
+            <div class="pricing-card">
+                <h3>Pro Tier</h3>
+                <div class="price">
+                    <span class="currency">$</span>5<span class="period">/mo</span>
+                </div>
+                <ul>
+                  <li>Generate files fast ✅</li>
+                  <li>Live file generation ✅</li>
+                  <li>Service Templates ✅</li>
+                  <li>Configuration Validation ✅</li>
+                  <li>Export/Import files ✅</li>
+                </ul>
+                <button>Get it now</button>
+            </div>
+        </div>
+    </section>
 
       <!--Contact Form Section-->
 

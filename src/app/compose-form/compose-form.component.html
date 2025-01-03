@@ -2,7 +2,9 @@
   <!-- Header with Navigation -->
   <header>
     <nav>
+      <a href="/">
         <img src="assets/docker-mark-blue.png" alt="Docker Compose Manager Icon" class="logo">
+      </a>
         <ul>
             <li><a href="#solutions">Solutions</a></li>
             <li><a href="#pricing">Pricing</a></li>
@@ -18,6 +20,16 @@
           <h1>Create Docker Compose File</h1>
           <p class="subheading">Configure your multi-container application with ease</p>
       </div>
+
+      <section id="import-section">
+        <p>Upload your Docker Compose YAML file to start working with it.</p>
+    
+        <!-- File input to upload Docker Compose file -->
+        <input type="file" (change)="onFileSelected($event)" accept=".yaml, .yml" />
+        
+        <!-- Button to trigger the import logic -->
+        <button (click)="importFile()" [disabled]="!selectedFile">Import</button>
+    </section>
 
       <div class="container">
           <!-- Form Section -->

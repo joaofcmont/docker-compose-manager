@@ -13,6 +13,7 @@ import { filter } from 'rxjs/operators';
 })
 export class HomeComponent implements OnDestroy {
   private routerSubscription: Subscription;
+  isYearly = false;
   isComposeFormPage = false;
 
   constructor(private router: Router, private viewportScroller: ViewportScroller) {
@@ -36,6 +37,9 @@ export class HomeComponent implements OnDestroy {
 
   scrollToContactForm(): void{
     this.viewportScroller.scrollToAnchor('contact')
+}
+scrollToPricing(): void{
+  this.viewportScroller.scrollToAnchor('pricing')
 }
 
 }

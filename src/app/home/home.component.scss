@@ -11,6 +11,33 @@ body {
   color: #333;
   background-color: #f8f8f8;
 }
+/* Add margin between all major sections */
+.key-capabilities-section,
+.pricing-section,
+.contact-section {
+  margin-bottom: 4rem;
+}
+
+/* Increase spacing between capability items */
+.capabilities-grid {
+  gap: 30px;
+  margin: 3rem auto;
+}
+
+/* Add more space around headings */
+.key-capabilities-section h2,
+.pricing-section h2,
+.contact-section h2 {
+  margin: 2rem 0;
+}
+
+/* Increase spacing for pricing cards */
+.pricing-cards {
+  margin: 3rem auto;
+  gap: 3rem;
+}
+
+
 
 /* Header and Navigation */
 header {
@@ -155,10 +182,19 @@ nav li:last-child a:hover {
   background: #444;
 }
 
+a img {
+  cursor: pointer; /* Makes the image look like a clickable button */
+  transition: transform 0.3s ease; /* Smooth hover effect */
+}
+
+a img:hover {
+  transform: scale(1.05); /* Slightly enlarge the image on hover */
+}
+
 /* Key-Capabilities Section */
 #key-capabilities {
   padding: 4rem 2rem;
-  background-color: #f8f8f8;
+  background-color: white;
   max-width: 1200px;
   margin: 0 auto;
 }
@@ -196,6 +232,7 @@ nav li:last-child a:hover {
     max-width: 1200px;
     margin: 0 auto;
 }
+
 
 .capability-item {
     background: #fff;
@@ -292,6 +329,81 @@ nav li:last-child a:hover {
 
 .contact-section button:hover {
   background-color: #0056b3;
+}
+
+/*Pricing*/
+
+.pricing-section {
+  padding: 4rem 2rem;
+  text-align: center;
+}
+
+.pricing-toggle {
+  margin-bottom: 2rem;
+}
+
+.pricing-toggle span {
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+}
+
+.pricing-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.pricing-card {
+  padding: 2rem;
+  border-radius: 8px;
+  border: 1px solid #eee;
+}
+
+.pricing-card.featured {
+  background: #333;
+  color: white;
+}
+
+.price {
+  font-size: 2.5rem;
+  margin: 1rem 0;
+}
+
+.price .currency {
+  font-size: 1.5rem;
+  vertical-align: super;
+}
+
+.price .period {
+  font-size: 1rem;
+  color: #666;
+}
+
+.pricing-card ul {
+  list-style: none;
+  padding: 0;
+  margin: 2rem 0;
+}
+
+.pricing-card li {
+  margin: 0.5rem 0;
+}
+
+.pricing-card button {
+  width: 100%;
+  padding: 0.8rem;
+  border: none;
+  border-radius: 4px;
+  background: #333;
+  color: white;
+  cursor: pointer;
+}
+
+.pricing-card.featured button {
+  background: white;
+  color: #333;
 }
 
 

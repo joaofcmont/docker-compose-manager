@@ -280,22 +280,29 @@ a img:hover {
 }
 
 /* Contact Section Styles */
+/* Contact Section Styles */
 .contact-section {
-    flex-basis: 50%;
-    background-color: white;
-    padding: 2rem;
-    border-radius: 8px;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-  }
+  flex-basis: 50%;
+  background-color: white;
+  padding: 3rem;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  max-width: 600px;  /* Limit the width for a more compact form */
+  margin: 0 auto;  /* Center the form */
+}
 
 .contact-section h2 {
   font-size: 2.5rem;
   margin-bottom: 20px;
+  text-align: center;
+  color: #333;
 }
 
 .contact-section .subheading {
   font-size: 1.2rem;
   margin-bottom: 40px;
+  text-align: center;
+  color: #666;
 }
 
 .contact-section .form-group {
@@ -306,30 +313,66 @@ a img:hover {
   display: block;
   font-weight: bold;
   margin-bottom: 8px;
+  color: #333;
 }
 
-.contact-section input, .contact-section textarea {
+.contact-section input,
+.contact-section textarea {
   width: 100%;
-  padding: 10px;
+  padding: 12px;
   font-size: 1rem;
-  border: 1px solid #ccc;
-  border-radius: 5px;
-  margin-bottom: 10px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  margin-bottom: 15px;
+  transition: border-color 0.3s ease;
+}
+
+.contact-section input:focus,
+.contact-section textarea:focus {
+  border-color: #007BFF;  /* Change border color on focus */
+  outline: none;
+}
+
+.contact-section textarea {
+  resize: vertical;  /* Allow vertical resizing for the textarea */
+  min-height: 150px;  /* Set a minimum height for the textarea */
 }
 
 .contact-section button {
-  padding: 15px 30px;
+  padding: 12px 25px;
   background-color: #007bff;
   color: white;
   font-size: 1.1rem;
   border: none;
-  border-radius: 5px;
+  border-radius: 8px;
   cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.3s ease;
+  width: 100%;  /* Make the button full-width */
 }
 
 .contact-section button:hover {
   background-color: #0056b3;
+  transform: translateY(-2px);  /* Add subtle hover effect */
 }
+
+.contact-section button:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+  color: #666;
+}
+
+.contact-section .form-group input,
+.contact-section .form-group textarea {
+  font-size: 1rem;
+  color: #333;
+}
+
+.contact-section .form-group input::placeholder,
+.contact-section .form-group textarea::placeholder {
+  color: #aaa;
+  font-style: italic;
+}
+
 
 /*Pricing*/
 

@@ -1,15 +1,18 @@
 /* Reset and base styles */
 * {
-  margin: 0;
-  padding: 0;
   box-sizing: border-box;
+}
+:root {
+  --primary-color: #007BFF;
+  --secondary-color: #333;
+  --background-color: #f8f8f8;
 }
 
 body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
   line-height: 1.6;
-  color: #333;
-  background-color: #f8f8f8;
+  color: var(--secondary-color);
+  background-color:var(--background-color);
 }
 /* Add margin between all major sections */
 .key-capabilities-section,
@@ -25,9 +28,7 @@ body {
 }
 
 /* Add more space around headings */
-.key-capabilities-section h2,
-.pricing-section h2,
-.contact-section h2 {
+h2 {
   margin: 2rem 0;
 }
 
@@ -63,39 +64,6 @@ header {
   justify-content: flex-end; 
 }
 
-/* Styling for the Sign In and Register anchor tags */
-.auth-nav a {
-  padding: 10px 20px;  // Adds padding inside the links, making them look like buttons
-  text-decoration: none;  // Removes the underline from the links
-  font-weight: bold;  // Bold text for emphasis
-  border-radius: 5px;  // Rounded corners for the links
-  cursor: pointer;  // Changes the cursor to a pointer on hover
-  transition: background-color 0.3s ease-in-out; 
-  font-size: 16px;  // Font size for readability
-}
-
-.sign-in:hover {
-  background-color: #1E1E1E;  // Slightly lighter on hover
-}
-
-/* Styling for the Register link */
-.register {
-  background-color: #D3D3D3;  // Grey background color for Register
-  color: #17191E;  // Dark text color
-}
-
-.register:hover {
-  background-color: #B0B0B0;  // Slightly darker on hover
-}
-
-/* Responsive Design (Optional for smaller screens) */
-@media (max-width: 768px) {
-  .auth-nav {
-    flex-direction: column;  // Stack the links vertically on smaller screens
-    gap: 15px;  // Adds more space between the links
-  }
-}
-
 nav {
   background-color: white;  /* Ensure nav has a white background */
   display: flex;
@@ -120,7 +88,7 @@ nav a {
 }
 
 nav a:hover {
-  color: #333;
+  color: var(--secondary-color);
 }
 
 nav li:nth-last-child(2) a {
@@ -130,7 +98,7 @@ nav li:nth-last-child(2) a {
 }
 
 nav li:last-child a {
-  background: #333;
+  background: var(--secondary-color);
   color: white;
   padding: 0.5rem 1rem;
   border-radius: 4px;
@@ -145,7 +113,7 @@ nav li:last-child a:hover {
 .hero {
   padding: 8rem 2rem 4rem;
   text-align: center;
-  background: #f8f8f8;
+  background: var(--background-color);
   min-height: 60vh;
   display: flex;
   flex-direction: column;
@@ -157,7 +125,7 @@ nav li:last-child a:hover {
   font-size: 3.5rem;
   font-weight: bold;
   margin-bottom: 1rem;
-  color: #333;
+  color: var(--secondary-color);
 }
 
 .hero p {
@@ -168,7 +136,7 @@ nav li:last-child a:hover {
 }
 
 .cta {
-  background: #333;
+  background: var(--secondary-color);
   color: white;
   border: none;
   padding: 1rem 2rem;
@@ -250,14 +218,14 @@ a img:hover {
 
 .icon-container {
     font-size: 2rem;
-    color: #007BFF; /* Use your theme's primary color */
+    color: var(--primary-color); /* Use your theme's primary color */
     margin-bottom: 15px;
 }
 
 .capability-item h3 {
     font-size: 1.2rem;
     margin-bottom: 10px;
-    color: #333;
+    color: var(--secondary-color);
 }
 
 .capability-item p {
@@ -313,7 +281,7 @@ a img:hover {
   display: block;
   font-weight: bold;
   margin-bottom: 8px;
-  color: #333;
+  color: var(--secondary-color)
 }
 
 .contact-section input,
@@ -364,7 +332,7 @@ a img:hover {
 .contact-section .form-group input,
 .contact-section .form-group textarea {
   font-size: 1rem;
-  color: #333;
+  color: var(--secondary-color);
 }
 
 .contact-section .form-group input::placeholder,
@@ -405,7 +373,7 @@ a img:hover {
 }
 
 .pricing-card.featured {
-  background: #333;
+  background: var(--secondary-color);
   color: white;
 }
 
@@ -426,7 +394,6 @@ a img:hover {
 
 .pricing-card ul {
   list-style: none;
-  padding: 0;
   margin: 2rem 0;
 }
 
@@ -439,14 +406,14 @@ a img:hover {
   padding: 0.8rem;
   border: none;
   border-radius: 4px;
-  background: #333;
+  background: var(--secondary-color);
   color: white;
   cursor: pointer;
 }
 
 .pricing-card.featured button {
   background: white;
-  color: #333;
+  color: var(--secondary-color);
 }
 
 

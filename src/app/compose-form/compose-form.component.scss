@@ -1,9 +1,17 @@
 /* Global Styles */
+
+:root {
+  --primary-color: #007BFF;
+  --secondary-color: #333;
+  --background-color: #f8f8f8;
+}
+
+
 body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
   line-height: 1.6;
-  color: #333;
-  background-color: #f8f8f8;  // Update to match your theme's background color
+  color: var(--secondary-color);
+  background-color: var(--background-color);  // Update to match your theme's background color
 }
 
 /*Header and Navigation*/
@@ -59,7 +67,7 @@ nav a {
 }
 
 nav a:hover {
-  color: #333;
+  color: var(--secondary-color);
 }
 
 nav li:nth-last-child(2) a {
@@ -140,7 +148,7 @@ label {
   display: block;
   margin-bottom: 0.5rem;
   font-weight: bold;
-  color: #333;
+  color: var(--secondary-color);
 }
 
 input,
@@ -156,15 +164,15 @@ textarea {
 input:focus,
 select:focus,
 textarea:focus {
-  outline-color: #007BFF;
-  border-color: #007BFF;
+  outline-color: var(--primary-color);
+  border-color: var(--primary-color);
 }
 
 button.cta {
   width: 100%;
   padding: 12px;
   margin-top: 1rem;
-  background-color: #007BFF;
+  background-color:var(--primary-color);
   color: white;
   font-weight: bold;
   border-radius: 5px;
@@ -173,7 +181,7 @@ button.cta {
 }
 
 button.cta:hover {
-  background-color: #0056b3;
+  background-color: var(--primary-color);
   transform: scale(1.05);
 }
 

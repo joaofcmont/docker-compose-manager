@@ -1,32 +1,70 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-  <meta name="google-adsense-account" content="ca-pub-8922143154605739">
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Docker Compose Manager</title>
-  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Docker Compose Manager</title>
 </head>
-<header>
-</header>
+
 <body>
-  
-  <p>Docker Compose Manager helps you generate Docker Compose YAML files with ease. It simplifies the configuration of multi-container applications using Docker.</p>
-  <p>To get started, click the "Generate Docker Compose File" button to create a customized configuration for your project.</p>
+    <!-- Header with Navigation -->
+    <header>
+        <nav>
+            <img src="assets/docker-mark-blue.png" alt="Docker Compose Manager Icon" class="logo">
+            <ul>
+                <li><a href="#solutions">Solutions</a></li>
+                <li><a href="#pricing">Pricing</a></li>
+                <li><a href="#contact">Contact</a></li>
+            </ul>
+            <div class="auth-nav">
+              <a href="/sign-in" class="auth-nav-button-signin">Sign In</a>
+              <a href="/register" class="auth-nav-button-register">Register</a>
+          </div>
+        </nav>
+    </header>
 
-  <!-- AdSense Ad Unit -->
-  <ins class="adsbygoogle"
-       style="display:block"
-       data-ad-client="ca-pub-8922143154605739"
-       data-ad-slot="1234567890"
-       data-ad-format="auto"></ins>
-  <script>
-       (adsbygoogle = window.adsbygoogle || []).push({});
-  </script>
+    <!-- Hero Section -->
+    <section class="hero">
+        <h1>Docker Compose Manager</h1>
+        <p>Simplifies the configuration of multi-container applications using Docker</p>
+        <button class="cta">Try it out</button>
+    </section>
 
-  <div class="content">
-    <button *ngIf="!isComposeFormPage" class="big-button" (click)="onButtonClick()">Generate Docker Compose File</button>
-  </div>
-  <router-outlet></router-outlet>
+    <!-- Main Content Section -->
+    <main>
+
+
+        <!-- Use Cases Section -->
+        <section id="use-cases">
+            <h2>Use Cases</h2>
+            <div class="use-case-list">
+                <div class="use-case-item">
+                    <h3>UI Design</h3>
+                    <p>Design, prototype, and test Docker Compose configurations with ease.</p>
+                </div>
+                <div class="use-case-item">
+                    <h3>UX Design</h3>
+                    <p>Optimize user flows for Docker-based applications and services.</p>
+                </div>
+                <div class="use-case-item">
+                    <h3>Prototyping</h3>
+                    <p>Quickly prototype Docker Compose environments with real-time feedback.</p>
+                </div>
+                <div class="use-case-item">
+                    <h3>Wireframing</h3>
+                    <p>Create wireframes for multi-container applications to visualize architecture.</p>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- Footer Section -->
+        <footer>
+            <p>© 2025 Docker Compose Manager. All rights reserved.</p>
+        </footer>
+    </main>
+
 </body>
+
 </html>

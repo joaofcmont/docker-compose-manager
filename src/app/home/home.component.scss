@@ -1,130 +1,231 @@
-/* Ensure body and html take up the full height of the viewport */
-body,
-html {
-  height: 100%;
+/* Reset and base styles */
+* {
   margin: 0;
-  display: flex;
-  flex-direction: column;
-  overflow: auto;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; /* Modern font */
+  padding: 0;
+  box-sizing: border-box;
 }
 
-/* Header stays at the top */
-.header {
-  background-color: #f8f9fa;
-  padding: 20px;
-  text-align: center;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Add a subtle shadow */
-  position: sticky;
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  line-height: 1.6;
+  color: #333;
+  background-color: #f8f8f8;
+}
+
+/* Header and Navigation */
+header {
+  background: white;
+  padding: 0.75rem 2rem;
+  position: fixed;
+  width: 100%;
   top: 0;
-  z-index: 100;
-  font-size: 24px; /* Make the header title larger for better readability */
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  z-index: 1000;
+  justify-content: space-between;
+  align-items: center;
+
+}
+.logo {
+  height: 48px;
+  width: auto;
 }
 
+/* Styling for the auth-nav container */
+.auth-nav {
+  gap: 50px;  
+  justify-content: flex-end; 
+}
 
-/* Content centers text and button both vertically and horizontally */
-.content {
-  flex: 1;
-  align-items: center; /* Vertical centering */
-  justify-content: center; /* Horizontal centering */
+/* Styling for the Sign In and Register anchor tags */
+.auth-nav a {
+  padding: 10px 20px;  // Adds padding inside the links, making them look like buttons
+  text-decoration: none;  // Removes the underline from the links
+  font-weight: bold;  // Bold text for emphasis
+  border-radius: 5px;  // Rounded corners for the links
+  cursor: pointer;  // Changes the cursor to a pointer on hover
+  transition: background-color 0.3s ease-in-out; 
+  font-size: 16px;  // Font size for readability
+}
+
+.sign-in:hover {
+  background-color: #1E1E1E;  // Slightly lighter on hover
+}
+
+/* Styling for the Register link */
+.register {
+  background-color: #D3D3D3;  // Grey background color for Register
+  color: #17191E;  // Dark text color
+}
+
+.register:hover {
+  background-color: #B0B0B0;  // Slightly darker on hover
+}
+
+/* Responsive Design (Optional for smaller screens) */
+@media (max-width: 768px) {
+  .auth-nav {
+    flex-direction: column;  // Stack the links vertically on smaller screens
+    gap: 15px;  // Adds more space between the links
+  }
+}
+
+nav ul {
+  list-style: none;
+  display: flex;
+  justify-content: flex-end;
+  gap: 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+nav a {
+  text-decoration: none;
+  color: #666;
+  font-size: 1rem;
+  transition: color 0.3s ease;
+}
+
+nav a:hover {
+  color: #333;
+}
+
+nav li:nth-last-child(2) a {
+  background: #f5f5f5;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+}
+
+nav li:last-child a {
+  background: #333;
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  transition: background-color 0.3s ease;
+}
+
+nav li:last-child a:hover {
+  background: #444;
+}
+
+/* Hero Section */
+.hero {
+  padding: 8rem 2rem 4rem;
+  text-align: center;
+  background: #f8f8f8;
+  min-height: 60vh;
   display: flex;
   flex-direction: column;
-  height: 100vh; /* Full height of viewport */
-  text-align: center;
-  padding: 20px;
-  gap: 0; /* Remove default gap between flex items */
-  box-sizing: border-box; /* To avoid overflow issues */
+  align-items: center;
+  justify-content: center;
 }
 
-/* Styling for Paragraphs */
- p {
-  font-size: 18px;
-  line-height: 1.8;
-  color: white;
-  margin-bottom: 20px;
-  text-align: center;
-  max-width: 700px; /* Prevents text from stretching too wide on large screens */
-  margin-left: auto;
-  margin-right: auto;
-  font-family: monospace;
-  padding: 0 15px; /* Padding to ensure text doesn't touch the sides */
-  font-weight: 300; /* Lighter font weight for better readability */
+.hero h1 {
+  font-size: 3.5rem;
+  font-weight: bold;
+  margin-bottom: 1rem;
+  color: #333;
 }
 
-/* AdSense Ad Unit Styling */
-.adsbygoogle {
-  margin: 20px 0;
-  text-align: center;
+.hero p {
+  font-size: 1.25rem;
+  color: #666;
+  max-width: 600px;
+  margin: 0 auto 2rem;
 }
 
-/* Button Styling */
-.big-button {
-  width: 250px;
-  height: 60px;
-  font-size: 18px;
-  background-color: #1D63ED;
+.cta {
+  background: #333;
   color: white;
   border: none;
-  border-radius: 8px;
+  padding: 1rem 2rem;
+  font-size: 1rem;
+  border-radius: 4px;
   cursor: pointer;
-  font-weight: bold;
-  position: relative;
-  display: flex;
-  align-items: center;
-  top: -120px;
-  justify-content: center;
-  transition: background-color 0.3s ease, transform 0.2s ease;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); /* Add subtle shadow for depth */
-  transform: scale(1);
+  transition: background-color 0.3s ease;
 }
 
-/* Hover Effect for Button */
-.big-button:hover {
-  background-color: #0056b3;
-  transform: scale(1.05); /* Slightly increase the button size */
+.cta:hover {
+  background: #444;
 }
 
-.big-button:active {
-  background-color: #003f7f;
-  transform: scale(0.98); /* Slightly shrink on click for interaction feedback */
+/* Use Cases Section */
+#use-cases {
+  padding: 4rem 2rem;
+  background-color: #f8f8f8;
+  max-width: 1200px;
+  margin: 0 auto;
 }
 
-/* Media Queries for Responsiveness */
+#use-cases h2 {
+  text-align: center;
+  font-size: 2rem;
+  margin-bottom: 3rem;
+  color: #333;
+}
 
-/* For tablets and below */
+.use-case-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 2rem;
+}
+
+.use-case-item {
+  padding: 2rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.use-case-item h3 {
+  font-size: 1.25rem;
+  margin-bottom: 1rem;
+  color: #333;
+}
+
+.use-case-item p {
+  color: #666;
+}
+
+/* Footer */
+footer {
+  text-align: center;
+  padding: 2rem;
+  color: #666;
+  background: white;
+  margin-top: 4rem;
+}
+
+/* Responsive Design */
 @media (max-width: 768px) {
-  .header {
-    font-size: 20px; /* Smaller font for smaller screens */
-    padding: 15px;
+  nav ul {
+      gap: 1rem;
   }
-
-  .content p {
-    font-size: 16px; /* Smaller font on mobile */
-    line-height: 1.6;
-    padding: 0 10px;
+  
+  .hero h1 {
+      font-size: 2.5rem;
   }
-
-  .big-button {
-    width: 200px;
-    font-size: 16px; /* Make the button slightly smaller on mobile */
+  
+  .hero p {
+      font-size: 1.1rem;
+  }
+  
+  #use-cases {
+      padding: 2rem 1rem;
+      
   }
 }
 
-/* For mobile phones */
 @media (max-width: 480px) {
-  .header {
-    font-size: 18px; /* Even smaller for phones */
-    padding: 10px;
+  nav ul {
+      flex-direction: column;
+      align-items: center;
+      gap: 0.5rem;
   }
-
-  .content p {
-    font-size: 14px; /* Font size reduced for very small screens */
-    line-height: 1.5;
-    padding: 0 5px;
+  
+  .hero {
+      padding: 6rem 1rem 3rem;
   }
-
-  .big-button {
-    width: 180px; /* Smaller button for mobile */
-    font-size: 14px;
+  
+  .hero h1 {
+      font-size: 2rem;
   }
 }

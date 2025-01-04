@@ -1,4 +1,11 @@
 User-agent: *
+Allow: /
 Disallow: /admin/
-Allow: /public/
-Sitemap: https://docker-compose-manager.vercel.app/sitemap.xml
+
+# Allow specific public paths
+Allow: /home
+Allow: /compose-form
+Allow: /contact
+
+# Sitemap
+Sitemap: https://docker-compose-manager-d829b.web.app/sitemap.xml

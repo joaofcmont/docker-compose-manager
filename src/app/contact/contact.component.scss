@@ -1,0 +1,64 @@
+// Basic variables
+$blue: #007BFF;
+$white: #fff;
+
+.logo {
+  height: 48px;
+}
+
+header {
+  background: $white;
+  padding: 10px;
+  border-bottom: 1px solid #ddd;
+  margin-bottom: 20px;
+}
+
+.contact-section {
+  padding: 20px;
+  max-width: 500px;
+  margin: 0 auto;
+
+  h2 {
+    font-size: 24px;
+    margin-bottom: 10px;
+  }
+
+  .subheading {
+    margin-bottom: 20px;
+    color: #666;
+  }
+
+  .form-group {
+    margin-bottom: 15px;
+
+    label {
+      display: block;
+      margin-bottom: 5px;
+    }
+
+    input, textarea {
+      width: 100%;
+      padding: 8px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+
+    textarea {
+      min-height: 100px;
+    }
+  }
+
+  button {
+    width: 100%;
+    padding: 10px;
+    background: $blue;
+    color: $white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+
+    &:hover {
+      background: darken($blue, 10%);
+    }
+  }
+}

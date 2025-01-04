@@ -36,7 +36,7 @@ export class HomeComponent implements OnDestroy {
 }
 
   scrollToContactForm(): void{
-    this.viewportScroller.scrollToAnchor('contact')
+  this.viewportScroller.scrollToAnchor('contact')
 }
 scrollToPricing(): void{
   this.viewportScroller.scrollToAnchor('pricing')

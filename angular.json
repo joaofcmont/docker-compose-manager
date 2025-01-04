@@ -3,7 +3,7 @@
   "version": 1,
   "newProjectRoot": "projects",
   "projects": {
-    "dockerComposeMananger": {
+    "docker-compose-manager": {
       "projectType": "application",
       "schematics": {
         "@schematics/angular:component": {
@@ -17,7 +17,7 @@
         "build": {
           "builder": "@angular-devkit/build-angular:application",
           "options": {
-            "outputPath": "dist/docker-compose-mananger",
+            "outputPath": "dist/docker-compose-manager",
             "index": "src/index.html",
             "browser": "src/main.ts",
             "polyfills": [
@@ -63,10 +63,10 @@
           "builder": "@angular-devkit/build-angular:dev-server",
           "configurations": {
             "production": {
-              "buildTarget": "dockerComposeMananger:build:production"
+              "buildTarget": "docker-compose-manager:build:production" 
             },
             "development": {
-              "buildTarget": "dockerComposeMananger:build:development"
+              "buildTarget": "docker-compose-manager:build:development"
             }
           },
           "defaultConfiguration": "development"
@@ -85,7 +85,9 @@
             "inlineStyleLanguage": "scss",
             "assets": [
               "src/favicon.ico",
-              "src/assets"
+              "src/assets",
+              "src/robots.txt",
+              "src/sitemap.xml" 
             ],
             "styles": [
               "src/styles.scss"

@@ -31,15 +31,10 @@ export class HomeComponent implements OnDestroy {
   ngOnDestroy(): void {
     this.routerSubscription?.unsubscribe();
   }
-  scrollToKeyCapabilities(): void {
-    this.viewportScroller.scrollToAnchor('key-capabilities');
-}
-
-  scrollToContactForm(): void{
-  this.viewportScroller.scrollToAnchor('contact')
-}
-scrollToPricing(): void{
-  this.viewportScroller.scrollToAnchor('pricing')
-}
+  
+  scrollToSection(section: string, event: Event): void {
+    event.preventDefault();
+    this.viewportScroller.scrollToAnchor(section);
+  }
 
 }

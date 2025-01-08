@@ -4,6 +4,7 @@ $secondary-color: #333;
 $background-color: #f8f8f8;
 $white: #fff;
 $gray: #666;
+$light-gray: #f0f0f0;
 
 // Global Styles
 body {
@@ -114,6 +115,32 @@ main {
   }
 }
 
+// Health Check Section
+.form-container .form-group input[type="checkbox"] {
+  margin-right: 10px;
+}
+
+.form-container .form-group input[type="checkbox"]:checked + label {
+  color: $primary-color;
+}
+
+.form-container .form-group {
+  &.health-check {
+    margin-top: 2rem;
+  }
+
+  input[type="text"], input[type="number"] {
+    width: 100%;
+  }
+}
+
+// Resource Limits Section
+.form-container .form-group {
+  &.resource-limits {
+    margin-top: 2rem;
+  }
+}
+
 .yaml-preview {
   flex-basis: 45%;
   background-color: #f0f0f0;
@@ -156,4 +183,12 @@ main {
 @media (max-width: 768px) {
   .container { flex-direction: column; }
   .form-container, .yaml-preview { flex-basis: 100%; }
+  .form-group {
+    label {
+      font-size: 0.9rem;
+    }
+    input, select, textarea {
+      font-size: 0.9rem;
+    }
+  }
 }

@@ -1,183 +1,156 @@
 import { Injectable } from '@angular/core';
+import * as yaml from 'js-yaml';
 
-interface DockerComposeConfig {
+
+interface ServiceTemplate {
   serviceName: string;
   dockerImage: string;
-  hostPort: string;
-  containerPort: string;
-  environment: string[];
+  ports: { host: string; container: string }[];
   volumes: string[];
-  healthCheck?: {
-    enabled: boolean;
+  healthcheck: {
+    test: string[];
     interval: string;
     timeout: string;
     retries: number;
   };
-  resources?: {
-    cpuLimit: number;
-    memoryLimit: number;
-  };
-  deploy?: {
-    replicas: number;
-    resources?: {
-      limits: {
-        cpus: string;
-        memory: string;
-      };
-    };
-  };
-  restart: string;
-  depends_on?: string[];
+  environment?: string[];  // Make `environment` optional
 }
 
 @Injectable({
   providedIn: 'root',
 })
 export class DockerComposeService {
-  generateAndDownloadFile(
-    config: DockerComposeConfig,
-    filename: string = 'docker-compose.yml'
-  ): void {
-    this.validateConfig(config);
-    console.log('Received config:', config);
-    const dockerComposeContent = this.generateDockerComposeContent(config);
-    console.log('Generated content:', dockerComposeContent);
-    this.downloadFile(dockerComposeContent, filename);
+
+  private readonly SERVICE_TEMPLATES: { [key: string]: ServiceTemplate } = {
+    nginx: {
+      serviceName: 'nginx',
+      dockerImage: 'nginx:alpine',
+      ports: [{ host: '80', container: '80' }],
+      volumes: ['./nginx.conf:/etc/nginx/nginx.conf:ro'],
+      healthcheck: {
+        test: ['CMD', 'curl', '-f', 'http://localhost:80'],
+        interval: '30s',
+        timeout: '10s',
+        retries: 3,
+      },
+    },
+    postgres: {
+      serviceName: 'db',
+      dockerImage: 'postgres:13',
+      ports: [{ host: '5432', container: '5432' }],
+      environment: ['POSTGRES_PASSWORD=${DB_PASSWORD:-password}'],
+      volumes: ['postgres-data:/var/lib/postgresql/data'],
+      healthcheck: {
+        test: ['CMD', 'pg_isready'],
+        interval: '10s',
+        timeout: '5s',
+        retries: 5,
+      },
+    },
+    redis: {
+      serviceName: 'redis',
+      dockerImage: 'redis:alpine',
+      ports: [{ host: '6379', container: '6379' }],
+      volumes: ['redis-data:/data'],
+      healthcheck: {
+        test: ['CMD', 'redis-cli', 'ping'],
+        interval: '10s',
+        timeout: '5s',
+        retries: 3,
+      },
+    }
+  };
+
+  constructor() {}
+
+  // Get a service template by name
+  getServiceTemplate(templateName: string) {
+    return this.SERVICE_TEMPLATES[templateName as keyof typeof this.SERVICE_TEMPLATES];
   }
 
-  previewDockerComposeContent(config: DockerComposeConfig): string {
-    this.validateConfig(config);
-    return this.generateDockerComposeContent(config);
+  // Generate and download the Docker Compose file
+  generateAndDownloadFile(config: any): void {
+    const yamlContent = yaml.dump(config, {
+      indent: 2,
+      lineWidth: -1,
+      noRefs: true,
+      sortKeys: false,
+    });
+
+    const blob = new Blob([yamlContent], { type: 'application/x-yaml' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = 'docker-compose.yml';
+    link.click();
   }
 
-  private generateDockerComposeContent(config: DockerComposeConfig): string {
-    const {
-      serviceName,
-      dockerImage,
-      hostPort,
-      containerPort,
-      environment,
-      volumes,
-      healthCheck,
-      resources,
-      deploy,
-      restart,
-      depends_on,
-    } = config;
+  // Create the Docker Compose configuration based on form values
+  generateDockerComposeConfig(formValues: any) {
+    const healthCheck = formValues.healthCheck;
+    const resources = formValues.resources;
+    const deploy = formValues.deploy;
 
-    let composeContent = `version: '3.8'
-services:
-  ${serviceName}:
-    image: ${dockerImage}
-    ports:
-      - "${hostPort}:${containerPort}"`;
+    const serviceConfig: any = {
+      image: formValues.dockerImage,
+      ports: [`${formValues.hostPort}:${formValues.containerPort}`],
+      environment: this.parseListInput(formValues.environment || ''), // Handle missing environment
+      volumes: this.parseListInput(formValues.volumes || ''),
+      restart: formValues.restart,
+    };
 
-    // Add environment variables if present
-    if (environment && environment.length > 0) {
-      composeContent += `\n    ${this.formatEnvironment(environment)}`;
-    }
-
-    // Add volumes if present
-    if (volumes && volumes.length > 0) {
-      composeContent += `\n    ${this.formatVolumes(volumes)}`;
-    }
-
-    // Add dependencies if present
-    if (depends_on && depends_on.length > 0) {
-      composeContent += `\n    depends_on:\n      ${depends_on
-        .map((dep) => `- ${dep}`)
-        .join('\n      ')}`;
-    }
-
-    // Add healthcheck if enabled
     if (healthCheck?.enabled) {
-      composeContent += `\n    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:${containerPort}"]
-      interval: ${healthCheck.interval}
-      timeout: ${healthCheck.timeout}
-      retries: ${healthCheck.retries}`;
+      serviceConfig.healthcheck = {
+        test: this.getHealthCheckTest(formValues.containerPort),
+        interval: healthCheck.interval,
+        timeout: healthCheck.timeout,
+        retries: healthCheck.retries,
+      };
     }
 
-    // Add deploy and resources configuration
-    if (deploy || resources) {
-      composeContent += '\n    deploy:';
-
-      if (deploy?.replicas) {
-        composeContent += `\n      replicas: ${deploy.replicas}`;
-      }
-
-      if (deploy?.resources?.limits) {
-        composeContent += `\n      resources:
-          limits:
-            cpus: '${deploy.resources.limits.cpus}'
-            memory: ${deploy.resources.limits.memory}`;
-      }
-
-      if (resources) {
-        composeContent += `\n      resources:
-          limits:
-            cpus: '${resources.cpuLimit}'
-            memory: ${resources.memoryLimit}M`;
-      }
+    if (deploy?.replicas > 1 || resources?.cpuLimit > 0 || resources?.memoryLimit > 0) {
+      serviceConfig.deploy = {
+        replicas: deploy?.replicas,
+        resources: {
+          limits: {
+            cpus: resources?.cpuLimit?.toString(),
+            memory: `${resources?.memoryLimit}MB`,
+          },
+        },
+      };
     }
 
-    // Add restart policy if specified
-    if (restart && restart !== 'no') {
-      composeContent += `\n    restart: ${restart}`;
+    if (formValues.depends_on) {
+      serviceConfig.depends_on = this.parseListInput(formValues.depends_on);
     }
 
-    return composeContent;
+    return {
+      version: '3.8',
+      services: {
+        [formValues.serviceName]: serviceConfig,
+      },
+    };
   }
 
-  private validateConfig(config: DockerComposeConfig): void {
-    if (!config.serviceName || !config.dockerImage || !config.hostPort || !config.containerPort) {
-      throw new Error('Missing required fields in Docker Compose configuration');
-    }
-
-    if (config.healthCheck?.enabled) {
-      if (!config.healthCheck.interval || !config.healthCheck.timeout || !config.healthCheck.retries) {
-        throw new Error('Missing required health check fields');
-      }
-    }
-
-    if (!config.restart) {
-      throw new Error('Restart policy is required');
-    }
-
-    if (config.resources) {
-      if (config.resources.cpuLimit <= 0 || config.resources.memoryLimit <= 0) {
-        throw new Error('Invalid resource limits');
-      }
-    }
-
-    if (config.deploy?.replicas) {
-      if (config.deploy.replicas < 1) {
-        throw new Error('Number of replicas must be at least 1');
-      }
-    }
+  // Helper method to parse list input (environment variables, volumes, etc.)
+  private parseListInput(input: string): string[] {
+    return input
+      .split(/[\n,]/)
+      .map((item) => item.trim())
+      .filter(Boolean);
   }
 
-  private formatEnvironment(environment: string[]): string {
-    if (!environment || environment.length === 0) return '';
-    return `environment:
-      ${environment.map((env) => `- ${env}`).join('\n      ')}`;
-  }
+  // Helper method to determine the health check test based on the image
+  private getHealthCheckTest(port: string): string[] {
+    const dockerImage = port.toLowerCase();
 
-  private formatVolumes(volumes: string[]): string {
-    if (!volumes || volumes.length === 0) return '';
-    return `volumes:
-      ${volumes.map((volume) => `- ${volume}`).join('\n      ')}`;
-  }
-
-  private downloadFile(content: string, filename: string): void {
-    const blob = new Blob([content], { type: 'text/yaml' });
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = filename;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    window.URL.revokeObjectURL(url);
+    if (dockerImage.includes('postgres')) {
+      return ['CMD', 'pg_isready'];
+    } else if (dockerImage.includes('redis')) {
+      return ['CMD', 'redis-cli', 'ping'];
+    } else if (dockerImage.includes('mongo')) {
+      return ['CMD', 'mongosh', '--eval', 'db.adminCommand("ping")'];
+    } else {
+      return ['CMD', 'curl', '-f', `http://localhost:${port}`];
+    }
   }
 }

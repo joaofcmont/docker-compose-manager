@@ -1,206 +1,253 @@
 <body>
-    <!-- Header with Navigation -->
     <header>
       <nav>
         <a href="/">
           <img src="assets/docker-mark-blue.png" alt="Docker Compose Manager Icon" class="logo">
         </a>
-          <ul>
-              <li><a href="#solutions">Solutions</a></li>
-              <!-- <li><a href="#pricing">Pricing</a></li> -->
-              <li><a href="#contact">Contact</a></li>
-          </ul>
+        <ul>
+          <li><a href="#solutions">Solutions</a></li>
+          <li><a href="#contact">Contact</a></li>
+        </ul>
       </nav>
     </header>
   
-    <!-- Main Content Section -->
     <main>
-        <div class="content-header">
-            <h1>Create Docker Compose File</h1>
-            <p class="subheading">Configure your multi-container application with ease</p>
+      <div class="content-header">
+        <h1>Create Docker Compose File</h1>
+        <p class="subheading">Configure your multi-container application with ease</p>
+      </div>
+  
+      <section id="import-section">
+        <p>Upload your Docker Compose YAML file to start working with it.</p>
+        <div class="file-upload">
+          <input 
+            type="file" 
+            (change)="onFileSelected($event)" 
+            accept=".yaml, .yml" 
+            id="file-upload"
+            class="file-input">
+          <label for="file-upload" class="file-label">Choose File</label>
         </div>
+      </section>
   
-        <section id="import-section">
-          <p>Upload your Docker Compose YAML file to start working with it.</p>
-      
-          <!-- File input to upload Docker Compose file -->
-          <input type="file" (change)="onFileSelected($event)" accept=".yaml, .yml" />
-          
-          <!-- Button to trigger the import logic -->
-          <button (click)="importFile()" [disabled]="!selectedFile">Import</button>
-        </section>
+      <div class="container">
+        <div class="form-container">
+          <form [formGroup]="composeForm" (ngSubmit)="generateDockerComposeFile()">
+            <!-- Basic Service Configuration -->
+            <div class="form-section">
+              <h3>Basic Configuration</h3>
+              
+              <div class="form-group">
+                <label for="serviceTemplate">Service Template</label>
+                <select id="serviceTemplate" formControlName="serviceTemplate">
+                  <option value="">Select a template</option>
+                  <option value="nginx">Nginx</option>
+                  <option value="postgres">PostgreSQL</option>
+                  <option value="redis">Redis</option>
+                </select>
+              </div>
   
-        <div class="container">
-            <!-- Form Section -->
-            <div class="form-container">
-                <form [formGroup]="composeForm" (ngSubmit)="generateDockerComposeFile()">
-                    <div class="form-group">
-                        <label for="serviceTemplate">Service Template</label>
-                        <select id="serviceTemplate" formControlName="serviceTemplate">
-                            <option value="">Select a template</option>
-                            <option value="nginx">Nginx</option>
-                            <option value="postgres">PostgreSQL</option>
-                            <option value="redis">Redis</option>
-                        </select>
-                    </div>
+              <div class="form-group">
+                <label for="serviceName">Service Name</label>
+                <input 
+                  type="text" 
+                  id="serviceName" 
+                  formControlName="serviceName"
+                  placeholder="Enter service name">
+                <div class="error-message" *ngIf="composeForm.get('serviceName')?.errors?.['required'] && composeForm.get('serviceName')?.touched">
+                  Service name is required
+                </div>
+                <div class="error-message" *ngIf="composeForm.get('serviceName')?.errors?.['pattern']">
+                  Service name must start with a letter and contain only letters, numbers, underscores, or hyphens
+                </div>
+              </div>
   
-                    <div class="form-group">
-                        <label for="serviceName">Service Name</label>
-                        <input 
-                            type="text" 
-                            id="serviceName" 
-                            formControlName="serviceName"
-                            placeholder="Enter service name">
-                    </div>
+              <div class="form-group">
+                <label for="dockerImage">Docker Image</label>
+                <input 
+                  type="text" 
+                  id="dockerImage" 
+                  formControlName="dockerImage"
+                  placeholder="e.g., nginx:latest">
+                <div class="error-message" *ngIf="composeForm.get('dockerImage')?.errors?.['required'] && composeForm.get('dockerImage')?.touched">
+                  Docker image is required
+                </div>
+              </div>
   
-                    <div class="form-group">
-                        <label for="dockerImage">Docker Image</label>
-                        <input 
-                            type="text" 
-                            id="dockerImage" 
-                            formControlName="dockerImage"
-                            placeholder="e.g., nginx:latest">
-                    </div>
-  
-                    <div class="form-group">
-                        <label for="hostPort">Host Port</label>
-                        <input 
-                            type="number" 
-                            id="hostPort" 
-                            formControlName="hostPort"
-                            placeholder="Port to expose on host" 
-                            min="1" 
-                            max="65535">
-                    </div>
-  
-                    <div class="form-group">
-                        <label for="containerPort">Container Port</label>
-                        <input 
-                            type="number" 
-                            id="containerPort" 
-                            formControlName="containerPort"
-                            placeholder="Port inside the container" 
-                            min="1" 
-                            max="65535">
-                    </div>
-  
-                    <div class="form-group">
-                        <label for="environment">Environment Variables (key=value)</label>
-                        <textarea 
-                            id="environment" 
-                            formControlName="environment"
-                            rows="3" 
-                            placeholder="VAR1=value1, VAR2=value2"></textarea>
-                    </div>
-  
-                    <div class="form-group">
-                        <label for="volumes">Volumes (Host path to Container path)</label>
-                        <textarea 
-                            id="volumes" 
-                            formControlName="volumes"
-                            rows="2" 
-                            placeholder="./data:/var/lib/data"></textarea>
-                    </div>
-  
-                    <!-- Health Check Section -->
-                    <div class="form-group">
-                        <label for="healthCheckEnabled">Enable Health Check</label>
-                        <input 
-                          type="checkbox" 
-                          id="healthCheckEnabled" 
-                          formControlName="healthCheckEnabled">
-                      </div>
-                      
-                      <div *ngIf="composeForm.get('healthCheckEnabled')?.value" class="form-group">
-                        <label for="healthCheckInterval">Health Check Interval</label>
-                        <input 
-                          type="text" 
-                          id="healthCheckInterval" 
-                          formControlName="healthCheckInterval"
-                          placeholder="e.g., 30s">
-                      </div>
-                      
-                      <div *ngIf="composeForm.get('healthCheckEnabled')?.value" class="form-group">
-                        <label for="healthCheckTimeout">Health Check Timeout</label>
-                        <input 
-                          type="text" 
-                          id="healthCheckTimeout" 
-                          formControlName="healthCheckTimeout"
-                          placeholder="e.g., 10s">
-                      </div>
-                      
-                      <div *ngIf="composeForm.get('healthCheckEnabled')?.value" class="form-group">
-                        <label for="healthCheckRetries">Health Check Retries</label>
-                        <input 
-                          type="number" 
-                          id="healthCheckRetries" 
-                          formControlName="healthCheckRetries"
-                          placeholder="e.g., 3">
-                      </div>
-                      
-  
-                    <!-- Resource Limits Section -->
-                    <div class="form-group">
-                        <label for="cpuLimit">CPU Limit</label>
-                        <input 
-                            type="number" 
-                            id="cpuLimit" 
-                            formControlName="cpuLimit"
-                            placeholder="e.g., 0.5">
-                    </div>
-  
-                    <div class="form-group">
-                        <label for="memoryLimit">Memory Limit</label>
-                        <input 
-                            type="text" 
-                            id="memoryLimit" 
-                            formControlName="memoryLimit"
-                            placeholder="e.g., 512MB">
-                    </div>
-  
-                    <div class="form-group">
-                        <label for="replicas">Replicas</label>
-                        <input 
-                            type="number" 
-                            id="replicas" 
-                            formControlName="replicas"
-                            placeholder="Number of replicas" 
-                            min="1">
-                    </div>
-  
-                    <div class="form-group">
-                        <label for="restart">Restart Policy</label>
-                        <select id="restart" formControlName="restart">
-                            <option value="always">Always</option>
-                            <option value="on-failure">On Failure</option>
-                            <option value="unless-stopped">Unless Stopped</option>
-                        </select>
-                    </div>
-  
-                    <div class="form-group">
-                        <label for="depends_on">Depends On</label>
-                        <textarea 
-                            id="depends_on" 
-                            formControlName="depends_on"
-                            rows="2" 
-                            placeholder="Other services this one depends on"></textarea>
-                    </div>
-  
-                    <button type="submit" class="cta" [disabled]="composeForm.invalid">Generate Docker Compose File</button>
-                </form>
+              <div class="form-group grid-2">
+                <div>
+                  <label for="hostPort">Host Port</label>
+                  <input 
+                    type="number" 
+                    id="hostPort" 
+                    formControlName="hostPort"
+                    placeholder="Port to expose on host" 
+                    min="1" 
+                    max="65535">
+                  <div class="error-message" *ngIf="composeForm.get('hostPort')?.errors?.['required'] && composeForm.get('hostPort')?.touched">
+                    Host port is required
+                  </div>
+                </div>
+                <div>
+                  <label for="containerPort">Container Port</label>
+                  <input 
+                    type="number" 
+                    id="containerPort" 
+                    formControlName="containerPort"
+                    placeholder="Port inside container" 
+                    min="1" 
+                    max="65535">
+                  <div class="error-message" *ngIf="composeForm.get('containerPort')?.errors?.['required'] && composeForm.get('containerPort')?.touched">
+                    Container port is required
+                  </div>
+                </div>
+              </div>
             </div>
   
-            <!-- YAML Preview Section -->
-            <div class="yaml-preview">
-                <h3>Live YAML Preview</h3>
-                <pre>{{ yamlPreview }}</pre>
+            <!-- Environment and Volumes -->
+            <div class="form-section">
+              <h3>Configuration</h3>
+              
+              <div class="form-group">
+                <label for="environment">Environment Variables</label>
+                <textarea 
+                  id="environment" 
+                  formControlName="environment"
+                  rows="3" 
+                  placeholder="KEY=value&#10;ANOTHER_KEY=value"></textarea>
+                <small class="help-text">One variable per line (e.g., NODE_ENV=production)</small>
+              </div>
+  
+              <div class="form-group">
+                <label for="volumes">Volumes</label>
+                <textarea 
+                  id="volumes" 
+                  formControlName="volumes"
+                  rows="2" 
+                  placeholder="./local/path:/container/path&#10;named-volume:/container/path"></textarea>
+                <small class="help-text">One volume mapping per line</small>
+              </div>
             </div>
+  
+<!-- Health Check Configuration -->
+<div class="form-section" formGroupName="healthCheck">
+    <h3>Health Check</h3>
+  
+    <div class="form-group checkbox">
+      <button 
+        type="button" 
+        class="toggle-button" 
+        [class.active]="composeForm.get('healthCheck.enabled')?.value" 
+        (click)="toggleHealthCheck()">
+        {{ composeForm.get('healthCheck.enabled')?.value ? 'Disable Health Check' : 'Enable Health Check' }}
+      </button>
+    </div>
+  
+    <div class="health-check-options" *ngIf="composeForm.get('healthCheck.enabled')?.value">
+      <div class="form-group grid-3">
+        <div>
+          <label for="healthCheckInterval">Interval</label>
+          <input 
+            type="text" 
+            id="healthCheckInterval" 
+            formControlName="interval"
+            placeholder="30s">
         </div>
+        <div>
+          <label for="healthCheckTimeout">Timeout</label>
+          <input 
+            type="text" 
+            id="healthCheckTimeout" 
+            formControlName="timeout"
+            placeholder="10s">
+        </div>
+        <div>
+          <label for="healthCheckRetries">Retries</label>
+          <input 
+            type="number" 
+            id="healthCheckRetries" 
+            formControlName="retries"
+            placeholder="3">
+        </div>
+      </div>
+    </div>
+  </div>
+    
+  
+            <!-- Resources and Deployment -->
+            <div class="form-section">
+              <h3>Resources & Deployment</h3>
+              
+              <div formGroupName="resources">
+                <div class="form-group grid-2">
+                  <div>
+                    <label for="cpuLimit">CPU Limit</label>
+                    <input 
+                      type="number" 
+                      id="cpuLimit" 
+                      formControlName="cpuLimit"
+                      placeholder="0.5"
+                      step="0.1">
+                  </div>
+                  <div>
+                    <label for="memoryLimit">Memory Limit (MB)</label>
+                    <input 
+                      type="number" 
+                      id="memoryLimit" 
+                      formControlName="memoryLimit"
+                      placeholder="512">
+                  </div>
+                </div>
+              </div>
+  
+              <div class="form-group grid-2">
+                <div formGroupName="deploy">
+                  <label for="replicas">Replicas</label>
+                  <input 
+                    type="number" 
+                    id="replicas" 
+                    formControlName="replicas"
+                    placeholder="1" 
+                    min="1">
+                </div>
+                <div>
+                  <label for="restart">Restart Policy</label>
+                  <select id="restart" formControlName="restart">
+                    <option value="always">Always</option>
+                    <option value="on-failure">On Failure</option>
+                    <option value="unless-stopped">Unless Stopped</option>
+                  </select>
+                </div>
+              </div>
+  
+              <div class="form-group">
+                <label for="depends_on">Dependencies</label>
+                <textarea 
+                  id="depends_on" 
+                  formControlName="depends_on"
+                  rows="2" 
+                  placeholder="service1&#10;service2"></textarea>
+                <small class="help-text">One service name per line</small>
+              </div>
+            </div>
+  
+            <div class="form-actions">
+              <button type="button" class="secondary" (click)="resetForm()">Reset</button>
+              <button type="submit" class="primary" [disabled]="composeForm.invalid">
+                Generate Docker Compose File
+              </button>
+            </div>
+          </form>
+        </div>
+  
+        <div class="yaml-preview">
+          <h3>Live YAML Preview</h3>
+          <pre>{{ yamlPreview }}</pre>
+        </div>
+      </div>
     </main>
   
-    <!-- Footer Section -->
     <footer>
-        <p>© 2025 Docker Compose Manager. All rights reserved.</p>
+      <p>© 2025 Docker Compose Manager. All rights reserved.</p>
     </footer>
   </body>
-  

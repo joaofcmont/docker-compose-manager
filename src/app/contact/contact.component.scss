@@ -1,64 +1,145 @@
-// Basic variables
-$blue: #007BFF;
+// Variables
+$primary-color: #007BFF;
+$secondary-color: #333;
+$background-color: #f8f8f8;
 $white: #fff;
+$gray: #666;
+$light-gray: #f0f0f0;
+$border-radius: 8px;
+$transition-speed: 0.3s;
 
+// Logo
 .logo {
   height: 48px;
 }
 
+// Header
 header {
   background: $white;
-  padding: 10px;
-  border-bottom: 1px solid #ddd;
-  margin-bottom: 20px;
+  padding: 1rem 2rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  z-index: 1000;
+  margin-bottom: 2rem;
+
+  nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    ul {
+      list-style: none;
+      display: flex;
+      gap: 2rem;
+      max-width: 1200px;
+      margin: 0 auto;
+
+      a {
+        text-decoration: none;
+        color: $gray;
+        font-size: 1rem;
+        transition: color $transition-speed;
+        &:hover {
+          color: $primary-color;
+        }
+      }
+
+      li:last-child a {
+        background: $primary-color;
+        color: $white;
+        padding: 0.5rem 1rem;
+        border-radius: 4px;
+        transition: background-color $transition-speed, transform $transition-speed;
+        &:hover {
+          background: lighten($primary-color, 10%);
+          transform: scale(1.05);
+        }
+      }
+    }
+  }
 }
 
+// Contact Section
 .contact-section {
-  padding: 20px;
+  padding: 2rem;
   max-width: 500px;
   margin: 0 auto;
+  background-color: $white;
+  border-radius: $border-radius;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
 
   h2 {
-    font-size: 24px;
-    margin-bottom: 10px;
+    font-size: 2rem;
+    margin-bottom: 1rem;
+    color: $primary-color;
   }
 
   .subheading {
-    margin-bottom: 20px;
-    color: #666;
+    margin-bottom: 2rem;
+    color: $gray;
+    font-size: 1.1rem;
   }
 
   .form-group {
-    margin-bottom: 15px;
+    margin-bottom: 1.5rem;
 
     label {
       display: block;
-      margin-bottom: 5px;
+      margin-bottom: 0.5rem;
+      font-weight: bold;
+      color: $secondary-color;
     }
 
-    input, textarea {
+    input,
+    textarea {
       width: 100%;
-      padding: 8px;
-      border: 1px solid #ccc;
-      border-radius: 4px;
+      padding: 10px;
+      border: 1px solid $gray;
+      border-radius: 5px;
+      font-size: 1rem;
+      &:focus {
+        outline-color: $primary-color;
+        border-color: $primary-color;
+      }
     }
 
     textarea {
-      min-height: 100px;
+      min-height: 120px;
     }
   }
 
-  button {
-    width: 100%;
-    padding: 10px;
-    background: $blue;
-    color: $white;
+  button.cta {
+    padding: 10px 20px;
     border: none;
-    border-radius: 4px;
+    border-radius: 5px;
     cursor: pointer;
+    transition: background-color $transition-speed, transform $transition-speed;
+    width: 100%;
+    margin-top: 1rem;
+    background-color: $primary-color;
+    color: $white;
+    font-weight: bold;
 
     &:hover {
-      background: darken($blue, 10%);
+      background-color: darken($primary-color, 10%);
+      transform: scale(1.05);
     }
+
+    &:disabled {
+      background-color: #ccc;
+      cursor: not-allowed;
+      color: $gray;
+    }
+  }
+}
+
+// Responsive Media Query
+@media (max-width: 768px) {
+  header {
+    padding: 1rem;
+  }
+
+  .contact-section {
+    padding: 1.5rem;
+    max-width: 100%;
   }
 }

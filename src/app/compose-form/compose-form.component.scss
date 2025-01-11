@@ -23,20 +23,16 @@ header {
   background: #fff;
   padding: 1rem 2rem;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  z-index: 1000;
   nav {
     display: flex;
     justify-content: space-between;
-    align-items: center;
     ul {
       list-style: none;
       display: flex;
       gap: 2rem;
-      margin: 0 auto;
       a {
         text-decoration: none;
         color: $secondary-color;
-        font-size: 1rem;
         transition: color $transition-speed;
         &:hover { color: $primary-color; }
       }
@@ -91,7 +87,6 @@ main {
       padding: 10px;
       border-radius: 5px;
       border: 1px solid $secondary-color;
-      font-size: 1rem;
       &:focus { outline-color: $primary-color; border-color: $primary-color; }
     }
   }
@@ -123,7 +118,6 @@ main {
   display: flex;
   flex-direction: column;
   text-align: center;
-  align-items: center;
   .file-upload { margin-bottom: 10px; position: relative; .file-input { display: none; }
     .file-label {
       display: inline-block;

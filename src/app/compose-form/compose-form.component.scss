@@ -11,15 +11,13 @@ body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
   line-height: 1.6;
   color: $secondary-color;
-  background-color: $background-color;
+  background: $background-color;
   margin: 0;
   padding: 0;
 }
-
 .logo{
   height: 48px;
 }
-
 // Header and Navigation
 header {
   background: #fff;
@@ -34,7 +32,6 @@ header {
       list-style: none;
       display: flex;
       gap: 2rem;
-      max-width: 1200px;
       margin: 0 auto;
       a {
         text-decoration: none;
@@ -79,7 +76,7 @@ main {
 .form-container,
 .yaml-preview,
 #import-section {
-  background-color: #fff;
+  background: #fff;
   border-radius: $border-radius;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
   padding: 2rem;
@@ -88,9 +85,17 @@ main {
 
 .form-container {
   flex-basis: 50%;
-  .form-group { margin-bottom: 1.5rem; 
+  .form-group {
+    margin-bottom: 1.5rem;
     label { display: block; margin-bottom: 0.5rem; font-weight: bold; color: $secondary-color; }
-    input, select, textarea { width: 100%; padding: 10px; border-radius: 5px; border: 1px solid $secondary-color; font-size: 1rem; &:focus { outline-color: $primary-color; border-color: $primary-color; } }
+    input, select, textarea {
+      width: 100%;
+      padding: 10px;
+      border-radius: 5px;
+      border: 1px solid $secondary-color;
+      font-size: 1rem;
+      &:focus { outline-color: $primary-color; border-color: $primary-color; }
+    }
   }
   button.cta {
     padding: 10px 20px;
@@ -100,17 +105,17 @@ main {
     transition: background-color $transition-speed, transform $transition-speed;
     width: 100%;
     margin-top: 1rem;
-    background-color: $primary-color;
+    background: $primary-color;
     color: #fff;
     font-weight: bold;
-    &:hover { background-color: darken($primary-color, 10%); transform: scale(1.05); }
-    &:disabled { background-color: #ccc; cursor: not-allowed; color: $secondary-color; }
+    &:hover { background: darken($primary-color, 10%); transform: scale(1.05); }
+    &:disabled { background: #ccc; cursor: not-allowed; color: $secondary-color; }
   }
 }
 
 .yaml-preview {
   flex-basis: 45%;
-  background-color: $light-gray;
+  background: $light-gray;
   font-family: 'Courier New', monospace;
   pre { white-space: pre-wrap; word-wrap: break-word; }
 }
@@ -125,12 +130,12 @@ main {
     .file-label {
       display: inline-block;
       padding: 10px 20px;
-      background-color: $primary-color;
+      background: $primary-color;
       color: #fff;
       cursor: pointer;
       border-radius: 5px;
       transition: background-color $transition-speed;
-      &:hover { background-color: darken($primary-color, 10%); }
+      &:hover { background: darken($primary-color, 10%); }
     }
   }
   input[type="file"] { padding: 10px; border: 1px solid $secondary-color; margin-bottom: 10px; width: 80%; max-width: 300px; }
@@ -140,19 +145,19 @@ main {
     border-radius: 5px;
     cursor: pointer;
     transition: background-color $transition-speed;
-    background-color: $primary-color;
+    background: $primary-color;
     color: #fff;
     width: 80%;
     max-width: 300px;
     margin-top: 10px;
-    &:hover { background-color: darken($primary-color, 10%); }
-    &:disabled { background-color: #ccc; cursor: not-allowed; }
+    &:hover { background: darken($primary-color, 10%); }
+    &:disabled { background: #ccc; cursor: not-allowed; }
   }
 }
 
 // Footer
 footer {
-  background-color: #fff;
+  background: #fff;
   padding: 1rem 2rem;
   text-align: center;
   box-shadow: 0 -1px 3px rgba(0, 0, 0, 0.1);
@@ -169,24 +174,24 @@ button {
   width: 100%;
   margin-top: 1rem;
   &:hover { transform: scale(1.05); }
-  &:disabled { background-color: #ccc; cursor: not-allowed; color: $secondary-color; }
+  &:disabled { background: #ccc; cursor: not-allowed; color: $secondary-color; }
 }
 
 // Specific Button Classes
 button.primary {
-  background-color: $primary-color;
+  background: $primary-color;
   color: #fff;
   font-weight: bold;
-  &:hover { background-color: darken($primary-color, 10%); }
-  &:disabled { background-color: #ccc; }
+  &:hover { background: darken($primary-color, 10%); }
+  &:disabled { background: #ccc; }
 }
 
 button.secondary {
-  background-color: $primary-color;
+  background: $primary-color;
   color: #fff;
   font-weight: bold;
-  &:hover { background-color: lighten($primary-color, 10%); }
-  &:disabled { background-color: #ddd; }
+  &:hover { background: lighten($primary-color, 10%); }
+  &:disabled { background: #ddd; }
 }
 
 .form-group.checkbox { display: flex; align-items: center; gap: 0.5rem; }
@@ -194,7 +199,7 @@ button.secondary {
 .toggle-button {
   padding: 10px 20px;
   border: 1px solid $primary-color;
-  background-color: #fff;
+  background: #fff;
   color: $primary-color;
   border-radius: 5px;
   font-size: 1rem;
@@ -203,8 +208,8 @@ button.secondary {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  &:hover { background-color: $primary-color; color: #fff; }
-  &.active { background-color: $primary-color; color: #fff; }
+  &:hover { background: $primary-color; color: #fff; }
+  &.active { background: $primary-color; color: #fff; }
 }
 
 // Form Actions Section

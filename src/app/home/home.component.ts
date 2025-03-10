@@ -37,4 +37,5 @@ export class HomeComponent implements OnDestroy {
     this.viewportScroller.scrollToAnchor(section);
   }
 
+
 }

@@ -1,6 +1,7 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
 import { ContactComponent } from './contact/contact.component';
+import { PreloadAllModules } from '@angular/router';
 
 export const routes: Routes = [
   {
@@ -18,7 +19,9 @@ export const routes: Routes = [
 @NgModule({
   imports: [RouterModule.forRoot(routes, {
     scrollPositionRestoration: 'enabled',
-    anchorScrolling: 'enabled'
+    anchorScrolling: 'enabled',
+    useHash: true,
+    preloadingStrategy: PreloadAllModules 
   })],
   exports: [RouterModule]
 })

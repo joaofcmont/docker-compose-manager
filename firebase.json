@@ -1,6 +1,6 @@
 {
   "hosting": {
-    "public": "dist/docker-compose-manager/browser",
+    "public": "dist",
     "ignore": [
       "firebase.json",
       "**/.*",

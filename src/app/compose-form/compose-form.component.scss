@@ -1,23 +1,28 @@
-$primary: #007BFF;
-$secondary: #333;
-$bg: #f8f8f8;
-$light: #f0f0f0;
-$radius: 8px;
-$trans: .3s;
+// Variables
+$primary-color: #007BFF;
+$secondary-color: #333;
+$background-color: #f8f8f8;
+$light-gray: #f0f0f0;
+$border-radius: 8px;
+$transition-speed: 0.3s;
 
+// Global Styles
 body {
-  font: 16px/1.6 -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-  color: $secondary;
-  background: $bg;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  line-height: 1.6;
+  color: $secondary-color;
+  background: $background-color;
   margin: 0;
+  padding: 0;
 }
 
 .logo { height: 48px; }
 
+// Header and Navigation
 header {
   background: #fff;
   padding: 1rem 2rem;
-  box-shadow: 0 1px 3px rgba(0,0,0,.1);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   nav {
     display: flex;
     justify-content: space-between;
@@ -27,22 +32,23 @@ header {
       gap: 2rem;
       a {
         text-decoration: none;
-        color: $secondary;
-        transition: color $trans;
-        &:hover { color: $primary; }
+        color: $secondary-color;
+        transition: color $transition-speed;
+        &:hover { color: $primary-color; }
       }
       li:last-child a {
-        background: $primary;
+        background: $primary-color;
         color: #fff;
-        padding: .5rem 1rem;
+        padding: 0.5rem 1rem;
         border-radius: 4px;
-        transition: background $trans, transform $trans;
-        &:hover { background: lighten($primary, 10%); transform: scale(1.05); }
+        transition: background-color $transition-speed, transform $transition-speed;
+        &:hover { background: lighten($primary-color, 10%); transform: scale(1.05); }
       }
     }
   }
 }
 
+// Main Content Styles
 main {
   padding-top: 3rem;
   .container {
@@ -58,14 +64,15 @@ main {
 .content-header {
   text-align: center;
   margin-bottom: 2rem;
-  h1 { font-size: 2.5rem; margin-bottom: .5rem; }
-  .subheading { font-size: 1.2rem; color: $secondary; }
+  h1 { font-size: 2.5rem; margin-bottom: 0.5rem; }
+  .subheading { font-size: 1.2rem; color: $secondary-color; }
 }
 
+// Form and YAML Preview
 .form-container, .yaml-preview, #import-section {
   background: #fff;
-  border-radius: $radius;
-  box-shadow: 0 2px 10px rgba(0,0,0,.1);
+  border-radius: $border-radius;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
   padding: 2rem;
   width: 100%;
 }
@@ -74,20 +81,34 @@ main {
   flex-basis: 50%;
   .form-group {
     margin-bottom: 1.5rem;
-    label { display: block; margin-bottom: .5rem; font-weight: bold; color: $secondary; }
+    label { display: block; margin-bottom: 0.5rem; font-weight: bold; color: $secondary-color; }
     input, select, textarea {
       width: 100%;
       padding: 10px;
       border-radius: 5px;
-      border: 1px solid $secondary;
-      &:focus { outline-color: $primary; border-color: $primary; }
+      border: 1px solid $secondary-color;
+      &:focus { outline-color: $primary-color; border-color: $primary-color; }
     }
+  }
+  button {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color $transition-speed, transform $transition-speed;
+    width: 100%;
+    margin-top: 1rem;
+    background: $primary-color;
+    color: #fff;
+    font-weight: bold;
+    &:hover { background: darken($primary-color, 10%); transform: scale(1.05); }
+    &:disabled { background: #ccc; cursor: not-allowed; color: $secondary-color; }
   }
 }
 
 .yaml-preview {
   flex-basis: 45%;
-  background: $light;
+  background: $light-gray;
   font-family: 'Courier New', monospace;
   pre { white-space: pre-wrap; word-wrap: break-word; }
 }
@@ -97,81 +118,92 @@ main {
   display: flex;
   flex-direction: column;
   text-align: center;
-  .file-upload {
-    margin-bottom: 10px;
-    position: relative;
-    .file-input { display: none; }
+  .file-upload { margin-bottom: 10px; position: relative; .file-input { display: none; }
     .file-label {
       display: inline-block;
       padding: 10px 20px;
-      background: $primary;
+      background: $primary-color;
       color: #fff;
       cursor: pointer;
       border-radius: 5px;
-      transition: background $trans;
-      &:hover { background: darken($primary, 10%); }
+      transition: background-color $transition-speed;
+      &:hover { background: darken($primary-color, 10%); }
     }
   }
-  input[type="file"] {
-    padding: 10px;
-    border: 1px solid $secondary;
-    margin-bottom: 10px;
+  input[type="file"] { padding: 10px; border: 1px solid $secondary-color; margin-bottom: 10px; width: 80%; max-width: 300px; }
+  button {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color $transition-speed;
+    background: $primary-color;
+    color: #fff;
     width: 80%;
     max-width: 300px;
+    margin-top: 10px;
+    &:hover { background: darken($primary-color, 10%); }
+    &:disabled { background: #ccc; cursor: not-allowed; }
   }
 }
 
+// Footer
 footer {
   background: #fff;
   padding: 1rem 2rem;
   text-align: center;
-  box-shadow: 0 -1px 3px rgba(0,0,0,.1);
-  p { font-size: .875rem; color: $secondary; }
+  box-shadow: 0 -1px 3px rgba(0, 0, 0, 0.1);
+  p { font-size: 0.875rem; color: $secondary-color; }
 }
 
+// Button Styles
 button {
   padding: 10px 20px;
-  border: 0;
+  border: none;
   border-radius: 5px;
   cursor: pointer;
-  transition: background $trans, transform $trans;
+  transition: background-color $transition-speed, transform $transition-speed;
   width: 100%;
   margin-top: 1rem;
   &:hover { transform: scale(1.05); }
-  &:disabled { background: #ccc; cursor: not-allowed; color: $secondary; }
+  &:disabled { background: #ccc; cursor: not-allowed; color: $secondary-color; }
 }
 
-.primary {
-  background: $primary;
+button.primary {
+  background: $primary-color;
   color: #fff;
   font-weight: bold;
-  &:hover { background: darken($primary, 10%); }
+  &:hover { background: darken($primary-color, 10%); }
   &:disabled { background: #ccc; }
 }
 
-.secondary {
-  @extend .primary;
-  &:hover { background: lighten($primary, 10%); }
+button.secondary {
+  background: $primary-color;
+  color: #fff;
+  font-weight: bold;
+  &:hover { background: lighten($primary-color, 10%); }
   &:disabled { background: #ddd; }
 }
 
-.form-group.checkbox { display: flex; align-items: center; gap: .5rem; }
+.form-group.checkbox { display: flex; align-items: center; gap: 0.5rem; }
 
 .toggle-button {
   padding: 10px 20px;
-  border: 1px solid $primary;
+  border: 1px solid $primary-color;
   background: #fff;
-  color: $primary;
+  color: $primary-color;
   border-radius: 5px;
   font-size: 1rem;
   cursor: pointer;
-  transition: background $trans, transform $trans;
+  transition: background-color $transition-speed, transform $transition-speed;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  &:hover, &.active { background: $primary; color: #fff; }
+  &:hover { background: $primary-color; color: #fff; }
+  &.active { background: $primary-color; color: #fff; }
 }
 
+// Form Actions Section
 .form-actions {
   display: flex;
   justify-content: space-between;
@@ -180,6 +212,7 @@ button {
   button { width: auto; flex: 1; }
 }
 
+// Media Query
 @media (max-width: 768px) {
   .container { flex-direction: column; }
   .form-container, .yaml-preview { flex-basis: 100%; }

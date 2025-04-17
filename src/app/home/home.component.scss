@@ -254,7 +254,7 @@ app-theme-toggle {
     }
 
     .subheading {
-      color: $dark-secondary-text;
+      color: $dark-text;
     }
 
     .capability-item {
@@ -274,7 +274,7 @@ app-theme-toggle {
       }
 
       p {
-        color: $dark-secondary-text;
+        color: $dark-text;
       }
     }
   }
@@ -292,7 +292,7 @@ footer {
 
   .dark-theme & {
     background: $dark-surface;
-    color: $dark-secondary-text;
+    color: $dark-text;
     border-top: 1px solid #333;
   }
 }

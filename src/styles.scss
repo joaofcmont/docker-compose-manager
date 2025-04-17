@@ -1,12 +1,17 @@
 // Variables (for easy customization with your colors)
-$primary-color: #17191E; // Dark Blue/Black
-$secondary-color: #D3D3D3; // Grey
+$primary-color: #007BFF; // Blue
+$secondary-color: #333333; // Dark Gray
 $bg-color: #FFFFFF; // White
 $text-color: #1E1E1E; // Dark Grey for text
 $footer-bg: $primary-color; // Dark background for footer
 $footer-text-color: #FFFFFF; // White for footer text
 $hero-bg: $primary-color; // Hero section background color
 $btn-hover-color: #D3D3D3; // Grey hover for buttons
+$white: #fff;
+$gray: #666;
+$light-gray: #f0f0f0;
+$border-radius: 8px;
+$transition-speed: 0.3s;
 
 // Font and Spacing
 $font-family: 'Arial', sans-serif;
@@ -34,28 +39,40 @@ body {
 
 // Header & Navigation Styling
 header {
-  background-color: $primary-color;
-  padding: 15px 0;
+  background: $white;
+  padding: 1rem 2rem;
+  box-shadow: 0 1px 3px rgba(0,0,0,.1);
 
   nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
     ul {
-      display: flex;
-      justify-content: center;
       list-style: none;
+      display: flex;
+      gap: 2rem;
 
-      li {
-        margin: 0 20px;
+      a {
+        text-decoration: none;
+        color: $secondary-color;
+        transition: color $transition-speed;
 
-        a {
-          color: $footer-text-color;
-          text-decoration: none;
-          font-weight: bold;
-          font-size: 1rem;
-          transition: color 0.3s;
+        &:hover {
+          color: $primary-color;
+        }
+      }
 
-          &:hover {
-            color: $secondary-color;
-          }
+      li:last-child a {
+        background: $primary-color;
+        color: $white;
+        padding: .5rem 1rem;
+        border-radius: 4px;
+        transition: background $transition-speed, transform $transition-speed;
+
+        &:hover {
+          background: lighten($primary-color, 10%);
+          transform: scale(1.05);
         }
       }
     }
@@ -131,12 +148,12 @@ header {
     }
   }
 }
-
-// AdSense Section Styling
-.ads {
-   text-align:center; 
-   margin:.5rem auto; 
+/* Dark Theme Styles */
+.dark-theme {
+  background-color: #121212;
+  color: #ffffff;
 }
+
 
 // Footer Styling
 footer {

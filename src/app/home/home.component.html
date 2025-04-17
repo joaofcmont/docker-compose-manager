@@ -1,293 +1,83 @@
-<!DOCTYPE html>
- 
-<html lang="en">
- 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
- 
-
-    <title>Docker Compose Manager</title>
- 
-
-  <meta charset="UTF-8">
- 
-
-  <meta name="google-adsense-account" content="ca-pub-8922143154605739">
- 
-
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
- 
-
-  <title>Docker Compose Manager</title>
- 
-</head>
- 
-
-
- 
-
+<!-- src/app/home/home.component.html -->
 <header>
- 
+    <nav>
+      <a routerLink="/">
+        <img
+          src="assets/docker-mark-blue.png"
+          alt="Docker Compose Manager Icon"
+          class="logo"
+        />
+      </a>
 
-</header>
- 
-<body>
- 
+      <ul>
+        <li>
+          <a href="#key-capabilities" (click)="scrollToSection('key-capabilities', $event)">
+            Solutions
+          </a>
+        </li>
+        <!-- Uncomment below if you need pricing later -->
+        <!-- <li><a href="#pricing" (click)="scrollToSection('pricing', $event)">Pricing</a></li> -->
+        <li class="contact_button"><a routerLink="/contact">Contact</a></li>
+     <!-- <app-theme-toggle></app-theme-toggle> -->  
 
-    <!-- Header with Navigation -->
- 
+      </ul>
+    </nav>
 
-    <header>
- 
+  </header>
 
-        <nav>
- 
-
-          <a href="/">
- 
-
-            <img src="assets/docker-mark-blue.png" alt="Docker Compose Manager Icon" class="logo">
- 
-
-            </a>
- 
-
-            <ul>
- 
-
-                <li><a href="#key-capabilities" (click)="scrollToSection('key-capabilities', $event)">Solutions</a></li>
- 
-
-         <!--      <li><a href="#pricing" (click)="scrollToSection('pricing', $event)">Pricing</a></li> --> 
- 
-
-                <li><a routerLink="/contact">Contact</a></li>
- 
-
-            </ul>
- 
-
-          
- 
-
-        </nav>
- 
-
-    </header>
- 
-
-
- 
-
-    <!-- Hero Section -->
- 
-
-    <section class="hero">
- 
-
-        <h1>Docker Compose Manager</h1>
- 
-
-        <p>Simplifies the configuration of multi-container applications using Docker</p>
- 
-
-        <a href="/compose-form" class="cta">Try it out</a> 
-
+  
+  <section class="hero">
+    <h1>Docker Compose Manager</h1>
+    <p>Simplifies the configuration of multi-container applications using Docker</p>
+    <a routerLink="/compose-form" class="cta">Try it out</a>
+  </section>
+  
+  <main>
+    <section id="key-capabilities" class="key-capabilities-section">
+      <h2>Key Capabilities</h2>
+      <p class="subheading">Explore the powerful features of our Docker Compose Manager.</p>
+  
+      <div class="capabilities-grid">
+        <div class="capability-item">
+          <div class="icon-container"><i class="fas fa-cogs"></i></div>
+          <h3>Visual Configuration Interface</h3>
+          <p>Design and manage Docker Compose configurations with an intuitive interface.</p>
+        </div>
+  
+        <div class="capability-item">
+          <div class="icon-container"><i class="fas fa-layer-group"></i></div>
+          <h3>Multi-Service Support</h3>
+          <p>Easily configure and manage multiple services in a single environment.</p>
+        </div>
+  
+        <div class="capability-item">
+          <div class="icon-container"><i class="fas fa-sliders-h"></i></div>
+          <h3>Environment Variables Management</h3>
+          <p>Handle environment variables seamlessly for your services.</p>
+        </div>
+  
+        <div class="capability-item">
+          <div class="icon-container"><i class="fas fa-database"></i></div>
+          <h3>Volume Mapping</h3>
+          <p>Map volumes efficiently to manage persistent data.</p>
+        </div>
+  
+        <div class="capability-item">
+          <div class="icon-container"><i class="fas fa-network-wired"></i></div>
+          <h3>Network Configuration</h3>
+          <p>Customize network settings for seamless communication between services.</p>
+        </div>
+  
+        <div class="capability-item">
+          <div class="icon-container"><i class="fas fa-project-diagram"></i></div>
+          <h3>Service Dependencies</h3>
+          <p>Define and manage service dependencies with ease.</p>
+        </div>
+      </div>
     </section>
- 
-
-
- 
-
-    <!-- Main Content Section -->
- 
-
-    <main>
- 
-
-
- 
-
-        <!-- Key Capabilities -->
- 
-
-        <section id="key-capabilities" class="key-capabilities-section">
- 
-
-          <h2>Key Capabilities</h2>
- 
-
-          <p class="subheading">Explore the powerful features of our Docker Compose Manager.</p>
- 
-
-          <div class="capabilities-grid">
- 
-
-              <div class="capability-item">
- 
-
-                  <div class="icon-container">
- 
-
-                      <i class="fas fa-cogs"></i> <!-- Replace with your desired icon -->
- 
-
-                  </div>
- 
-
-                  <h3>Visual Configuration Interface</h3>
- 
-
-                  <p>Design and manage Docker Compose configurations with an intuitive interface.</p>
- 
-
-              </div>
- 
-
-              <div class="capability-item">
- 
-
-                  <div class="icon-container">
- 
-
-                      <i class="fas fa-layer-group"></i>
- 
-
-                  </div>
- 
-
-                  <h3>Multi-Service Support</h3>
- 
-
-                  <p>Easily configure and manage multiple services in a single environment.</p>
- 
-
-              </div>
- 
-
-              <div class="capability-item">
- 
-
-                  <div class="icon-container">
- 
-
-                      <i class="fas fa-sliders-h"></i>
- 
-
-                  </div>
- 
-
-                  <h3>Environment Variables Management</h3>
- 
-
-                  <p>Handle environment variables seamlessly for your services.</p>
- 
-
-              </div>
- 
-
-              <div class="capability-item">
- 
-
-                  <div class="icon-container">
- 
-
-                      <i class="fas fa-database"></i>
- 
-
-                  </div>
- 
-
-                  <h3>Volume Mapping</h3>
- 
-
-                  <p>Map volumes efficiently to manage persistent data.</p>
- 
-
-              </div>
- 
-
-              <div class="capability-item">
- 
-
-                  <div class="icon-container">
- 
-
-                      <i class="fas fa-network-wired"></i>
- 
-
-                  </div>
- 
-
-                  <h3>Network Configuration</h3>
- 
-
-                  <p>Customize network settings for seamless communication between services.</p>
- 
-
-              </div>
- 
-
-              <div class="capability-item">
- 
-
-                  <div class="icon-container">
- 
-
-                      <i class="fas fa-project-diagram"></i>
- 
-
-                  </div>
- 
-
-                  <h3>Service Dependencies</h3>
- 
-
-                  <p>Define and manage service dependencies with ease.</p>
- 
-
-              </div>
- 
-
-          </div>
- 
-
-      </section>
- 
-        <footer>
- 
-
-            <p>© 2025 Docker Compose Manager. All rights reserved.</p>
- 
-
-        </footer>
- 
-
-    </main>
- 
-
-
- 
-
-</body>
- 
-
-
-</html>
- 
-
-<div class="content">
- 
-
-  <button *ngIf="!isComposeFormPage" class="big-button" (click)="onButtonClick()">Generate Docker Compose File
- 
-
-  </button>
- 
-
-</div>
- 
-
-  <router-outlet></router-outlet>
- 
+  
+    <footer>
+      <p>© 2025 Docker Compose Manager. All rights reserved.</p>
+    </footer>
+  </main>
+  

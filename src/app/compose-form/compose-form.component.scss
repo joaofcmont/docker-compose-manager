@@ -1,3 +1,4 @@
+// Color and Design Variables
 $primary: #007BFF;
 $secondary: #333;
 $bg: #f8f8f8;
@@ -5,44 +6,21 @@ $light: #f0f0f0;
 $radius: 8px;
 $trans: .3s;
 
+// General Styles
 body {
-  font: 16px/1.6 -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
   color: $secondary;
   background: $bg;
   margin: 0;
+  line-height: 1.6;
 }
 
-.logo { height: 48px; }
-
-header {
-  background: #fff;
-  padding: 1rem 2rem;
-  box-shadow: 0 1px 3px rgba(0,0,0,.1);
-  nav {
-    display: flex;
-    justify-content: space-between;
-    ul {
-      list-style: none;
-      display: flex;
-      gap: 2rem;
-      a {
-        text-decoration: none;
-        color: $secondary;
-        transition: color $trans;
-        &:hover { color: $primary; }
-      }
-      li:last-child a {
-        background: $primary;
-        color: #fff;
-        padding: .5rem 1rem;
-        border-radius: 4px;
-        transition: background $trans, transform $trans;
-        &:hover { background: lighten($primary, 10%); transform: scale(1.05); }
-      }
-    }
-  }
+.logo {
+  height: 48px;
+  width: auto;
 }
 
+// Main Content and Container
 main {
   padding-top: 3rem;
   .container {
@@ -55,32 +33,54 @@ main {
   }
 }
 
+// Content Header
 .content-header {
   text-align: center;
   margin-bottom: 2rem;
-  h1 { font-size: 2.5rem; margin-bottom: .5rem; }
-  .subheading { font-size: 1.2rem; color: $secondary; }
+
+  h1 {
+    font-size: 2.5rem;
+    margin-bottom: 0.5rem;
+    color: $primary;
+  }
+
+  .subheading {
+    font-size: 1.2rem;
+    color: $secondary;
+  }
 }
 
-.form-container, .yaml-preview, #import-section {
+// Form, YAML Preview, Import Section
+.form-container,
+.yaml-preview {
   background: #fff;
   border-radius: $radius;
-  box-shadow: 0 2px 10px rgba(0,0,0,.1);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, .1);
   padding: 2rem;
   width: 100%;
 }
 
 .form-container {
   flex-basis: 50%;
+
   .form-group {
     margin-bottom: 1.5rem;
-    label { display: block; margin-bottom: .5rem; font-weight: bold; color: $secondary; }
+    label {
+      display: block;
+      margin-bottom: .5rem;
+      font-weight: bold;
+      color: $secondary;
+    }
+
     input, select, textarea {
       width: 100%;
       padding: 10px;
       border-radius: 5px;
       border: 1px solid $secondary;
-      &:focus { outline-color: $primary; border-color: $primary; }
+      &:focus {
+        outline-color: $primary;
+        border-color: $primary;
+      }
     }
   }
 }
@@ -89,46 +89,69 @@ main {
   flex-basis: 45%;
   background: $light;
   font-family: 'Courier New', monospace;
-  pre { white-space: pre-wrap; word-wrap: break-word; }
+
+  pre {
+    white-space: pre-wrap;
+    word-wrap: break-word;
+  }
 }
 
+// File Import Section
 #import-section {
   margin: 20px;
   display: flex;
   flex-direction: column;
-  text-align: center;
+  align-items: center;  // This will center everything horizontally
+  text-align: center;   // Ensure the content is aligned to the center
+
   .file-upload {
-    margin-bottom: 10px;
+    margin-bottom: 15px; // Adjusted margin to space elements evenly
     position: relative;
-    .file-input { display: none; }
+    
+    .file-input {
+      display: none;
+    }
+
     .file-label {
       display: inline-block;
-      padding: 10px 20px;
+      padding: 12px 24px;  // Increased padding for better click area
       background: $primary;
       color: #fff;
       cursor: pointer;
       border-radius: 5px;
       transition: background $trans;
-      &:hover { background: darken($primary, 10%); }
+
+      &:hover {
+        background: darken($primary, 10%);
+      }
     }
   }
+
   input[type="file"] {
-    padding: 10px;
+    padding: 12px;  // Increased padding for a better feel
     border: 1px solid $secondary;
-    margin-bottom: 10px;
+    margin-bottom: 15px;  // Increased margin between file input and other elements
     width: 80%;
     max-width: 300px;
+    border-radius: 5px;
   }
 }
 
+
+// Footer
 footer {
   background: #fff;
   padding: 1rem 2rem;
   text-align: center;
-  box-shadow: 0 -1px 3px rgba(0,0,0,.1);
-  p { font-size: .875rem; color: $secondary; }
+  box-shadow: 0 -1px 3px rgba(0, 0, 0, .1);
+
+  p {
+    font-size: .875rem;
+    color: $secondary;
+  }
 }
 
+// Button Styles
 button {
   padding: 10px 20px;
   border: 0;
@@ -137,25 +160,51 @@ button {
   transition: background $trans, transform $trans;
   width: 100%;
   margin-top: 1rem;
-  &:hover { transform: scale(1.05); }
-  &:disabled { background: #ccc; cursor: not-allowed; color: $secondary; }
+
+  &:hover {
+    transform: scale(1.05);
+  }
+
+  &:disabled {
+    background: #ccc;
+    cursor: not-allowed;
+    color: $secondary;
+  }
 }
 
+// Primary and Secondary Buttons
 .primary {
   background: $primary;
   color: #fff;
   font-weight: bold;
-  &:hover { background: darken($primary, 10%); }
-  &:disabled { background: #ccc; }
+
+  &:hover {
+    background: darken($primary, 10%);
+  }
+
+  &:disabled {
+    background: #ccc;
+  }
 }
 
 .secondary {
   @extend .primary;
-  &:hover { background: lighten($primary, 10%); }
-  &:disabled { background: #ddd; }
+
+  &:hover {
+    background: lighten($primary, 10%);
+  }
+
+  &:disabled {
+    background: #ddd;
+  }
 }
 
-.form-group.checkbox { display: flex; align-items: center; gap: .5rem; }
+// Checkbox and Toggle Button Styles
+.form-group.checkbox {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+}
 
 .toggle-button {
   padding: 10px 20px;
@@ -169,18 +218,35 @@ button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  &:hover, &.active { background: $primary; color: #fff; }
+
+  &:hover,
+  &.active {
+    background: $primary;
+    color: #fff;
+  }
 }
 
+// Form Action Buttons (e.g., Submit)
 .form-actions {
   display: flex;
   justify-content: space-between;
   gap: 1rem;
   margin-top: 2rem;
-  button { width: auto; flex: 1; }
+
+  button {
+    width: auto;
+    flex: 1;
+  }
 }
 
+// Responsive Layout Adjustments
 @media (max-width: 768px) {
-  .container { flex-direction: column; }
-  .form-container, .yaml-preview { flex-basis: 100%; }
+  .container {
+    flex-direction: column;
+  }
+
+  .form-container,
+  .yaml-preview {
+    flex-basis: 100%;
+  }
 }

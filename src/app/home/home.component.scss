@@ -8,11 +8,6 @@ $light-gray: #f1f3f5;
 $border-radius: 10px;
 $transition-speed: 0.3s;
 
-// Dark Theme Variables
-$dark-background: #121212;
-$dark-surface: #1e1e1e;
-$dark-text: #e0e0e0;
-$dark-primary: #4d9fff;
 
 // Mixins
 @mixin button-style {
@@ -38,11 +33,6 @@ body {
   color: $secondary-color;
   line-height: 1.6;
   transition: background-color $transition-speed, color $transition-speed;
-
-  &.dark-theme {
-    background: $dark-background;
-    color: $dark-text;
-  }
 }
 
 // Navigation
@@ -86,23 +76,6 @@ nav {
     }
   }
 
-  .dark-theme & {
-    background: $dark-surface;
-
-    ul li a {
-      color: $dark-text;
-      &:hover, &.active {
-        color: $dark-primary;
-      }
-    }
-
-    .contact_button a {
-      background: $dark-primary;
-      &:hover {
-        background: lighten($dark-primary, 10%);
-      }
-    }
-  }
 }
 
 // Theme Toggle Button
@@ -128,15 +101,6 @@ app-theme-toggle {
     }
   }
 
-  .dark-theme & button {
-    &:hover {
-      background: rgba(255, 255, 255, 0.1);
-    }
-
-    mat-icon {
-      color: $dark-text;
-    }
-  }
 }
 
 // Hero
@@ -168,26 +132,6 @@ app-theme-toggle {
 
     &:hover {
       background: darken($primary-color, 10%);
-    }
-  }
-
-  .dark-theme & {
-    background: $dark-surface;
-
-    h1 {
-      color: $dark-primary;
-    }
-
-    p {
-      color: $dark-text;
-    }
-
-    .cta {
-      background: $dark-primary;
-
-      &:hover {
-        background: lighten($dark-primary, 10%);
-      }
     }
   }
 }
@@ -246,38 +190,6 @@ app-theme-toggle {
     }
   }
 
-  .dark-theme & {
-    background-color: darken($dark-background, 3%);
-
-    h2 {
-      color: $dark-primary;
-    }
-
-    .subheading {
-      color: $dark-text;
-    }
-
-    .capability-item {
-      background: $dark-surface;
-      box-shadow: 0 6px 14px rgba(0, 0, 0, 0.15);
-
-      &:hover {
-        box-shadow: 0 10px 18px rgba(0, 0, 0, 0.25);
-      }
-
-      .icon-container {
-        color: $dark-primary;
-      }
-
-      h3 {
-        color: $dark-text;
-      }
-
-      p {
-        color: $dark-text;
-      }
-    }
-  }
 }
 
 // Footer
@@ -290,11 +202,6 @@ footer {
   margin-top: 3rem;
   border-top: 1px solid #e6e6e6;
 
-  .dark-theme & {
-    background: $dark-surface;
-    color: $dark-text;
-    border-top: 1px solid #333;
-  }
 }
 
 // Responsive

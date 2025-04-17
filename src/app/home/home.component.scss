@@ -12,16 +12,9 @@ $transition-speed: 0.3s;
 $dark-background: #121212;
 $dark-surface: #1e1e1e;
 $dark-text: #e0e0e0;
-$dark-secondary-text: #a0a0a0;
-$dark-primary: #4d9fff; // Lighter version of primary for dark mode
+$dark-primary: #4d9fff;
 
 // Mixins
-@mixin flex-center {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
 @mixin button-style {
   padding: 12px 24px;
   border: none;
@@ -56,68 +49,55 @@ body {
 nav {
   background: $white;
   padding: 1rem 2rem;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
   display: flex;
   justify-content: space-between;
   align-items: center;
-  transition: background-color $transition-speed, box-shadow $transition-speed;
-  
+  transition: background-color $transition-speed;
+
   .logo {
     height: 48px;
-    width: auto;
   }
-  
+
   ul {
     display: flex;
     list-style: none;
     gap: 2rem;
     align-items: center;
-    
+
     li a {
       color: $secondary-color;
       font-weight: 500;
       transition: color $transition-speed;
-      
-      &:hover {
-        color: $primary-color;
-      }
-      
-      &.active {
+
+      &:hover, &.active {
         color: $primary-color;
       }
     }
-    
+
     .contact_button a {
       background: $primary-color;
       color: $white;
       padding: 8px 16px;
       border-radius: 4px;
-      
+
       &:hover {
         background: darken($primary-color, 10%);
       }
     }
   }
-  
+
   .dark-theme & {
     background: $dark-surface;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
-    
+
     ul li a {
       color: $dark-text;
-      
-      &:hover {
-        color: $dark-primary;
-      }
-      
-      &.active {
+      &:hover, &.active {
         color: $dark-primary;
       }
     }
-    
+
     .contact_button a {
       background: $dark-primary;
-      
       &:hover {
         background: lighten($dark-primary, 10%);
       }
@@ -137,39 +117,26 @@ app-theme-toggle {
     padding: 8px;
     border-radius: 50%;
     transition: background-color $transition-speed;
-    width: auto;
-    margin: 0;
-    
+
     &:hover {
       background: rgba(0, 0, 0, 0.05);
-      transform: none;
     }
-    
+
     mat-icon {
       color: $secondary-color;
       transition: color $transition-speed;
     }
   }
-  
+
   .dark-theme & button {
     &:hover {
       background: rgba(255, 255, 255, 0.1);
     }
-    
+
     mat-icon {
       color: $dark-text;
     }
   }
-}
-
-.logo {
-  height: 44px;
-  width: auto;
-}
-
-a {
-  text-decoration: none;
-  color: inherit;
 }
 
 // Hero
@@ -180,47 +147,44 @@ a {
   display: flex;
   flex-direction: column;
   align-items: center;
-  transition: background-color $transition-speed;
-  
+
   h1 {
     font-size: 3rem;
     color: $primary-color;
     margin-bottom: 1rem;
-    transition: color $transition-speed;
   }
-  
+
   p {
     font-size: 1.15rem;
     max-width: 600px;
     margin-bottom: 2rem;
     color: $gray;
-    transition: color $transition-speed;
   }
-  
+
   .cta {
     @include button-style;
     background: $primary-color;
     color: $white;
+
     &:hover {
       background: darken($primary-color, 10%);
-      transform: translateY(-2px);
     }
   }
-  
+
   .dark-theme & {
     background: $dark-surface;
-    
+
     h1 {
       color: $dark-primary;
     }
-    
+
     p {
-      color: $dark-secondary-text;
+      color: $dark-text;
     }
-    
+
     .cta {
       background: $dark-primary;
-      
+
       &:hover {
         background: lighten($dark-primary, 10%);
       }
@@ -233,21 +197,18 @@ a {
   padding: 4rem 1.5rem;
   background-color: $light-gray;
   text-align: center;
-  transition: background-color $transition-speed;
-  
+
   h2 {
     font-size: 2rem;
     color: $primary-color;
     margin-bottom: 1rem;
-    transition: color $transition-speed;
   }
-  
+
   .subheading {
     color: $gray;
     margin-bottom: 2rem;
-    transition: color $transition-speed;
   }
-  
+
   .capabilities-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
@@ -255,66 +216,63 @@ a {
     max-width: 1100px;
     margin: 0 auto;
   }
-  
+
   .capability-item {
     background: $white;
     padding: 2rem 1.5rem;
     border-radius: $border-radius;
     box-shadow: 0 6px 14px rgba(0, 0, 0, 0.05);
-    transition: transform $transition-speed ease, box-shadow $transition-speed ease, background-color $transition-speed;
-    
+    transition: transform $transition-speed ease, box-shadow $transition-speed ease;
+
     &:hover {
       transform: translateY(-6px);
       box-shadow: 0 10px 18px rgba(0, 0, 0, 0.08);
     }
-    
+
     .icon-container {
       font-size: 2rem;
       margin-bottom: 1rem;
       color: $primary-color;
-      transition: color $transition-speed;
     }
-    
+
     h3 {
       font-size: 1.2rem;
       margin-bottom: 0.5rem;
-      transition: color $transition-speed;
     }
-    
+
     p {
       font-size: 0.95rem;
       color: $gray;
-      transition: color $transition-speed;
     }
   }
-  
+
   .dark-theme & {
     background-color: darken($dark-background, 3%);
-    
+
     h2 {
       color: $dark-primary;
     }
-    
+
     .subheading {
       color: $dark-secondary-text;
     }
-    
+
     .capability-item {
       background: $dark-surface;
       box-shadow: 0 6px 14px rgba(0, 0, 0, 0.15);
-      
+
       &:hover {
         box-shadow: 0 10px 18px rgba(0, 0, 0, 0.25);
       }
-      
+
       .icon-container {
         color: $dark-primary;
       }
-      
+
       h3 {
         color: $dark-text;
       }
-      
+
       p {
         color: $dark-secondary-text;
       }
@@ -331,8 +289,7 @@ footer {
   color: $gray;
   margin-top: 3rem;
   border-top: 1px solid #e6e6e6;
-  transition: background-color $transition-speed, color $transition-speed, border-color $transition-speed;
-  
+
   .dark-theme & {
     background: $dark-surface;
     color: $dark-secondary-text;
@@ -342,18 +299,14 @@ footer {
 
 // Responsive
 @media (max-width: 768px) {
-  nav ul {
-    gap: 1.2rem;
-  }
-  
   .hero h1 {
     font-size: 2.2rem;
   }
-  
+
   .hero p {
     font-size: 1rem;
   }
-  
+
   .capabilities-grid {
     grid-template-columns: 1fr;
   }
@@ -371,15 +324,15 @@ footer {
       text-align: center;
     }
   }
-  
+
   .hero {
     padding: 5rem 1rem 3rem;
   }
-  
+
   .hero h1 {
     font-size: 2rem;
   }
-  
+
   .cta {
     font-size: 0.95rem;
     padding: 0.75rem 1.25rem;

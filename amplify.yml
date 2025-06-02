@@ -4,11 +4,12 @@ frontend:
     preBuild:
       commands:
         - npm ci
+        - npm install -g @angular/cli
     build:
       commands:
-        - npm run build -- --configuration production
+        - npm run build:browser
   artifacts:
-    baseDirectory: dist/docker-compose-manager
+    baseDirectory: dist/docker-compose-manager/browser
     files:
       - '**/*'
   cache:

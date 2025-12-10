@@ -1,0 +1,97 @@
+<div class="waitlist-container">
+  <div class="waitlist-card">
+    <h2>Join the Waitlist</h2>
+    <p class="subtitle">Be among the first to experience our Docker Compose Manager</p>
+
+    <div *ngIf="!submitSuccess" class="form-wrapper">
+      <form [formGroup]="waitlistForm" (ngSubmit)="onSubmit()">
+        <div class="form-group">
+          <label for="email">Email Address *</label>
+          <input
+            type="email"
+            id="email"
+            formControlName="email"
+            placeholder="your.email@example.com"
+            [class.error]="waitlistForm.get('email')?.invalid && waitlistForm.get('email')?.touched"
+          />
+          <div class="error-message" *ngIf="waitlistForm.get('email')?.errors?.['required'] && waitlistForm.get('email')?.touched">
+            Email is required
+          </div>
+          <div class="error-message" *ngIf="waitlistForm.get('email')?.errors?.['email'] && waitlistForm.get('email')?.touched">
+            Please enter a valid email address
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="name">Full Name *</label>
+          <input
+            type="text"
+            id="name"
+            formControlName="name"
+            placeholder="John Doe"
+            [class.error]="waitlistForm.get('name')?.invalid && waitlistForm.get('name')?.touched"
+          />
+          <div class="error-message" *ngIf="waitlistForm.get('name')?.errors?.['required'] && waitlistForm.get('name')?.touched">
+            Name is required
+          </div>
+          <div class="error-message" *ngIf="waitlistForm.get('name')?.errors?.['minlength'] && waitlistForm.get('name')?.touched">
+            Name must be at least 2 characters
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="role">Your Role *</label>
+          <select
+            id="role"
+            formControlName="role"
+            [class.error]="waitlistForm.get('role')?.invalid && waitlistForm.get('role')?.touched"
+          >
+            <option value="">Select your role</option>
+            <option value="Developer">Developer</option>
+            <option value="DevOps Engineer">DevOps Engineer</option>
+            <option value="Team Lead">Team Lead</option>
+            <option value="Software Architect">Software Architect</option>
+            <option value="Other">Other</option>
+          </select>
+          <div class="error-message" *ngIf="waitlistForm.get('role')?.errors?.['required'] && waitlistForm.get('role')?.touched">
+            Please select your role
+          </div>
+        </div>
+
+        <div class="error-message" *ngIf="submitError" class="submit-error">
+          {{ submitError }}
+        </div>
+
+        <button
+          type="submit"
+          class="submit-button"
+          [disabled]="isSubmitting || waitlistForm.invalid"
+        >
+          <span *ngIf="!isSubmitting">Join Waitlist</span>
+          <span *ngIf="isSubmitting" class="button-loading">
+            <span class="spinner"></span>
+            Signing up...
+          </span>
+        </button>
+      </form>
+    </div>
+
+    <div *ngIf="submitSuccess" class="success-message">
+      <div class="success-icon">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+          <polyline points="20 6 9 17 4 12"></polyline>
+        </svg>
+      </div>
+      <h3>Successfully Joined!</h3>
+      <p>Thank you for joining our waitlist. We'll redirect you to a quick survey in a moment...</p>
+      <div class="success-loading">
+        <div class="loading-dots">
+          <span></span>
+          <span></span>
+          <span></span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+

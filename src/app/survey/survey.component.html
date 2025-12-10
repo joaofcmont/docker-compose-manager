@@ -1,0 +1,121 @@
+<div class="survey-container">
+  <div class="survey-card">
+    <h2>Help Us Improve</h2>
+    <p class="subtitle">Share your Docker Compose experience (takes 2 minutes)</p>
+
+    <div *ngIf="!submitSuccess" class="form-wrapper">
+      <form [formGroup]="surveyForm" (ngSubmit)="onSubmit()">
+        <div class="form-group">
+          <label for="serviceCount">How many services do you typically manage in docker-compose.yml? *</label>
+          <select
+            id="serviceCount"
+            formControlName="serviceCount"
+            [class.error]="surveyForm.get('serviceCount')?.invalid && surveyForm.get('serviceCount')?.touched"
+          >
+            <option value="">Select an option</option>
+            <option value="1-2">1-2 services</option>
+            <option value="3-5">3-5 services</option>
+            <option value="6-10">6-10 services</option>
+            <option value="11+">11+ services</option>
+          </select>
+          <div class="error-message" *ngIf="surveyForm.get('serviceCount')?.errors?.['required'] && surveyForm.get('serviceCount')?.touched">
+            Please select an option
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="painPoint">What's your biggest pain point with Docker Compose? *</label>
+          <select
+            id="painPoint"
+            formControlName="painPoint"
+            [class.error]="surveyForm.get('painPoint')?.invalid && surveyForm.get('painPoint')?.touched"
+          >
+            <option value="">Select an option</option>
+            <option value="YAML editing">YAML editing is error-prone</option>
+            <option value="Multi-env management">Managing multiple environments</option>
+            <option value="Config drift">Configuration drift between environments</option>
+            <option value="Service dependencies">Managing service dependencies</option>
+            <option value="Port conflicts">Port conflicts and networking</option>
+            <option value="Other">Other</option>
+          </select>
+          <div class="error-message" *ngIf="surveyForm.get('painPoint')?.errors?.['required'] && surveyForm.get('painPoint')?.touched">
+            Please select an option
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="editFrequency">How often do you edit docker-compose.yml? *</label>
+          <select
+            id="editFrequency"
+            formControlName="editFrequency"
+            [class.error]="surveyForm.get('editFrequency')?.invalid && surveyForm.get('editFrequency')?.touched"
+          >
+            <option value="">Select an option</option>
+            <option value="Daily">Daily</option>
+            <option value="Weekly">Weekly</option>
+            <option value="Monthly">Monthly</option>
+            <option value="Rarely">Rarely</option>
+          </select>
+          <div class="error-message" *ngIf="surveyForm.get('editFrequency')?.errors?.['required'] && surveyForm.get('editFrequency')?.touched">
+            Please select an option
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="wouldUseWeekly">Would you use a visual editor for Docker Compose weekly? *</label>
+          <select
+            id="wouldUseWeekly"
+            formControlName="wouldUseWeekly"
+            [class.error]="surveyForm.get('wouldUseWeekly')?.invalid && surveyForm.get('wouldUseWeekly')?.touched"
+          >
+            <option value="">Select an option</option>
+            <option value="Yes">Yes, definitely</option>
+            <option value="Maybe">Maybe</option>
+            <option value="No">No</option>
+          </select>
+          <div class="error-message" *ngIf="surveyForm.get('wouldUseWeekly')?.errors?.['required'] && surveyForm.get('wouldUseWeekly')?.touched">
+            Please select an option
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="feedback">Additional feedback (optional)</label>
+          <textarea
+            id="feedback"
+            formControlName="feedback"
+            rows="4"
+            placeholder="Tell us more about your Docker Compose workflow, challenges, or what features you'd like to see..."
+          ></textarea>
+        </div>
+
+        <div class="error-message" *ngIf="submitError" class="submit-error">
+          {{ submitError }}
+        </div>
+
+        <button
+          type="submit"
+          class="submit-button"
+          [disabled]="isSubmitting || surveyForm.invalid"
+        >
+          <span *ngIf="!isSubmitting">Submit Survey</span>
+          <span *ngIf="isSubmitting" class="button-loading">
+            <span class="spinner"></span>
+            Submitting...
+          </span>
+        </button>
+      </form>
+    </div>
+
+    <div *ngIf="submitSuccess" class="success-message">
+      <div class="success-icon">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+          <polyline points="20 6 9 17 4 12"></polyline>
+        </svg>
+      </div>
+      <h3>Thank You!</h3>
+      <p>Your feedback helps us build a better tool for developers like you. Ready to try the visual editor?</p>
+      <button class="cta-button" (click)="goToEditor()">Try the Visual Editor</button>
+    </div>
+  </div>
+</div>
+

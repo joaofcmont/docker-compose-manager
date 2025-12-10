@@ -1,35 +1,39 @@
 <!-- src/app/home/home.component.html -->
-<header>
+  <header>
     <nav>
-      <a routerLink="/">
+      <a routerLink="/" class="logo-link">
         <img
-          src="assets/docker-mark-blue.png"
-          alt="Docker Compose Manager Icon"
+          src="assets/favicon.png"
+          alt="Docker Compose Manager"
           class="logo"
         />
       </a>
 
-      <ul>
+      <ul class="nav-links">
         <li>
-          <a href="#key-capabilities" (click)="scrollToSection('key-capabilities', $event)">
+          <a href="#key-capabilities" (click)="scrollToSection('key-capabilities', $event)" class="nav-link">
             Solutions
           </a>
         </li>
-        <!-- Uncomment below if you need pricing later -->
-        <!-- <li><a href="#pricing" (click)="scrollToSection('pricing', $event)">Pricing</a></li> -->
-        <li class="contact_button"><a routerLink="/contact">Contact</a></li>
-     <!-- <app-theme-toggle></app-theme-toggle> -->  
-
+        <li>
+          <a routerLink="/compose-form" class="nav-link">Editor</a>
+        </li>
+        <li class="contact_button">
+          <a routerLink="/contact" class="nav-link contact-link">Contact</a>
+        </li>
       </ul>
     </nav>
-
   </header>
 
   
   <section class="hero">
     <h1>Docker Compose Manager</h1>
-    <p>Simplifies the configuration of multi-container applications using Docker</p>
-    <a routerLink="/compose-form" class="cta">Try it out</a>
+    <p class="hero-subtitle">Stop wrestling with YAML. Build, manage, and deploy multi-container Docker applications with a visual editor that just works.</p>
+    <div class="hero-ctas">
+      <a routerLink="/compose-form" class="cta cta-primary" (click)="onTryEditorClick()">Try Live Editor</a>
+      <a routerLink="/waitlist" class="cta cta-secondary">Join Waitlist</a>
+    </div>
+    <p class="hero-note">Free to use. No sign-up required to try the editor.</p>
   </section>
   
   <main>
@@ -73,6 +77,14 @@
           <h3>Service Dependencies</h3>
           <p>Define and manage service dependencies with ease.</p>
         </div>
+      </div>
+    </section>
+
+    <section class="waitlist-section">
+      <div class="waitlist-content">
+        <h2>Join Early Access</h2>
+        <p>Be among the first to experience advanced features like multi-environment management, team collaboration, and more.</p>
+        <a routerLink="/waitlist" class="cta cta-waitlist">Join the Waitlist</a>
       </div>
     </section>
   

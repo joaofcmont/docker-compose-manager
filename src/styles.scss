@@ -38,46 +38,8 @@ body {
 }
 
 // Header & Navigation Styling
-header {
-  background: $white;
-  padding: 1rem 2rem;
-  box-shadow: 0 1px 3px rgba(0,0,0,.1);
-
-  nav {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-
-    ul {
-      list-style: none;
-      display: flex;
-      gap: 2rem;
-
-      a {
-        text-decoration: none;
-        color: $secondary-color;
-        transition: color $transition-speed;
-
-        &:hover {
-          color: $primary-color;
-        }
-      }
-
-      li:last-child a {
-        background: $primary-color;
-        color: $white;
-        padding: .5rem 1rem;
-        border-radius: 4px;
-        transition: background $transition-speed, transform $transition-speed;
-
-        &:hover {
-          background: lighten($primary-color, 10%);
-          transform: scale(1.05);
-        }
-      }
-    }
-  }
-}
+// Note: Navigation styles are now handled by individual component stylesheets
+// to ensure consistency across all pages (home, editor, contact)
 
 // Hero Section Styling
 .hero {
@@ -150,8 +112,18 @@ header {
 }
 /* Dark Theme Styles */
 .dark-theme {
-  background-color: #121212;
-  color: #ffffff;
+  background-color: #1a1a1a;
+  color: #e0e0e0;
+
+  body {
+    background-color: #1a1a1a;
+    color: #e0e0e0;
+  }
+
+  header {
+    background: #2d2d2d;
+    border-bottom: 1px solid #404040;
+  }
 }
 
 
@@ -176,13 +148,5 @@ footer {
 
    .use-case-list {    
      grid-template-columns :1fr;   
-   } 
-
-   nav ul {    
-     flex-direction :column;   
-   } 
-
-   nav ul li {    
-     margin-bottom :10px;   
    } 
 }

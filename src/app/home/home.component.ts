@@ -3,6 +3,7 @@ import { Component, OnDestroy } from '@angular/core';
 import { NavigationEnd, Router, RouterModule } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { filter } from 'rxjs/operators';
+import { AnalyticsService } from '../services/analytics.service';
 
 @Component({
   selector: 'app-home',
@@ -16,7 +17,11 @@ export class HomeComponent implements OnDestroy {
   isYearly = false;
   isComposeFormPage = false;
 
-  constructor(private router: Router, private viewportScroller: ViewportScroller) {
+  constructor(
+    private router: Router,
+    private viewportScroller: ViewportScroller,
+    private analyticsService: AnalyticsService
+  ) {
     this.routerSubscription = this.router.events.pipe(
       filter(event => event instanceof NavigationEnd)
     ).subscribe(() => {
@@ -26,6 +31,10 @@ export class HomeComponent implements OnDestroy {
 
   onButtonClick(): void {
     this.router.navigate(['/compose-form']);
+  }
+
+  onTryEditorClick(): void {
+    this.analyticsService.trackTryEditorClick('landing_page');
   }
 
   ngOnDestroy(): void {

@@ -1,0 +1,30 @@
+button {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px;
+  border-radius: 50%;
+  transition: background-color 0.3s;
+  color: inherit;
+
+  &:hover {
+    background: rgba(0, 0, 0, 0.05);
+  }
+
+  mat-icon {
+    color: inherit;
+    transition: color 0.3s;
+  }
+}
+
+:host-context(.dark-theme) {
+  button {
+    &:hover {
+      background: rgba(255, 255, 255, 0.1);
+    }
+  }
+}
+

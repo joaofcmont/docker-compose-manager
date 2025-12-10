@@ -12,6 +12,14 @@ export const routes: Routes = [
     path: 'compose-form',
     loadComponent: () => import('./compose-form/compose-form.component').then(m => m.ComposeFormComponent)
   },
+  {
+    path: 'waitlist',
+    loadComponent: () => import('./waitlist/waitlist.component').then(m => m.WaitlistComponent)
+  },
+  {
+    path: 'survey',
+    loadComponent: () => import('./survey/survey.component').then(m => m.SurveyComponent)
+  },
   { path: 'contact', component: ContactComponent },
   { path: '', redirectTo: '/home', pathMatch: 'full' }
 ];

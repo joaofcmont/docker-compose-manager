@@ -8,50 +8,105 @@ $light-gray: #f0f0f0;
 $border-radius: 8px;
 $transition-speed: 0.3s;
 
-// Logo
-.logo {
-  height: 48px;
-}
-
 // Header
 header {
-  background: $white;
-  padding: 1rem 2rem;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  position: sticky;
+  top: 0;
   z-index: 1000;
+  background: $white;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
   margin-bottom: 2rem;
+}
 
-  nav {
+nav {
+  background: $white;
+  padding: 1.25rem 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  max-width: 1400px;
+  margin: 0 auto;
+
+  .logo-link {
     display: flex;
-    justify-content: space-between;
     align-items: center;
+    gap: 0.75rem;
+    text-decoration: none;
+    transition: transform $transition-speed;
 
-    ul {
-      list-style: none;
+    &:hover {
+      transform: translateY(-1px);
+    }
+
+    .logo {
+      height: 56px;
+      width: 56px;
+      object-fit: contain;
+    }
+  }
+
+  .nav-links {
+    display: flex;
+    list-style: none;
+    gap: 2rem;
+    align-items: center;
+    margin: 0;
+    padding: 0;
+
+    li {
       display: flex;
-      gap: 2rem;
-      max-width: 1200px;
-      margin: 0 auto;
+      align-items: center;
+    }
 
-      a {
-        text-decoration: none;
-        color: $gray;
-        font-size: 1rem;
-        transition: color $transition-speed;
-        &:hover {
-          color: $primary-color;
-        }
+    .nav-link {
+      color: $secondary-color;
+      font-weight: 500;
+      font-size: 1rem;
+      text-decoration: none;
+      padding: 0.5rem 0;
+      position: relative;
+      transition: color $transition-speed;
+
+      &::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 0;
+        height: 2px;
+        background: $primary-color;
+        transition: width $transition-speed;
       }
 
-      li:last-child a {
+      &:hover, &.active {
+        color: $primary-color;
+
+        &::after {
+          width: 100%;
+        }
+      }
+    }
+
+    .contact_button {
+      margin-left: 0.5rem;
+
+      .contact-link {
         background: $primary-color;
         color: $white;
-        padding: 0.5rem 1rem;
-        border-radius: 4px;
-        transition: background-color $transition-speed, transform $transition-speed;
+        padding: 0.75rem 1.5rem;
+        border-radius: 6px;
+        font-weight: 600;
+        font-size: 1rem;
+        transition: all $transition-speed;
+
+        &::after {
+          display: none;
+        }
+
         &:hover {
-          background: lighten($primary-color, 10%);
-          transform: scale(1.05);
+          background: darken($primary-color, 10%);
+          transform: translateY(-1px);
+          box-shadow: 0 4px 12px rgba(0, 123, 255, 0.3);
         }
       }
     }
@@ -96,15 +151,54 @@ header {
       border: 1px solid $gray;
       border-radius: 5px;
       font-size: 1rem;
+      transition: border-color $transition-speed;
+      
       &:focus {
         outline-color: $primary-color;
         border-color: $primary-color;
+      }
+
+      &.error {
+        border-color: #dc3545;
       }
     }
 
     textarea {
       min-height: 120px;
+      resize: vertical;
     }
+
+    .error-message {
+      color: #dc3545;
+      font-size: 0.875rem;
+      margin-top: 0.5rem;
+      display: block;
+    }
+  }
+
+  .success-message {
+    background-color: #d4edda;
+    color: #155724;
+    padding: 1rem;
+    border-radius: 5px;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.95rem;
+
+    svg {
+      flex-shrink: 0;
+    }
+  }
+
+  .error-message:not(.form-group .error-message) {
+    background-color: #f8d7da;
+    color: #721c24;
+    padding: 1rem;
+    border-radius: 5px;
+    margin-bottom: 1rem;
+    font-size: 0.95rem;
   }
 
   button.cta {
@@ -118,8 +212,12 @@ header {
     background-color: $primary-color;
     color: $white;
     font-weight: bold;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
 
-    &:hover {
+    &:hover:not(:disabled) {
       background-color: darken($primary-color, 10%);
       transform: scale(1.05);
     }
@@ -128,6 +226,26 @@ header {
       background-color: #ccc;
       cursor: not-allowed;
       color: $gray;
+      transform: none;
+    }
+
+    .loading {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .spinner {
+      animation: spin 1s linear infinite;
+    }
+  }
+
+  @keyframes spin {
+    from {
+      transform: rotate(0deg);
+    }
+    to {
+      transform: rotate(360deg);
     }
   }
 }

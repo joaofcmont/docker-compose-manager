@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { FormArray, FormControl, FormGroup, ReactiveFormsModule, Validators, FormsModule } from '@angular/forms';
 import { DockerComposeService } from '../services/docker-compose.service';
 import { AnalyticsService } from '../services/analytics.service';
@@ -20,6 +20,12 @@ import { RouterModule } from '@angular/router';
 
 })
 export class ComposeFormComponent implements OnInit {
+  // Inject services using inject() function
+  private dockerComposeService = inject(DockerComposeService);
+  private analyticsService = inject(AnalyticsService);
+  private firestoreService = inject(FirestoreService);
+  private graphService = inject(GraphService);
+
   services: ServiceConfig[] = [];
   selectedServiceIndex: number = 0;
   activeTab: 'form' | 'diagram' | 'yaml' = 'form';
@@ -117,12 +123,6 @@ export class ComposeFormComponent implements OnInit {
   feedbackComment: string = '';
   feedbackSubmitted: boolean = false;
 
-  constructor(
-    private dockerComposeService: DockerComposeService,
-    private analyticsService: AnalyticsService,
-    private firestoreService: FirestoreService,
-    private graphService: GraphService
-  ) {}
 
   ngOnInit() {
     // Initialize with one empty service

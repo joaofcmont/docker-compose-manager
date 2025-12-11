@@ -1,6 +1,7 @@
 import { CommonModule, ViewportScroller } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { Router, RouterModule } from '@angular/router';
+import { inject } from '@vercel/analytics';
 
 @Component({
   selector: 'app-root',
@@ -11,7 +12,10 @@ import { Router, RouterModule } from '@angular/router';
 })
 export class AppComponent implements OnInit {
 
-  constructor(private router: Router, private viewportScroller: ViewportScroller) {}
+  constructor(private router: Router, private viewportScroller: ViewportScroller) {
+    // Initialize Vercel Analytics
+    inject();
+  }
 
   ngOnInit(): void {  
   }

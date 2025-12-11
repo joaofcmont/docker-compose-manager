@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { FormArray, FormControl, FormGroup, ReactiveFormsModule, Validators, FormsModule } from '@angular/forms';
 import { DockerComposeService } from '../services/docker-compose.service';
 import { AnalyticsService } from '../services/analytics.service';
+import { FirestoreService } from '../services/firestore.service';
 import { GraphService } from '../services/graph.service';
 import { ServiceConfig } from '../models/service-config.model';
 import { ComposeGraph } from '../models/compose-graph.model';
@@ -119,6 +120,7 @@ export class ComposeFormComponent implements OnInit {
   constructor(
     private dockerComposeService: DockerComposeService,
     private analyticsService: AnalyticsService,
+    private firestoreService: FirestoreService,
     private graphService: GraphService
   ) {}
 
@@ -884,9 +886,20 @@ export class ComposeFormComponent implements OnInit {
   // Feedback handling
   submitFeedback(isVisual: boolean): void {
     this.showFeedbackComment = true;
+    
+    // Track in analytics
     this.analyticsService.trackEvent('diagram_feedback', {
       is_visual: isVisual,
       service_count: this.services.length
+    });
+
+    // Store in Firestore (without comment yet)
+    this.firestoreService.submitDiagramFeedback({
+      isVisual: isVisual,
+      serviceCount: this.services.length,
+      userAgent: navigator.userAgent
+    }).catch(error => {
+      console.error('Error storing feedback in Firestore:', error);
     });
   }
 
@@ -902,6 +915,14 @@ export class ComposeFormComponent implements OnInit {
         service_count: this.services.length
       });
 
+      // Store in Firestore with comment
+      await this.firestoreService.submitDiagramFeedback({
+        isVisual: true, // Assume yes if they're leaving a comment
+        comment: this.feedbackComment,
+        serviceCount: this.services.length,
+        userAgent: navigator.userAgent
+      });
+
       this.feedbackSubmitted = true;
       this.feedbackComment = '';
       this.showFeedbackComment = false;
@@ -911,6 +932,10 @@ export class ComposeFormComponent implements OnInit {
       }, 3000);
     } catch (error) {
       console.error('Error submitting feedback:', error);
+      // Still show success to user even if storage fails
+      this.feedbackSubmitted = true;
+      this.feedbackComment = '';
+      this.showFeedbackComment = false;
     }
   }
 }

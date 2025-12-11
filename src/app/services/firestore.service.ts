@@ -26,6 +26,14 @@ export interface SurveyResponse {
   waitlistId?: string;
 }
 
+export interface DiagramFeedback {
+  isVisual: boolean;
+  comment?: string;
+  serviceCount: number;
+  timestamp: Timestamp;
+  userAgent?: string;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -106,6 +114,32 @@ export class FirestoreService {
       return docRef.id;
     } catch (error) {
       console.error('Error submitting survey:', error);
+      throw error;
+    }
+  }
+
+  async submitDiagramFeedback(feedback: Omit<DiagramFeedback, 'timestamp'> & { timestamp?: any }): Promise<string> {
+    try {
+      const feedbackData: any = {
+        isVisual: feedback.isVisual,
+        serviceCount: feedback.serviceCount,
+        timestamp: feedback.timestamp || Timestamp.now()
+      };
+
+      // Only add comment if it exists and is not empty
+      if (feedback.comment && feedback.comment.trim() !== '') {
+        feedbackData.comment = feedback.comment.trim();
+      }
+
+      // Add user agent if provided
+      if (feedback.userAgent) {
+        feedbackData.userAgent = feedback.userAgent;
+      }
+
+      const docRef = await addDoc(collection(db, 'diagram_feedback'), feedbackData);
+      return docRef.id;
+    } catch (error) {
+      console.error('Error submitting diagram feedback:', error);
       throw error;
     }
   }

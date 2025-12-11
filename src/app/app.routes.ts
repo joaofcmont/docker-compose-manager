@@ -21,6 +21,10 @@ export const routes: Routes = [
     loadComponent: () => import('./survey/survey.component').then(m => m.SurveyComponent)
   },
   { path: 'contact', component: ContactComponent },
+  {
+    path: 'privacy',
+    loadComponent: () => import('./privacy/privacy.component').then(m => m.PrivacyComponent)
+  },
   { path: '', redirectTo: '/home', pathMatch: 'full' }
 ];
 

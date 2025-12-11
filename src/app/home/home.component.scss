@@ -357,6 +357,16 @@ footer {
   margin-top: 3rem;
   border-top: 1px solid #e6e6e6;
 
+  a {
+    color: $primary-color;
+    text-decoration: none;
+    transition: color $transition-speed;
+
+    &:hover {
+      color: darken($primary-color, 10%);
+      text-decoration: underline;
+    }
+  }
 }
 
 // Responsive

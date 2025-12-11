@@ -84,26 +84,115 @@ export class DockerComposeService {
     link.click();
   }
 
-  // Create the Docker Compose configuration based on form values
+  // Create the Docker Compose configuration from multiple services
+  generateDockerComposeConfigFromServices(services: any[]): any {
+    const servicesConfig: any = {};
+
+    services.forEach(service => {
+      if (!service.serviceName || !service.dockerImage) {
+        return; // Skip invalid services
+      }
+
+      const serviceConfig: any = {
+        image: service.dockerImage,
+        ports: service.hostPort && service.containerPort 
+          ? [`${service.hostPort}:${service.containerPort}`]
+          : [],
+        environment: this.parseListInput(service.environment || ''),
+        volumes: this.parseListInput(service.volumes || ''),
+        restart: service.restart || 'always',
+      };
+
+      // Add healthcheck
+      if (service.healthCheck?.enabled) {
+        const interval = service.healthCheck.interval?.trim();
+        const timeout = service.healthCheck.timeout?.trim();
+        const retries = service.healthCheck.retries;
+
+        if (interval && timeout && retries !== undefined && retries >= 0) {
+          serviceConfig.healthcheck = {
+            test: this.getHealthCheckTest(service.dockerImage, service.containerPort),
+            interval: interval,
+            timeout: timeout,
+            retries: Number(retries) || 3,
+          };
+        }
+      }
+
+      // Add deploy resources
+      if (service.deploy?.replicas > 1 || service.resources?.cpuLimit > 0 || service.resources?.memoryLimit > 0) {
+        serviceConfig.deploy = {
+          replicas: service.deploy?.replicas || 1,
+          resources: {
+            limits: {
+              cpus: service.resources?.cpuLimit?.toString() || '0.5',
+              memory: `${service.resources?.memoryLimit || 512}MB`,
+            },
+          },
+        };
+      }
+
+      // Add depends_on
+      if (service.depends_on && Array.isArray(service.depends_on) && service.depends_on.length > 0) {
+        serviceConfig.depends_on = service.depends_on.filter((dep: string) => dep && dep.trim());
+      }
+
+      servicesConfig[service.serviceName] = serviceConfig;
+    });
+
+    return {
+      version: '3.8',
+      services: servicesConfig,
+    };
+  }
+
+  // Create the Docker Compose configuration based on form values (legacy single-service method)
   generateDockerComposeConfig(formValues: any) {
     const healthCheck = formValues.healthCheck;
     const resources = formValues.resources;
     const deploy = formValues.deploy;
+
+    // Validate required fields
+    if (!formValues.serviceName || !formValues.dockerImage) {
+      throw new Error('Service name and Docker image are required');
+    }
+
+    if (!formValues.hostPort || !formValues.containerPort) {
+      throw new Error('Both host port and container port are required');
+    }
 
     const serviceConfig: any = {
       image: formValues.dockerImage,
       ports: [`${formValues.hostPort}:${formValues.containerPort}`],
       environment: this.parseListInput(formValues.environment || ''), // Handle missing environment
       volumes: this.parseListInput(formValues.volumes || ''),
-      restart: formValues.restart,
+      restart: formValues.restart || 'always',
     };
 
+    // Validate and add healthcheck with proper error handling
     if (healthCheck?.enabled) {
+      // Validate healthcheck fields
+      const interval = healthCheck.interval?.trim();
+      const timeout = healthCheck.timeout?.trim();
+      const retries = healthCheck.retries;
+
+      if (!interval || !timeout) {
+        throw new Error('Health check interval and timeout are required when health check is enabled');
+      }
+
+      if (retries === undefined || retries === null || retries < 0) {
+        throw new Error('Health check retries must be a non-negative number');
+      }
+
+      // Get container port safely
+      const containerPort = formValues.containerPort || '80';
+      const dockerImage = formValues.dockerImage || '';
+
       serviceConfig.healthcheck = {
-        test: this.getHealthCheckTest(formValues.containerPort),
-        interval: healthCheck.interval,
-        timeout: healthCheck.timeout,
-        retries: healthCheck.retries,
+        test: this.getHealthCheckTest(dockerImage, containerPort),
+        interval: interval,
+        timeout: timeout,
+        retries: Number(retries) || 3,
       };
     }
 
@@ -140,16 +229,29 @@ export class DockerComposeService {
   }
 
   // Helper method to determine the health check test based on the image
-  private getHealthCheckTest(port: string): string[] {
-    const dockerImage = port.toLowerCase();
+  private getHealthCheckTest(dockerImage: string, containerPort: string): string[] {
+    // Ensure we have valid inputs
+    const image = (dockerImage || '').trim();
+    const port = (containerPort || '80').toString().trim();
 
-    if (dockerImage.includes('postgres')) {
+    // Default to HTTP check if no image provided
+    if (!image) {
+      return ['CMD', 'curl', '-f', `http://localhost:${port}`];
+    }
+
+    const imageLower = image.toLowerCase();
+
+    // Database-specific health checks
+    if (imageLower.includes('postgres')) {
       return ['CMD', 'pg_isready'];
-    } else if (dockerImage.includes('redis')) {
+    } else if (imageLower.includes('redis')) {
       return ['CMD', 'redis-cli', 'ping'];
-    } else if (dockerImage.includes('mongo')) {
+    } else if (imageLower.includes('mongo')) {
       return ['CMD', 'mongosh', '--eval', 'db.adminCommand("ping")'];
+    } else if (imageLower.includes('mysql')) {
+      return ['CMD', 'mysqladmin', 'ping', '-h', 'localhost'];
     } else {
+      // Default HTTP health check
       return ['CMD', 'curl', '-f', `http://localhost:${port}`];
     }
   }

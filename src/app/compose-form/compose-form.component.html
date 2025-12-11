@@ -35,13 +35,104 @@
             (change)="onFileSelected($event)" 
             accept=".yaml, .yml" 
             id="file-upload"
-            class="file-input">
-          <label for="file-upload" class="file-label">Choose File</label>
+            class="file-input"
+            [disabled]="isImporting">
+          <label for="file-upload" class="file-label" [class.loading]="isImporting">
+            <span *ngIf="!isImporting">Choose File</span>
+            <span *ngIf="isImporting" class="loading-text">
+              <span class="spinner-small"></span>
+              Importing...
+            </span>
+          </label>
+        </div>
+        <div class="advanced-features-note" *ngIf="hasAdvancedFeatures">
+          <span class="note-icon">ℹ️</span>
+          <span>{{ advancedFeaturesNote }}</span>
         </div>
       </section>
   
       <div class="container">
-        <div class="form-container">
+        <!-- Tabs Navigation -->
+        <div class="tabs-navigation">
+          <button 
+            type="button"
+            class="tab-button"
+            [class.active]="activeTab === 'form'"
+            (click)="setActiveTab('form')">
+            Form
+          </button>
+          <button 
+            type="button"
+            class="tab-button"
+            [class.active]="activeTab === 'diagram'"
+            (click)="setActiveTab('diagram')">
+            Diagram
+          </button>
+          <button 
+            type="button"
+            class="tab-button"
+            [class.active]="activeTab === 'yaml'"
+            (click)="setActiveTab('yaml')">
+            YAML Preview
+          </button>
+        </div>
+
+        <!-- Tab Content Wrapper -->
+        <div class="tab-content-wrapper">
+          <!-- Service List Sidebar (shown in form and diagram tabs) -->
+          <div class="service-list-sidebar" *ngIf="activeTab === 'form' || activeTab === 'diagram'">
+          <div class="service-list-header">
+            <h3>Services</h3>
+            <button type="button" class="btn-add-service" (click)="addNewService()" title="Add New Service">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="12" y1="5" x2="12" y2="19"></line>
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+              </svg>
+              Add Service
+            </button>
+          </div>
+          <div class="service-list">
+            <div 
+              *ngFor="let service of services; let i = index" 
+              class="service-item"
+              [class.selected]="i === selectedServiceIndex"
+              (click)="selectService(i)">
+              <div class="service-item-content">
+                <span class="service-icon">
+                  <svg-icon [type]="getServiceIcon(service)"></svg-icon>
+                </span>
+                <span class="service-name">{{ service.serviceName || 'Unnamed Service' }}</span>
+              </div>
+              <div class="service-item-actions" (click)="$event.stopPropagation()">
+                <button 
+                  type="button" 
+                  class="btn-duplicate" 
+                  (click)="duplicateService()"
+                  *ngIf="i === selectedServiceIndex"
+                  title="Duplicate Service">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                  </svg>
+                </button>
+                <button 
+                  type="button" 
+                  class="btn-delete" 
+                  (click)="deleteService(i)"
+                  [disabled]="services.length <= 1"
+                  title="Delete Service">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="3 6 5 6 21 6"></polyline>
+                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                  </svg>
+                </button>
+              </div>
+            </div>
+            </div>
+          </div>
+
+          <!-- Form Tab Content -->
+        <div class="form-container" *ngIf="activeTab === 'form'">
           <form [formGroup]="composeForm" (ngSubmit)="generateDockerComposeFile()">
             <!-- Basic Service Configuration -->
             <div class="form-section">
@@ -58,12 +149,22 @@
               </div>
   
               <div class="form-group">
-                <label for="serviceName">Service Name</label>
+                <label for="serviceName">Service Name <span class="required">*</span></label>
                 <input 
                   type="text" 
                   id="serviceName" 
                   formControlName="serviceName"
-                  placeholder="Enter service name">
+                  placeholder="Enter service name"
+                  [class.error]="composeForm.get('serviceName')?.invalid && composeForm.get('serviceName')?.touched">
+                <div class="error-message" *ngIf="composeForm.get('serviceName')?.hasError('required') && composeForm.get('serviceName')?.touched">
+                  Service name is required
+                </div>
+                <div class="error-message" *ngIf="composeForm.get('serviceName')?.hasError('pattern') && composeForm.get('serviceName')?.touched">
+                  Service name must start with a letter and contain only letters, numbers, underscores, or hyphens
+                </div>
+                <div class="error-message" *ngIf="composeForm.get('serviceName')?.hasError('duplicateServiceName') && composeForm.get('serviceName')?.touched">
+                  Service name already exists. Please choose a unique name.
+                </div>
                 <div class="error-message" *ngIf="composeForm.get('serviceName')?.errors?.['required'] && composeForm.get('serviceName')?.touched">
                   Service name is required
                 </div>
@@ -73,12 +174,16 @@
               </div>
   
               <div class="form-group">
-                <label for="dockerImage">Docker Image</label>
+                <label for="dockerImage">Docker Image <span class="required">*</span></label>
                 <input 
                   type="text" 
                   id="dockerImage" 
                   formControlName="dockerImage"
-                  placeholder="e.g., nginx:latest">
+                  placeholder="e.g., nginx:latest"
+                  [class.error]="composeForm.get('dockerImage')?.invalid && composeForm.get('dockerImage')?.touched">
+                <div class="error-message" *ngIf="composeForm.get('dockerImage')?.hasError('required') && composeForm.get('dockerImage')?.touched">
+                  Docker image is required
+                </div>
                 <div class="error-message" *ngIf="composeForm.get('dockerImage')?.errors?.['required'] && composeForm.get('dockerImage')?.touched">
                   Docker image is required
                 </div>
@@ -86,29 +191,37 @@
   
               <div class="form-group grid-2">
                 <div>
-                  <label for="hostPort">Host Port</label>
+                  <label for="hostPort">Host Port <span class="required">*</span></label>
                   <input 
                     type="number" 
                     id="hostPort" 
                     formControlName="hostPort"
-                    placeholder="Port to expose on host" 
+                    placeholder="Port to expose on host"
+                    [class.error]="composeForm.get('hostPort')?.invalid && composeForm.get('hostPort')?.touched"
                     min="1" 
                     max="65535">
-                  <div class="error-message" *ngIf="composeForm.get('hostPort')?.errors?.['required'] && composeForm.get('hostPort')?.touched">
+                  <div class="error-message" *ngIf="composeForm.get('hostPort')?.hasError('required') && composeForm.get('hostPort')?.touched">
                     Host port is required
+                  </div>
+                  <div class="error-message" *ngIf="(composeForm.get('hostPort')?.hasError('min') || composeForm.get('hostPort')?.hasError('max')) && composeForm.get('hostPort')?.touched">
+                    Host port must be between 1 and 65535
                   </div>
                 </div>
                 <div>
-                  <label for="containerPort">Container Port</label>
+                  <label for="containerPort">Container Port <span class="required">*</span></label>
                   <input 
                     type="number" 
                     id="containerPort" 
                     formControlName="containerPort"
-                    placeholder="Port inside container" 
+                    placeholder="Port inside container"
+                    [class.error]="composeForm.get('containerPort')?.invalid && composeForm.get('containerPort')?.touched"
                     min="1" 
                     max="65535">
-                  <div class="error-message" *ngIf="composeForm.get('containerPort')?.errors?.['required'] && composeForm.get('containerPort')?.touched">
+                  <div class="error-message" *ngIf="composeForm.get('containerPort')?.hasError('required') && composeForm.get('containerPort')?.touched">
                     Container port is required
+                  </div>
+                  <div class="error-message" *ngIf="(composeForm.get('containerPort')?.hasError('min') || composeForm.get('containerPort')?.hasError('max')) && composeForm.get('containerPort')?.touched">
+                    Container port must be between 1 and 65535
                   </div>
                 </div>
               </div>
@@ -141,7 +254,10 @@
   
 <!-- Health Check Configuration -->
 <div class="form-section" formGroupName="healthCheck">
-    <h3>Health Check</h3>
+    <h3>
+      Health Check
+      <span class="help-icon" title="Tests if service is healthy. Interval = how often to check, Timeout = max wait time, Retries = failures before marking unhealthy">ℹ️</span>
+    </h3>
   
     <div class="form-group checkbox">
       <button 
@@ -162,6 +278,7 @@
             id="healthCheckInterval" 
             formControlName="interval"
             placeholder="30s">
+          <small class="help-text">How often to check (e.g., 30s, 1m)</small>
         </div>
         <div>
           <label for="healthCheckTimeout">Timeout</label>
@@ -170,6 +287,7 @@
             id="healthCheckTimeout" 
             formControlName="timeout"
             placeholder="10s">
+          <small class="help-text">Max wait time (e.g., 10s, 5m)</small>
         </div>
         <div>
           <label for="healthCheckRetries">Retries</label>
@@ -177,7 +295,9 @@
             type="number" 
             id="healthCheckRetries" 
             formControlName="retries"
-            placeholder="3">
+            placeholder="3"
+            min="0">
+          <small class="help-text">Failures before marking unhealthy</small>
         </div>
       </div>
     </div>
@@ -191,21 +311,35 @@
               <div formGroupName="resources">
                 <div class="form-group grid-2">
                   <div>
-                    <label for="cpuLimit">CPU Limit</label>
+                    <label for="cpuLimit">
+                      CPU Limit
+                      <span class="help-icon" title="CPU cores allocated to this service. 0.5 = half a core, 1.0 = 1 full core, 2.5 = 2.5 cores. This is NOT a percentage of your total CPU cores.">ℹ️</span>
+                    </label>
+                    <div class="preset-buttons">
+                      <button type="button" class="preset-btn" (click)="applyResourcePreset('low')">Low (0.5)</button>
+                      <button type="button" class="preset-btn" (click)="applyResourcePreset('medium')">Medium (1.0)</button>
+                      <button type="button" class="preset-btn" (click)="applyResourcePreset('high')">High (2.0)</button>
+                    </div>
                     <input 
                       type="number" 
                       id="cpuLimit" 
                       formControlName="cpuLimit"
                       placeholder="0.5"
                       step="0.1">
+                    <small class="help-text">Examples: 0.5 = half core, 1.0 = 1 core, 2.5 = 2.5 cores</small>
                   </div>
                   <div>
-                    <label for="memoryLimit">Memory Limit (MB)</label>
+                    <label for="memoryLimit">
+                      Memory Limit (MB)
+                      <span class="help-icon" title="Memory allocated to this service in megabytes (MB). 1024 MB = 1 GB">ℹ️</span>
+                    </label>
                     <input 
                       type="number" 
                       id="memoryLimit" 
                       formControlName="memoryLimit"
-                      placeholder="512">
+                      placeholder="512"
+                      min="0">
+                    <small class="help-text">Examples: 512MB, 1024MB (1GB), 2048MB (2GB)</small>
                   </div>
                 </div>
               </div>
@@ -221,36 +355,161 @@
                     min="1">
                 </div>
                 <div>
-                  <label for="restart">Restart Policy</label>
+                  <label for="restart">
+                    Restart Policy
+                    <span class="help-icon" title="always = restart on failure, unless-stopped = restart unless manually stopped, on-failure = restart only on failure, no = never restart">ℹ️</span>
+                  </label>
                   <select id="restart" formControlName="restart">
                     <option value="always">Always</option>
-                    <option value="on-failure">On Failure</option>
                     <option value="unless-stopped">Unless Stopped</option>
+                    <option value="on-failure">On Failure</option>
+                    <option value="no">No</option>
                   </select>
+                  <small class="help-text">always = restart on failure, unless-stopped = restart unless manually stopped</small>
                 </div>
               </div>
   
               <div class="form-group">
                 <label for="depends_on">Dependencies</label>
-                <textarea 
-                  id="depends_on" 
-                  formControlName="depends_on"
-                  rows="2" 
-                  placeholder="service1&#10;service2"></textarea>
-                <small class="help-text">One service name per line</small>
+                <div class="dependencies-checkboxes" *ngIf="getAvailableServicesForDependencies().length > 0">
+                  <div 
+                    *ngFor="let service of getAvailableServicesForDependencies()" 
+                    class="dependency-checkbox-item">
+                    <input 
+                      type="checkbox" 
+                      [id]="'dep-' + service.serviceName"
+                      [checked]="isServiceInDependencies(service.serviceName)"
+                      (change)="toggleDependency(service.serviceName)">
+                    <label [for]="'dep-' + service.serviceName">
+                      <span class="service-icon-small">{{ getServiceIcon(service) }}</span>
+                      {{ service.serviceName }}
+                    </label>
+                  </div>
+                </div>
+                <div *ngIf="getAvailableServicesForDependencies().length === 0" class="no-dependencies">
+                  <small class="help-text">Add more services to set dependencies</small>
+                </div>
+                <small class="help-text" *ngIf="getAvailableServicesForDependencies().length > 0">
+                  Select services this service depends on. They will start before this service.
+                </small>
               </div>
             </div>
   
             <div class="form-actions">
-              <button type="button" class="secondary" (click)="resetForm()">Reset</button>
-              <button type="submit" class="primary" [disabled]="composeForm.invalid">
-                Generate Docker Compose File
+              <button type="button" class="secondary" (click)="resetForm()" [disabled]="isGenerating">Reset</button>
+              <button type="submit" class="primary" [disabled]="composeForm.invalid || isGenerating">
+                <span *ngIf="!isGenerating">Generate Docker Compose File</span>
+                <span *ngIf="isGenerating" class="button-loading">
+                  <span class="spinner-small"></span>
+                  Generating...
+                </span>
               </button>
             </div>
           </form>
         </div>
-  
-        <div class="yaml-preview">
+
+        <!-- Diagram Tab Content -->
+        <div class="diagram-container" *ngIf="activeTab === 'diagram'">
+          <!-- Template Sidebar for Drag and Drop -->
+          <div class="template-sidebar">
+            <h4>Service Templates</h4>
+            <p class="template-hint">Drag templates onto the canvas to create services</p>
+            <div class="template-list">
+              <div 
+                *ngFor="let template of getAvailableTemplates()"
+                class="template-item"
+                draggable="true"
+                (dragstart)="onTemplateDragStart($event, template)">
+                <span class="template-icon">
+                  <svg-icon [type]="getTemplateIcon(template)"></svg-icon>
+                </span>
+                <span class="template-name">{{ getTemplateDisplayName(template) }}</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="diagram-view" 
+               (drop)="onDiagramDrop($event)"
+               (dragover)="onDiagramDragOver($event)">
+            <svg class="diagram-svg" #diagramSvg viewBox="0 0 1000 700" preserveAspectRatio="xMidYMid meet">
+              <!-- Arrow marker definition -->
+              <defs>
+                <marker id="arrowhead" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
+                  <polygon points="0 0, 10 3, 0 6" fill="#007BFF" />
+                </marker>
+              </defs>
+              <!-- Render edges first (behind nodes) -->
+              <g class="edges">
+                <line
+                  *ngFor="let edge of composeGraph.edges; trackBy: trackByEdge"
+                  [attr.x1]="getNodePosition(edge.from)?.x || 0"
+                  [attr.y1]="getNodePosition(edge.from)?.y || 0"
+                  [attr.x2]="getNodePosition(edge.to)?.x || 0"
+                  [attr.y2]="getNodePosition(edge.to)?.y || 0"
+                  class="edge-line"
+                  [attr.marker-end]="'url(#arrowhead)'">
+                </line>
+              </g>
+              <!-- Render nodes -->
+              <g class="nodes">
+                <g
+                  *ngFor="let node of composeGraph.nodes; trackBy: trackByNode"
+                  class="node-group"
+                  [attr.transform]="'translate(' + (node.position?.x || 0) + ',' + (node.position?.y || 0) + ')'"
+                  (click)="onNodeClick(node.id)"
+                  [class.selected]="services[selectedServiceIndex] && node.id === services[selectedServiceIndex].serviceName">
+                  <rect class="node-rect" width="120" height="80" rx="8" x="0" y="0"></rect>
+                  <foreignObject x="0" y="0" width="120" height="80">
+                      <div class="node-content" xmlns="http://www.w3.org/1999/xhtml">
+                        <div class="node-icon-text">
+                          <svg-icon [type]="getServiceIcon(node.data)"></svg-icon>
+                        </div>
+                        <div class="node-label-text">{{ node.label }}</div>
+                      </div>
+                  </foreignObject>
+                </g>
+              </g>
+            </svg>
+            <div class="diagram-empty" *ngIf="composeGraph.nodes.length === 0">
+              <p>No services to display. Add services using the form or drag templates onto the canvas.</p>
+            </div>
+          </div>
+
+          <!-- Feedback Prompt - Compact -->
+          <div class="feedback-prompt-compact" *ngIf="activeTab === 'diagram' && composeGraph.nodes.length > 0 && !feedbackSubmitted">
+            <div class="feedback-content-compact">
+              <span class="feedback-question">Is this closer to a 'visual editor'?</span>
+              <div class="feedback-buttons-compact" *ngIf="!showFeedbackComment">
+                <button type="button" class="feedback-btn-compact yes" (click)="submitFeedback(true)">Yes</button>
+                <button type="button" class="feedback-btn-compact no" (click)="submitFeedback(false)">No</button>
+              </div>
+              <div class="feedback-comment-section" *ngIf="showFeedbackComment">
+                <textarea 
+                  [(ngModel)]="feedbackComment"
+                  placeholder="Tell us what you think..."
+                  class="feedback-comment-compact"
+                  rows="2"></textarea>
+                <button 
+                  type="button" 
+                  class="feedback-submit-compact"
+                  (click)="submitFeedbackComment()"
+                  [disabled]="!feedbackComment.trim()">
+                  Submit
+                </button>
+              </div>
+            </div>
+          </div>
+          <div class="feedback-success-compact" *ngIf="feedbackSubmitted">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+            <span>Thank you!</span>
+          </div>
+        </div>
+
+        </div>
+        <!-- YAML Preview Tab Content -->
+        <div class="yaml-preview" *ngIf="activeTab === 'yaml'">
           <h3>Live YAML Preview</h3>
           <pre><code>{{ yamlPreview || '# Your YAML will appear here...' }}</code></pre>
         </div>
@@ -258,6 +517,6 @@
     </main>
   
     <footer>
-      <p>© 2025 Docker Compose Manager. All rights reserved.</p>
+      <p>© 2025 Docker Compose Manager. All rights reserved. | <a routerLink="/privacy">Privacy Policy</a></p>
     </footer>
   </body>

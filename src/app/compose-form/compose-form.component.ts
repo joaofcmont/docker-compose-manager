@@ -890,23 +890,42 @@ export class ComposeFormComponent implements OnInit {
     this.loadServiceIntoForm(this.selectedServiceIndex);
   }
 
-  // Get available templates for drag and drop
-  getAvailableTemplates(): string[] {
-    return ['nginx', 'postgres', 'redis'];
+  // Get available templates for drag and drop and quick start
+  getAvailableTemplates(): { name: string; displayName: string; icon: string }[] {
+    return [
+      { name: 'nginx', displayName: 'Nginx', icon: 'nginx' },
+      { name: 'postgres', displayName: 'PostgreSQL', icon: 'postgres' },
+      { name: 'redis', displayName: 'Redis', icon: 'redis' },
+      { name: 'mysql', displayName: 'MySQL', icon: 'mysql' },
+      { name: 'mongo', displayName: 'MongoDB', icon: 'mongo' },
+    ];
   }
 
   getTemplateDisplayName(templateName: string): string {
-    const names: { [key: string]: string } = {
-      'nginx': 'Nginx',
-      'postgres': 'PostgreSQL',
-      'redis': 'Redis'
-    };
-    return names[templateName] || templateName;
+    const template = this.getAvailableTemplates().find(t => t.name === templateName);
+    return template ? template.displayName : templateName;
   }
 
   getTemplateIcon(templateName: string): string {
-    // Return icon name for use in template
-    return templateName;
+    const template = this.getAvailableTemplates().find(t => t.name === templateName);
+    return template ? template.icon : templateName;
+  }
+
+  selectTemplate(templateName: string): void {
+    // Clear existing services if starting fresh
+    if (this.services.length === 0 || (this.services.length === 1 && !this.services[0].serviceName && !this.services[0].dockerImage)) {
+      this.services = [];
+    }
+    
+    // Apply template
+    this.composeForm.patchValue({ serviceTemplate: templateName });
+    this.applyServiceTemplate(templateName);
+    
+    // Expand basic section to show the filled form
+    this.expandedSections['basic'] = true;
+    
+    // Track template selection
+    this.analyticsService.trackEvent('template_selected', { template_name: templateName });
   }
 
 
@@ -1062,6 +1081,146 @@ export class ComposeFormComponent implements OnInit {
     }
 
     return errors;
+  }
+
+  // Get better error message with suggestions
+  getErrorMessage(fieldName: string): { message: string; suggestion?: string } | null {
+    const control = this.composeForm.get(fieldName);
+    if (!control || !control.errors || !control.touched) {
+      return null;
+    }
+
+    const errors = control.errors;
+    const value = control.value;
+
+    if (errors['required']) {
+      return {
+        message: `This field is required`,
+        suggestion: this.getRequiredFieldSuggestion(fieldName)
+      };
+    }
+
+    if (errors['pattern']) {
+      return {
+        message: this.getPatternErrorMessage(fieldName, value),
+        suggestion: this.getPatternSuggestion(fieldName)
+      };
+    }
+
+    if (errors['duplicateServiceName']) {
+      return {
+        message: `A service with this name already exists`,
+        suggestion: `Try adding a number or suffix, like "${value}-2" or "${value}-db"`
+      };
+    }
+
+    if (errors['min'] || errors['max']) {
+      return {
+        message: this.getRangeErrorMessage(fieldName, errors),
+        suggestion: this.getRangeSuggestion(fieldName)
+      };
+    }
+
+    return null;
+  }
+
+  private getRequiredFieldSuggestion(fieldName: string): string {
+    const suggestions: { [key: string]: string } = {
+      'serviceName': 'Give your service a name like "web-server" or "database"',
+      'dockerImage': 'Enter a Docker image like "nginx:latest" or "postgres:15"',
+      'hostPort': 'Enter a port number like 8080 or 3000',
+      'containerPort': 'Enter the port your application uses, like 80 or 5432'
+    };
+    return suggestions[fieldName] || 'Please fill in this field';
+  }
+
+  private getPatternErrorMessage(fieldName: string, value: string): string {
+    if (fieldName === 'serviceName') {
+      if (value && /^\d/.test(value)) {
+        return `Service names must start with a letter, not a number`;
+      }
+      if (value && /[^a-zA-Z0-9_-]/.test(value)) {
+        return `Service names can only contain letters, numbers, hyphens, and underscores`;
+      }
+      return `Invalid service name format`;
+    }
+    return `Invalid format`;
+  }
+
+  private getPatternSuggestion(fieldName: string): string {
+    if (fieldName === 'serviceName') {
+      return `Use names like "web-server", "api", or "database". Start with a letter.`;
+    }
+    return '';
+  }
+
+  private getRangeErrorMessage(fieldName: string, errors: any): string {
+    if (errors['min']) {
+      return `Port number must be at least ${errors['min'].min}`;
+    }
+    if (errors['max']) {
+      return `Port number cannot exceed ${errors['max'].max}`;
+    }
+    return `Port must be between 1 and 65535`;
+  }
+
+  private getRangeSuggestion(fieldName: string): string {
+    if (fieldName === 'hostPort') {
+      return `Common ports: 3000, 8080, 8000. Avoid ports below 1024 (they require admin access).`;
+    }
+    if (fieldName === 'containerPort') {
+      return `Common ports: 80 (HTTP), 443 (HTTPS), 5432 (PostgreSQL), 3306 (MySQL), 6379 (Redis)`;
+    }
+    return '';
+  }
+
+  getTemplateDescription(templateName: string): string {
+    const descriptions: { [key: string]: string } = {
+      'nginx': 'Web server and reverse proxy. Perfect for serving static files or as a front-end proxy.',
+      'postgres': 'Powerful open-source relational database. Great for applications that need SQL.',
+      'redis': 'In-memory data store. Perfect for caching, sessions, and real-time features.',
+      'mysql': 'Popular relational database. Widely used for web applications.',
+      'mongo': 'NoSQL document database. Great for flexible, schema-less data storage.'
+    };
+    return descriptions[templateName] || 'Pre-configured service template';
+  }
+
+  // Get error message for health check fields
+  getHealthCheckErrorMessage(fieldName: string): { message: string; suggestion?: string } | null {
+    const healthCheck = this.composeForm.get('healthCheck');
+    if (!healthCheck?.get('enabled')?.value) {
+      return null; // Don't show errors if health check is disabled
+    }
+
+    const control = healthCheck.get(fieldName);
+    if (!control || !control.errors || !control.touched) {
+      return null;
+    }
+
+    const errors = control.errors;
+    const value = control.value;
+
+    if (errors['required']) {
+      const suggestions: { [key: string]: string } = {
+        'interval': 'Set how often to check (e.g., "30s" for every 30 seconds, "1m" for every minute)',
+        'timeout': 'Set maximum wait time (e.g., "10s" for 10 seconds, "5m" for 5 minutes)',
+        'retries': 'Set how many failures before marking unhealthy (e.g., 3)',
+        'start_period': 'Set wait time before first check (e.g., "40s" for 40 seconds)'
+      };
+      return {
+        message: `This field is required when health check is enabled`,
+        suggestion: suggestions[fieldName] || 'Please fill in this field'
+      };
+    }
+
+    if (errors['min']) {
+      return {
+        message: `Value must be at least ${errors['min'].min}`,
+        suggestion: 'Enter a non-negative number'
+      };
+    }
+
+    return null;
   }
 
   // Method to handle file selection

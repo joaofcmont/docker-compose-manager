@@ -258,6 +258,35 @@
 
           <!-- Form Tab Content -->
         <div class="form-container" *ngIf="activeTab === 'form'">
+          <!-- Quick Start Templates Section -->
+          <div class="quick-start-templates" *ngIf="services.length === 0 || (services.length === 1 && !services[0].serviceName && !services[0].dockerImage)">
+            <h3>Quick Start: Choose a Template</h3>
+            <p class="templates-subtitle">Get started quickly with a pre-configured service template</p>
+            <div class="template-cards">
+              <div 
+                class="template-card" 
+                *ngFor="let template of getAvailableTemplates()"
+                (click)="selectTemplate(template.name)">
+                <div class="template-icon">
+                  <svg-icon [type]="template.icon"></svg-icon>
+                </div>
+                <div class="template-info">
+                  <h4>{{ template.displayName }}</h4>
+                  <p>{{ getTemplateDescription(template.name) }}</p>
+                </div>
+                <button type="button" class="template-select-btn">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                    <polyline points="12 5 19 12 12 19"></polyline>
+                  </svg>
+                </button>
+              </div>
+            </div>
+            <div class="templates-divider">
+              <span>or</span>
+            </div>
+          </div>
+
           <form [formGroup]="composeForm" (ngSubmit)="generateDockerComposeFile()">
             <!-- Basic Service Configuration -->
             <div class="form-section collapsible" [class.expanded]="expandedSections.basic">
@@ -308,20 +337,18 @@
                     Example
                   </button>
                 </div>
-                <div class="error-message" *ngIf="composeForm.get('serviceName')?.hasError('required') && composeForm.get('serviceName')?.touched">
-                  Service name is required
-                </div>
-                <div class="error-message" *ngIf="composeForm.get('serviceName')?.hasError('pattern') && composeForm.get('serviceName')?.touched">
-                  Service name must start with a letter and contain only letters, numbers, underscores, or hyphens
-                </div>
-                <div class="error-message" *ngIf="composeForm.get('serviceName')?.hasError('duplicateServiceName') && composeForm.get('serviceName')?.touched">
-                  Service name already exists. Please choose a unique name.
-                </div>
-                <div class="error-message" *ngIf="composeForm.get('serviceName')?.errors?.['required'] && composeForm.get('serviceName')?.touched">
-                  Service name is required
-                </div>
-                <div class="error-message" *ngIf="composeForm.get('serviceName')?.errors?.['pattern']">
-                  Service name must start with a letter and contain only letters, numbers, underscores, or hyphens
+                <div class="error-message" *ngIf="getErrorMessage('serviceName') as error">
+                  <div class="error-content">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="error-icon">
+                      <circle cx="12" cy="12" r="10"></circle>
+                      <line x1="12" y1="8" x2="12" y2="12"></line>
+                      <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                    </svg>
+                    <div class="error-text">
+                      <strong>{{ error.message }}</strong>
+                      <span class="error-suggestion" *ngIf="error.suggestion">{{ error.suggestion }}</span>
+                    </div>
+                  </div>
                 </div>
               </div>
   
@@ -351,11 +378,18 @@
                     Example
                   </button>
                 </div>
-                <div class="error-message" *ngIf="composeForm.get('dockerImage')?.hasError('required') && composeForm.get('dockerImage')?.touched">
-                  Docker image is required
-                </div>
-                <div class="error-message" *ngIf="composeForm.get('dockerImage')?.errors?.['required'] && composeForm.get('dockerImage')?.touched">
-                  Docker image is required
+                <div class="error-message" *ngIf="getErrorMessage('dockerImage') as error">
+                  <div class="error-content">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="error-icon">
+                      <circle cx="12" cy="12" r="10"></circle>
+                      <line x1="12" y1="8" x2="12" y2="12"></line>
+                      <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                    </svg>
+                    <div class="error-text">
+                      <strong>{{ error.message }}</strong>
+                      <span class="error-suggestion" *ngIf="error.suggestion">{{ error.suggestion }}</span>
+                    </div>
+                  </div>
                 </div>
               </div>
   
@@ -379,11 +413,18 @@
                     [class.error]="composeForm.get('hostPort')?.invalid && composeForm.get('hostPort')?.touched"
                     min="1" 
                     max="65535">
-                  <div class="error-message" *ngIf="composeForm.get('hostPort')?.hasError('required') && composeForm.get('hostPort')?.touched">
-                    Host port is required
-                  </div>
-                  <div class="error-message" *ngIf="(composeForm.get('hostPort')?.hasError('min') || composeForm.get('hostPort')?.hasError('max')) && composeForm.get('hostPort')?.touched">
-                    Host port must be between 1 and 65535
+                  <div class="error-message" *ngIf="getErrorMessage('hostPort') as error">
+                    <div class="error-content">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="error-icon">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <line x1="12" y1="8" x2="12" y2="12"></line>
+                        <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                      </svg>
+                      <div class="error-text">
+                        <strong>{{ error.message }}</strong>
+                        <span class="error-suggestion" *ngIf="error.suggestion">{{ error.suggestion }}</span>
+                      </div>
+                    </div>
                   </div>
                 </div>
                 <div>
@@ -405,11 +446,18 @@
                     [class.error]="composeForm.get('containerPort')?.invalid && composeForm.get('containerPort')?.touched"
                     min="1" 
                     max="65535">
-                  <div class="error-message" *ngIf="composeForm.get('containerPort')?.hasError('required') && composeForm.get('containerPort')?.touched">
-                    Container port is required
-                  </div>
-                  <div class="error-message" *ngIf="(composeForm.get('containerPort')?.hasError('min') || composeForm.get('containerPort')?.hasError('max')) && composeForm.get('containerPort')?.touched">
-                    Container port must be between 1 and 65535
+                  <div class="error-message" *ngIf="getErrorMessage('containerPort') as error">
+                    <div class="error-content">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="error-icon">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <line x1="12" y1="8" x2="12" y2="12"></line>
+                        <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                      </svg>
+                      <div class="error-text">
+                        <strong>{{ error.message }}</strong>
+                        <span class="error-suggestion" *ngIf="error.suggestion">{{ error.suggestion }}</span>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -845,11 +893,11 @@
                 *ngFor="let template of getAvailableTemplates()"
                 class="template-item"
                 draggable="true"
-                (dragstart)="onTemplateDragStart($event, template)">
+                (dragstart)="onTemplateDragStart($event, template.name)">
                 <span class="template-icon">
-                  <svg-icon [type]="getTemplateIcon(template)"></svg-icon>
+                  <svg-icon [type]="template.icon"></svg-icon>
                 </span>
-                <span class="template-name">{{ getTemplateDisplayName(template) }}</span>
+                <span class="template-name">{{ template.displayName }}</span>
               </div>
             </div>
           </div>

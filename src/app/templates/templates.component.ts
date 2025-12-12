@@ -36,7 +36,7 @@ export class TemplatesComponent implements OnInit {
     
     // Update SEO for templates page
     this.seoService.updateSEO({
-      title: 'Docker Compose Templates - Pre-built Configurations | Docker Compose Manager',
+      title: 'Docker Compose Templates - Pre-built Configurations | ComposeFlow',
       description: 'Browse and use pre-built Docker Compose templates. Quick-start configurations for Node.js, Java, LAMP, MEAN, Django, and more. Save and share your own templates.',
       keywords: 'docker compose templates, docker templates, compose file templates, docker stack templates, pre-built docker configs',
       url: 'https://docker-compose-manager-d829b.web.app/templates'

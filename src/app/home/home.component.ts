@@ -33,7 +33,7 @@ export class HomeComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.seoService.updateSEO({
-      title: 'Docker Compose Manager - Visual Editor for Docker Compose Files',
+      title: 'ComposeFlow - Visual Editor for Docker Compose Files',
       description: 'Stop wrestling with YAML. Build, manage, and deploy multi-container Docker applications with a visual editor that just works. Free to use, no sign-up required.',
       keywords: 'docker compose, docker-compose, visual editor, yaml editor, docker manager, container orchestration, devops tools, docker compose generator, docker compose builder',
       url: 'https://docker-compose-manager-d829b.web.app/home'
@@ -43,7 +43,7 @@ export class HomeComponent implements OnInit, OnDestroy {
     this.seoService.addStructuredData({
       "@context": "https://schema.org",
       "@type": "WebPage",
-      "name": "Docker Compose Manager - Visual Editor",
+      "name": "ComposeFlow - Visual Editor",
       "description": "Free visual editor for creating and managing Docker Compose files",
       "url": "https://docker-compose-manager-d829b.web.app/home"
     });

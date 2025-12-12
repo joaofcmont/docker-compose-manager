@@ -34,9 +34,9 @@ export class ContactComponent implements OnInit {
 
   ngOnInit(): void {
     this.seoService.updateSEO({
-      title: 'Contact Us - Docker Compose Manager',
-      description: 'Get in touch with the Docker Compose Manager team. Have questions, feedback, or need support? We\'d love to hear from you.',
-      keywords: 'contact docker compose manager, support, feedback, help',
+      title: 'Contact Us - ComposeFlow',
+      description: 'Get in touch with the ComposeFlow team. Have questions, feedback, or need support? We\'d love to hear from you.',
+      keywords: 'contact composeflow, support, feedback, help',
       url: 'https://docker-compose-manager-d829b.web.app/contact'
     });
   }

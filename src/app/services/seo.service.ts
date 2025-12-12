@@ -21,7 +21,7 @@ export class SEOService {
   private title = inject(Title);
   private router = inject(Router);
   
-  private readonly defaultTitle = 'Docker Compose Manager - Visual Editor for Docker Compose Files';
+  private readonly defaultTitle = 'ComposeFlow - Visual Editor for Docker Compose Files';
   private readonly defaultDescription = 'Stop wrestling with YAML. Build, manage, and deploy multi-container Docker applications with a visual editor that just works. Free to use, no sign-up required.';
   private readonly defaultImage = 'https://docker-compose-manager-d829b.web.app/assets/favicon.png';
   private readonly baseUrl = 'https://docker-compose-manager-d829b.web.app';
@@ -60,7 +60,7 @@ export class SEOService {
     this.meta.updateTag({ property: 'og:title', content: title });
     this.meta.updateTag({ property: 'og:description', content: description });
     this.meta.updateTag({ property: 'og:image', content: image });
-    this.meta.updateTag({ property: 'og:site_name', content: 'Docker Compose Manager' });
+    this.meta.updateTag({ property: 'og:site_name', content: 'ComposeFlow' });
 
     // Twitter
     this.meta.updateTag({ property: 'twitter:card', content: 'summary_large_image' });

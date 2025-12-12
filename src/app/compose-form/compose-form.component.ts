@@ -595,7 +595,7 @@ export class ComposeFormComponent implements OnInit, AfterViewInit {
     
     // Update SEO for editor page
     this.seoService.updateSEO({
-      title: 'Docker Compose Editor - Visual Builder | Docker Compose Manager',
+      title: 'Docker Compose Editor - Visual Builder | ComposeFlow',
       description: 'Create and edit Docker Compose files visually. Build multi-container applications with our intuitive editor. Export to YAML, JSON, or Docker Run commands.',
       keywords: 'docker compose editor, docker compose builder, visual docker editor, yaml generator, docker compose creator',
       url: 'https://docker-compose-manager-d829b.web.app/editor'

@@ -26,7 +26,52 @@
       <div class="content-header">
         <h1>Docker Compose Editor</h1>
         <p class="subheading">Create, edit, and manage your Docker Compose configurations visually</p>
-        <div class="progress-indicator" *ngIf="services.length > 0 && activeTab === 'form'">
+        
+        <!-- Wizard Mode Toggle -->
+        <div class="wizard-mode-toggle" *ngIf="activeTab === 'form'">
+          <button 
+            type="button" 
+            class="btn-wizard-toggle"
+            [class.active]="wizardMode"
+            (click)="toggleWizardMode()"
+            title="Toggle step-by-step wizard mode">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"></circle>
+              <polyline points="12 6 12 12 16 14"></polyline>
+            </svg>
+            <span>{{ wizardMode ? 'Exit Wizard' : 'Start Wizard' }}</span>
+          </button>
+        </div>
+
+        <!-- Wizard Progress Bar -->
+        <div class="wizard-progress" *ngIf="wizardMode && activeTab === 'form'">
+          <div class="wizard-progress-bar">
+            <div class="wizard-progress-fill" [style.width]="getWizardProgress() + '%'"></div>
+          </div>
+          <div class="wizard-steps-indicator">
+            <div 
+              *ngFor="let step of wizardSteps; let i = index"
+              class="wizard-step-indicator"
+              [class.active]="wizardStep === i + 1"
+              [class.completed]="isWizardStepCompleted(step)"
+              (click)="goToWizardStep(i + 1)"
+              [title]="wizardStepNames[step]">
+              <span class="step-number">{{ i + 1 }}</span>
+              <span class="step-name">{{ wizardStepNames[step] }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Wizard Step Instructions -->
+        <div class="wizard-instructions" *ngIf="wizardMode && activeTab === 'form'">
+          <div class="wizard-instruction-content">
+            <h3>{{ wizardStepNames[getCurrentWizardStep()] }}</h3>
+            <p>{{ wizardStepDescriptions[getCurrentWizardStep()] }}</p>
+          </div>
+        </div>
+
+        <!-- Progress Indicator (shown when not in wizard mode) -->
+        <div class="progress-indicator" *ngIf="!wizardMode && services.length > 0 && activeTab === 'form'">
           <div class="progress-bar">
             <div class="progress-fill" [style.width.%]="formProgress"></div>
           </div>
@@ -465,14 +510,27 @@
             </div>
   
             <!-- Environment and Volumes -->
-            <div class="form-section collapsible" [class.expanded]="expandedSections.configuration">
-              <div class="section-header" (click)="toggleSection('configuration')">
+            <div class="form-section collapsible" 
+                 [class.expanded]="!wizardMode ? expandedSections.configuration : isWizardStepActive('configuration')"
+                 [class.wizard-active]="wizardMode && isWizardStepActive('configuration')"
+                 [class.wizard-completed]="wizardMode && isWizardStepCompleted('configuration')"
+                 *ngIf="!wizardMode || isWizardStepActive('configuration') || isWizardStepCompleted('configuration')">
+              <div class="section-header" (click)="!wizardMode && toggleSection('configuration')">
                 <h3>Configuration</h3>
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="section-toggle-icon">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="section-toggle-icon" *ngIf="!wizardMode">
                   <polyline points="6 9 12 15 18 9"></polyline>
                 </svg>
+                <span class="wizard-step-badge" *ngIf="wizardMode">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" *ngIf="isWizardStepActive('configuration')">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <polyline points="12 6 12 12 16 14"></polyline>
+                  </svg>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" *ngIf="isWizardStepCompleted('configuration')">
+                    <polyline points="20 6 9 17 4 12"></polyline>
+                  </svg>
+                </span>
               </div>
-              <div class="section-content">
+              <div class="section-content" *ngIf="!wizardMode || isWizardStepActive('configuration')">
               <div class="form-group">
                   <label for="environment">
                     Environment Variables
@@ -513,18 +571,37 @@
             </div>
   
 <!-- Health Check Configuration -->
-<div class="form-section" formGroupName="healthCheck">
-    <h3>
-      Health Check
-      <button 
-        type="button" 
-        class="help-trigger"
-        (click)="showTipsForField('healthCheck')"
-        title="Get tips for health checks">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
-      </button>
-    </h3>
-  
+<div class="form-section collapsible" 
+     [class.expanded]="!wizardMode ? expandedSections.healthcheck : isWizardStepActive('healthcheck')"
+     [class.wizard-active]="wizardMode && isWizardStepActive('healthcheck')"
+     [class.wizard-completed]="wizardMode && isWizardStepCompleted('healthcheck')"
+     *ngIf="!wizardMode || isWizardStepActive('healthcheck') || isWizardStepCompleted('healthcheck')"
+     formGroupName="healthCheck">
+    <div class="section-header" (click)="!wizardMode && toggleSection('healthcheck')">
+      <h3>
+        Health Check
+        <button 
+          type="button" 
+          class="help-trigger"
+          (click)="showTipsForField('healthCheck')"
+          title="Get tips for health checks">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+        </button>
+      </h3>
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="section-toggle-icon" [class.rotated]="!expandedSections.healthcheck" *ngIf="!wizardMode">
+        <polyline points="6 9 12 15 18 9"></polyline>
+      </svg>
+      <span class="wizard-step-badge" *ngIf="wizardMode">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" *ngIf="isWizardStepActive('healthcheck')">
+          <circle cx="12" cy="12" r="10"></circle>
+          <polyline points="12 6 12 12 16 14"></polyline>
+        </svg>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" *ngIf="isWizardStepCompleted('healthcheck')">
+          <polyline points="20 6 9 17 4 12"></polyline>
+        </svg>
+      </span>
+    </div>
+    <div class="section-content" *ngIf="!wizardMode || isWizardStepActive('healthcheck')">
     <div class="form-group checkbox">
       <button 
         type="button" 
@@ -629,18 +706,32 @@
       </div>
     </div>
     </div>
+    </div>
   </div>
     
   
             <!-- Resources and Deployment -->
-            <div class="form-section collapsible" [class.expanded]="expandedSections.resources">
-              <div class="section-header" (click)="toggleSection('resources')">
+            <div class="form-section collapsible" 
+                 [class.expanded]="!wizardMode ? expandedSections.resources : isWizardStepActive('resources')"
+                 [class.wizard-active]="wizardMode && isWizardStepActive('resources')"
+                 [class.wizard-completed]="wizardMode && isWizardStepCompleted('resources')"
+                 *ngIf="!wizardMode || isWizardStepActive('resources') || isWizardStepCompleted('resources')">
+              <div class="section-header" (click)="!wizardMode && toggleSection('resources')">
                 <h3>Resources & Deployment</h3>
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="section-toggle-icon">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="section-toggle-icon" *ngIf="!wizardMode">
                   <polyline points="6 9 12 15 18 9"></polyline>
                 </svg>
+                <span class="wizard-step-badge" *ngIf="wizardMode">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" *ngIf="isWizardStepActive('resources')">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <polyline points="12 6 12 12 16 14"></polyline>
+                  </svg>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" *ngIf="isWizardStepCompleted('resources')">
+                    <polyline points="20 6 9 17 4 12"></polyline>
+                  </svg>
+                </span>
               </div>
-              <div class="section-content">
+              <div class="section-content" *ngIf="!wizardMode || isWizardStepActive('resources')">
               <div formGroupName="resources">
                 <div class="form-group grid-2">
                   <div>
@@ -869,18 +960,66 @@
               </div>
             </div>
   
-            <div class="form-actions">
-              <button type="button" class="secondary" (click)="resetForm()" [disabled]="isGenerating">Reset</button>
-              <button type="submit" class="primary" [disabled]="composeForm.invalid || isGenerating">
-                <span *ngIf="!isGenerating">Generate Docker Compose File</span>
-                <span *ngIf="isGenerating" class="button-loading">
-                  <span class="spinner-small"></span>
-                  Generating...
-                </span>
-              </button>
-            </div>
-          </form>
-        </div>
+              <!-- Wizard Navigation -->
+              <div class="wizard-navigation" *ngIf="wizardMode">
+                <div class="wizard-nav-buttons">
+                  <button 
+                    type="button" 
+                    class="btn-wizard-nav btn-prev"
+                    (click)="previousWizardStep()"
+                    [disabled]="wizardStep === 1">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <polyline points="15 18 9 12 15 6"></polyline>
+                    </svg>
+                    Previous
+                  </button>
+                  
+                  <button 
+                    type="button" 
+                    class="btn-wizard-nav btn-skip"
+                    (click)="skipWizardStep()"
+                    [disabled]="wizardStep === wizardSteps.length || getCurrentWizardStep() === 'review'">
+                    Skip
+                  </button>
+                  
+                  <button 
+                    type="button" 
+                    class="btn-wizard-nav btn-next"
+                    (click)="nextWizardStep()"
+                    [disabled]="wizardStep === wizardSteps.length">
+                    Next
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <polyline points="9 18 15 12 9 6"></polyline>
+                    </svg>
+                  </button>
+                  
+                  <button 
+                    type="submit" 
+                    class="btn-wizard-nav btn-generate"
+                    *ngIf="wizardMode && getCurrentWizardStep() === 'review'"
+                    [disabled]="composeForm.invalid || isGenerating">
+                    <span *ngIf="!isGenerating">Generate Docker Compose File</span>
+                    <span *ngIf="isGenerating" class="button-loading">
+                      <span class="spinner-small"></span>
+                      Generating...
+                    </span>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Regular Form Actions (shown when not in wizard mode) -->
+              <div class="form-actions" *ngIf="!wizardMode">
+                <button type="button" class="secondary" (click)="resetForm()" [disabled]="isGenerating">Reset</button>
+                <button type="submit" class="primary" [disabled]="composeForm.invalid || isGenerating">
+                  <span *ngIf="!isGenerating">Generate Docker Compose File</span>
+                  <span *ngIf="isGenerating" class="button-loading">
+                    <span class="spinner-small"></span>
+                    Generating...
+                  </span>
+                </button>
+              </div>
+            </form>
+          </div>
   
         <!-- Diagram Tab Content -->
         <div class="diagram-container" *ngIf="activeTab === 'diagram'">

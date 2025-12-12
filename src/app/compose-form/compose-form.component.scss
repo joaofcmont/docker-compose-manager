@@ -1122,6 +1122,388 @@ main {
   }
 }
 
+// Wizard Mode Styles
+.wizard-mode-toggle {
+  margin-bottom: 1.5rem;
+  display: flex;
+  justify-content: flex-end;
+
+  .btn-wizard-toggle {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    background: #fff;
+    border: 2px solid $primary;
+    border-radius: 8px;
+    color: $primary;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all $trans;
+
+    &:hover {
+      background: $primary;
+      color: #fff;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(0, 123, 255, 0.2);
+    }
+
+    &.active {
+      background: $primary;
+      color: #fff;
+    }
+
+    svg {
+      width: 16px;
+      height: 16px;
+    }
+  }
+}
+
+.wizard-progress {
+  background: #fff;
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+
+  .wizard-progress-bar {
+    height: 8px;
+    background: #e9ecef;
+    border-radius: 4px;
+    overflow: hidden;
+    margin-bottom: 1.5rem;
+
+    .wizard-progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, $primary 0%, lighten($primary, 10%) 100%);
+      border-radius: 4px;
+      transition: width 0.3s ease;
+    }
+  }
+
+  .wizard-steps-indicator {
+    display: flex;
+    justify-content: space-between;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+
+    .wizard-step-indicator {
+      flex: 1;
+      min-width: 120px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.75rem;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all $trans;
+      position: relative;
+
+      &::after {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 100%;
+        width: 100%;
+        height: 2px;
+        background: #e9ecef;
+        transform: translateY(-50%);
+        z-index: 0;
+      }
+
+      &:last-child::after {
+        display: none;
+      }
+
+      .step-number {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        background: #e9ecef;
+        color: $gray;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 600;
+        font-size: 0.875rem;
+        position: relative;
+        z-index: 1;
+        transition: all $trans;
+      }
+
+      .step-name {
+        font-size: 0.75rem;
+        color: $gray;
+        text-align: center;
+        font-weight: 500;
+        transition: color $trans;
+      }
+
+      &.active {
+        .step-number {
+          background: $primary;
+          color: #fff;
+          box-shadow: 0 0 0 4px rgba(0, 123, 255, 0.2);
+        }
+
+        .step-name {
+          color: $primary;
+          font-weight: 600;
+        }
+      }
+
+      &.completed {
+        .step-number {
+          background: #6c757d;
+          color: #fff;
+        }
+
+        .step-name {
+          color: #6c757d;
+        }
+
+        &::after {
+          background: #6c757d;
+        }
+      }
+
+      &:hover:not(.active) {
+        background: rgba(0, 123, 255, 0.05);
+      }
+    }
+  }
+}
+
+.wizard-instructions {
+  background: linear-gradient(135deg, rgba(0, 123, 255, 0.1) 0%, rgba(0, 123, 255, 0.05) 100%);
+  border-left: 4px solid $primary;
+  border-radius: 8px;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+
+  .wizard-instruction-content {
+    h3 {
+      font-size: 1.25rem;
+      color: $primary;
+      margin: 0 0 0.5rem 0;
+      font-weight: 600;
+    }
+
+    p {
+      color: $secondary;
+      margin: 0;
+      line-height: 1.6;
+      font-size: 0.95rem;
+    }
+  }
+}
+
+.form-section {
+  &.wizard-active {
+    border: 2px solid $primary;
+    box-shadow: 0 0 0 4px rgba(0, 123, 255, 0.1);
+  }
+
+  &.wizard-completed {
+    // Removed green border indicator
+  }
+
+  .section-header {
+    .wizard-step-badge {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background: rgba(0, 123, 255, 0.1);
+      color: $primary;
+      margin-left: auto;
+
+      svg {
+        width: 16px;
+        height: 16px;
+      }
+    }
+  }
+}
+
+.wizard-navigation {
+  margin-top: 2rem;
+  padding-top: 2rem;
+  border-top: 2px solid #e9ecef;
+
+  .wizard-nav-buttons {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+
+    .btn-wizard-nav {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.75rem 1.5rem;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all $trans;
+      border: 2px solid transparent;
+
+      &:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+
+      svg {
+        width: 16px;
+        height: 16px;
+      }
+
+      &.btn-prev {
+        background: #fff;
+        border-color: #dee2e6;
+        color: $secondary;
+
+        &:hover:not(:disabled) {
+          background: #f8f9fa;
+          border-color: $primary;
+          color: $primary;
+        }
+      }
+
+      &.btn-skip {
+        background: transparent;
+        color: $gray;
+        border: none;
+
+        &:hover:not(:disabled) {
+          color: $primary;
+          text-decoration: underline;
+        }
+      }
+
+      &.btn-next {
+        background: $primary;
+        color: #fff;
+        border-color: $primary;
+
+        &:hover:not(:disabled) {
+          background: darken($primary, 10%);
+          transform: translateX(2px);
+          box-shadow: 0 4px 12px rgba(0, 123, 255, 0.3);
+        }
+      }
+
+      &.btn-generate {
+        background: #28a745;
+        color: #fff;
+        border-color: #28a745;
+
+        &:hover:not(:disabled) {
+          background: darken(#28a745, 10%);
+          box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+        }
+      }
+    }
+  }
+}
+
+// Wizard Review Step
+.wizard-review-step {
+  background: #f8f9fa;
+  border-radius: 12px;
+  padding: 2rem;
+  margin: 2rem 0;
+  border: 2px solid #dee2e6;
+
+  h3 {
+    font-size: 1.5rem;
+    color: $primary;
+    margin: 0 0 0.5rem 0;
+    font-weight: 700;
+  }
+
+  > p {
+    color: $secondary;
+    margin: 0 0 1.5rem 0;
+    line-height: 1.6;
+  }
+
+  .review-summary {
+    background: #fff;
+    border-radius: 8px;
+    padding: 1.5rem;
+    border: 1px solid #dee2e6;
+
+    h4 {
+      font-size: 1.1rem;
+      color: $primary;
+      margin: 0 0 1rem 0;
+      font-weight: 600;
+    }
+
+    .review-service-item {
+      padding: 1rem;
+      border: 1px solid #e9ecef;
+      border-radius: 8px;
+      margin-bottom: 1rem;
+      background: #f8f9fa;
+
+      &:last-child {
+        margin-bottom: 0;
+      }
+
+      .review-service-header {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        margin-bottom: 0.75rem;
+        padding-bottom: 0.75rem;
+        border-bottom: 1px solid #dee2e6;
+
+        svg-icon {
+          width: 24px;
+          height: 24px;
+          color: $primary;
+        }
+
+        strong {
+          font-size: 1.1rem;
+          color: $primary;
+        }
+      }
+
+      .review-service-details {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 0.75rem;
+
+        .review-detail-item {
+          display: flex;
+          flex-direction: column;
+          gap: 0.25rem;
+
+          .detail-label {
+            font-size: 0.85rem;
+            color: $gray;
+            font-weight: 500;
+          }
+
+          .detail-value {
+            font-size: 0.95rem;
+            color: $secondary;
+            font-weight: 600;
+          }
+        }
+      }
+    }
+  }
+}
+
 // Form, YAML Preview, Import Section
 .form-container,
 .yaml-preview {

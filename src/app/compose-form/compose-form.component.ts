@@ -345,6 +345,25 @@ export class ComposeFormComponent implements OnInit {
     resources: false
   };
 
+  // Wizard mode
+  wizardMode: boolean = false;
+  wizardStep: number = 1;
+  wizardSteps: string[] = ['basic', 'configuration', 'healthcheck', 'resources', 'review'];
+  wizardStepNames: { [key: string]: string } = {
+    'basic': 'Basic Configuration',
+    'configuration': 'Environment & Volumes',
+    'healthcheck': 'Health Check',
+    'resources': 'Resources & Deployment',
+    'review': 'Review & Generate'
+  };
+  wizardStepDescriptions: { [key: string]: string } = {
+    'basic': 'Start by giving your service a name, choosing a Docker image, and setting up port mappings.',
+    'configuration': 'Configure environment variables and volume mounts for your service.',
+    'healthcheck': 'Set up health checks to monitor your service\'s status (optional).',
+    'resources': 'Configure resource limits, restart policies, dependencies, and networking.',
+    'review': 'Review your configuration and generate your Docker Compose file.'
+  };
+
   // Progress tracking
   get formProgress(): number {
     if (this.services.length === 0) return 0;
@@ -445,7 +464,235 @@ export class ComposeFormComponent implements OnInit {
   }
 
   toggleSection(section: 'basic' | 'configuration' | 'healthcheck' | 'resources'): void {
+    if (this.wizardMode) {
+      // In wizard mode, only allow expanding the current step
+      return;
+    }
     this.expandedSections[section] = !this.expandedSections[section];
+  }
+
+  // Wizard mode methods
+  toggleWizardMode(): void {
+    this.wizardMode = !this.wizardMode;
+    if (this.wizardMode) {
+      // Initialize wizard: expand only the first step
+      this.wizardStep = 1;
+      this.expandedSections = {
+        basic: true,
+        configuration: false,
+        healthcheck: false,
+        resources: false
+      };
+      this.analyticsService.trackEvent('wizard_mode_enabled', {});
+    } else {
+      // Exit wizard: expand all sections
+      this.expandedSections = {
+        basic: true,
+        configuration: true,
+        healthcheck: true,
+        resources: true
+      };
+      this.analyticsService.trackEvent('wizard_mode_disabled', {});
+    }
+  }
+
+  getCurrentWizardStep(): string {
+    return this.wizardSteps[this.wizardStep - 1] || 'basic';
+  }
+
+  getWizardProgress(): number {
+    return Math.round((this.wizardStep / this.wizardSteps.length) * 100);
+  }
+
+  canGoToNextStep(): boolean {
+    const currentStep = this.getCurrentWizardStep();
+    
+    // Validate current step before allowing next
+    if (currentStep === 'basic') {
+      const serviceName = this.composeForm.get('serviceName');
+      const dockerImage = this.composeForm.get('dockerImage');
+      const hostPort = this.composeForm.get('hostPort');
+      const containerPort = this.composeForm.get('containerPort');
+      
+      return !!(serviceName?.valid && dockerImage?.valid && hostPort?.valid && containerPort?.valid);
+    }
+    
+    if (currentStep === 'healthcheck') {
+      const healthCheck = this.composeForm.get('healthCheck');
+      if (healthCheck?.get('enabled')?.value) {
+        const interval = healthCheck.get('interval');
+        const timeout = healthCheck.get('timeout');
+        const retries = healthCheck.get('retries');
+        return !!(interval?.valid && timeout?.valid && retries?.valid);
+      }
+      return true; // Health check is optional
+    }
+    
+    // Other steps don't have required fields
+    return true;
+  }
+
+  nextWizardStep(): void {
+    if (!this.canGoToNextStep()) {
+      // Mark fields as touched to show validation errors
+      this.markCurrentStepFieldsAsTouched();
+      return;
+    }
+
+    if (this.wizardStep < this.wizardSteps.length) {
+      // Collapse current step
+      const currentStep = this.getCurrentWizardStep();
+      if (currentStep !== 'review') {
+        this.expandedSections[currentStep as keyof typeof this.expandedSections] = false;
+      }
+
+      // Move to next step
+      this.wizardStep++;
+      const nextStep = this.getCurrentWizardStep();
+      
+      // Expand next step
+      if (nextStep !== 'review') {
+        this.expandedSections[nextStep as keyof typeof this.expandedSections] = true;
+        
+        // Scroll to the next section - wait for Angular to update the DOM
+        setTimeout(() => {
+          // Find section by step index (most reliable method)
+          const allSections = Array.from(document.querySelectorAll('.form-section'));
+          const stepIndex = this.wizardSteps.indexOf(nextStep);
+          
+          if (stepIndex >= 0 && stepIndex < allSections.length) {
+            const section = allSections[stepIndex];
+            if (section) {
+              // Add some offset to account for fixed headers
+              const yOffset = -80;
+              const y = section.getBoundingClientRect().top + window.pageYOffset + yOffset;
+              window.scrollTo({ top: y, behavior: 'smooth' });
+            }
+          }
+        }, 200);
+      }
+      
+      this.analyticsService.trackEvent('wizard_step_next', { step: this.wizardStep });
+    }
+  }
+
+  previousWizardStep(): void {
+    if (this.wizardStep > 1) {
+      // Collapse current step
+      const currentStep = this.getCurrentWizardStep();
+      if (currentStep !== 'review') {
+        this.expandedSections[currentStep as keyof typeof this.expandedSections] = false;
+      }
+
+      // Move to previous step
+      this.wizardStep--;
+      const prevStep = this.getCurrentWizardStep();
+      
+      // Expand previous step
+      this.expandedSections[prevStep as keyof typeof this.expandedSections] = true;
+      
+      // Scroll to the previous section - wait for Angular to update the DOM
+      setTimeout(() => {
+        // Find section by step index (most reliable method)
+        const allSections = Array.from(document.querySelectorAll('.form-section'));
+        const stepIndex = this.wizardSteps.indexOf(prevStep);
+        
+        if (stepIndex >= 0 && stepIndex < allSections.length) {
+          const section = allSections[stepIndex];
+          if (section) {
+            // Add some offset to account for fixed headers
+            const yOffset = -80;
+            const y = section.getBoundingClientRect().top + window.pageYOffset + yOffset;
+            window.scrollTo({ top: y, behavior: 'smooth' });
+          }
+        }
+      }, 200);
+      
+      this.analyticsService.trackEvent('wizard_step_previous', { step: this.wizardStep });
+    }
+  }
+
+  skipWizardStep(): void {
+    if (this.wizardStep < this.wizardSteps.length) {
+      const currentStep = this.getCurrentWizardStep();
+      this.expandedSections[currentStep as keyof typeof this.expandedSections] = false;
+      this.wizardStep++;
+      const nextStep = this.getCurrentWizardStep();
+      if (nextStep !== 'review') {
+        this.expandedSections[nextStep as keyof typeof this.expandedSections] = true;
+      }
+      this.analyticsService.trackEvent('wizard_step_skipped', { step: this.wizardStep - 1 });
+    }
+  }
+
+  goToWizardStep(stepNumber: number): void {
+    if (stepNumber >= 1 && stepNumber <= this.wizardSteps.length) {
+      // Collapse all steps
+      Object.keys(this.expandedSections).forEach(key => {
+        this.expandedSections[key as keyof typeof this.expandedSections] = false;
+      });
+      
+      this.wizardStep = stepNumber;
+      const step = this.getCurrentWizardStep();
+      
+      // Expand target step
+      if (step !== 'review') {
+        this.expandedSections[step as keyof typeof this.expandedSections] = true;
+      }
+      
+      // Scroll to the target section - wait for Angular to update the DOM
+      setTimeout(() => {
+        if (step === 'review') {
+          const reviewSection = document.querySelector('.wizard-review-step');
+          if (reviewSection) {
+            const yOffset = -80;
+            const y = reviewSection.getBoundingClientRect().top + window.pageYOffset + yOffset;
+            window.scrollTo({ top: y, behavior: 'smooth' });
+          }
+        } else {
+          // Find section by step index (most reliable method)
+          const allSections = Array.from(document.querySelectorAll('.form-section'));
+          const stepIndex = this.wizardSteps.indexOf(step);
+          
+          if (stepIndex >= 0 && stepIndex < allSections.length) {
+            const section = allSections[stepIndex];
+            if (section) {
+              // Add some offset to account for fixed headers
+              const yOffset = -80;
+              const y = section.getBoundingClientRect().top + window.pageYOffset + yOffset;
+              window.scrollTo({ top: y, behavior: 'smooth' });
+            }
+          }
+        }
+      }, 200);
+    }
+  }
+
+  private markCurrentStepFieldsAsTouched(): void {
+    const currentStep = this.getCurrentWizardStep();
+    
+    if (currentStep === 'basic') {
+      this.composeForm.get('serviceName')?.markAsTouched();
+      this.composeForm.get('dockerImage')?.markAsTouched();
+      this.composeForm.get('hostPort')?.markAsTouched();
+      this.composeForm.get('containerPort')?.markAsTouched();
+    } else if (currentStep === 'healthcheck') {
+      const healthCheck = this.composeForm.get('healthCheck');
+      if (healthCheck?.get('enabled')?.value) {
+        healthCheck.get('interval')?.markAsTouched();
+        healthCheck.get('timeout')?.markAsTouched();
+        healthCheck.get('retries')?.markAsTouched();
+      }
+    }
+  }
+
+  isWizardStepActive(stepName: string): boolean {
+    return this.getCurrentWizardStep() === stepName;
+  }
+
+  isWizardStepCompleted(stepName: string): boolean {
+    const stepIndex = this.wizardSteps.indexOf(stepName);
+    return stepIndex >= 0 && stepIndex < this.wizardStep - 1;
   }
 
   applyExample(field: string, example: string): void {

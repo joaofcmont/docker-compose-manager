@@ -4,6 +4,7 @@ import { DockerComposeService } from '../services/docker-compose.service';
 import { AnalyticsService } from '../services/analytics.service';
 import { FirestoreService } from '../services/firestore.service';
 import { GraphService } from '../services/graph.service';
+import { LearningService, LearningTip, ConfigSuggestion } from '../services/learning.service';
 import { ServiceConfig } from '../models/service-config.model';
 import { ComposeGraph } from '../models/compose-graph.model';
 import { SvgIconComponent } from '../shared/svg-icon.component';
@@ -25,6 +26,7 @@ export class ComposeFormComponent implements OnInit {
   private analyticsService = inject(AnalyticsService);
   private firestoreService = inject(FirestoreService);
   private graphService = inject(GraphService);
+  private learningService = inject(LearningService);
 
   services: ServiceConfig[] = [];
   selectedServiceIndex: number = 0;
@@ -308,6 +310,13 @@ export class ComposeFormComponent implements OnInit {
   yamlEditContent: string = '';
   yamlEditError: string = '';
   isSyncingYaml: boolean = false;
+  
+  // Learning tool features
+  showLearningPanel: boolean = false;
+  showSuggestionsPopup: boolean = false;
+  configSuggestions: ConfigSuggestion[] = [];
+  activeFieldTips: LearningTip[] = [];
+  activeFieldName: string = '';
 
 
   ngOnInit() {
@@ -320,11 +329,65 @@ export class ComposeFormComponent implements OnInit {
     // Check if user has seen the multi-service hint
     const seenHint = localStorage.getItem('hasSeenMultiServiceHint');
     this.hasSeenMultiServiceHint = seenHint === 'true';
+    
+    // Analyze config for suggestions
+    this.analyzeConfig();
   }
 
   dismissMultiServiceHint(): void {
     this.hasSeenMultiServiceHint = true;
     localStorage.setItem('hasSeenMultiServiceHint', 'true');
+  }
+
+  // Learning tool methods
+  getFieldTips(fieldName: string): LearningTip[] {
+    return this.learningService.getFieldTips(fieldName);
+  }
+
+  showTipsForField(fieldName: string): void {
+    this.activeFieldName = fieldName;
+    this.activeFieldTips = this.getFieldTips(fieldName);
+    if (this.activeFieldTips.length > 0) {
+      this.showLearningPanel = true;
+    }
+  }
+
+  analyzeConfig(): void {
+    this.configSuggestions = this.learningService.analyzeConfig(this.services);
+  }
+
+  getConfigSuggestions(): ConfigSuggestion[] {
+    return this.configSuggestions;
+  }
+
+  getQuickReferences() {
+    return this.learningService.getQuickReferences();
+  }
+
+  getBestPractices() {
+    return this.learningService.getBestPractices();
+  }
+
+  toggleLearningPanel(): void {
+    this.showLearningPanel = !this.showLearningPanel;
+    if (!this.showLearningPanel) {
+      this.activeFieldTips = [];
+      this.activeFieldName = '';
+    }
+  }
+
+  openLearningCenter(): void {
+    this.showLearningPanel = true;
+    this.activeFieldTips = [];
+    this.activeFieldName = '';
+  }
+
+  openSuggestionsPopup(): void {
+    this.showSuggestionsPopup = true;
+  }
+
+  closeSuggestionsPopup(): void {
+    this.showSuggestionsPopup = false;
   }
 
   // YAML Edit Mode
@@ -407,12 +470,14 @@ export class ComposeFormComponent implements OnInit {
 
   // Add a new service to the services array
   addNewService(): void {
+    this.saveCurrentServiceToArray(); // Save current service before adding new
     const newService = this.createDefaultService();
     newService.serviceName = `service-${this.services.length + 1}`;
     this.services.push(newService);
     this.selectedServiceIndex = this.services.length - 1;
     this.loadServiceIntoForm(this.selectedServiceIndex);
     this.updateGraph();
+    this.analyzeConfig();
   }
 
   // Duplicate the currently selected service
@@ -420,12 +485,14 @@ export class ComposeFormComponent implements OnInit {
     if (this.selectedServiceIndex < 0 || this.selectedServiceIndex >= this.services.length) {
       return;
     }
-    const serviceToDuplicate = { ...this.services[this.selectedServiceIndex] };
+    this.saveCurrentServiceToArray(); // Save current service before duplicating
+    const serviceToDuplicate = JSON.parse(JSON.stringify(this.services[this.selectedServiceIndex]));
     serviceToDuplicate.serviceName = `${serviceToDuplicate.serviceName}-copy`;
     this.services.push(serviceToDuplicate);
     this.selectedServiceIndex = this.services.length - 1;
     this.loadServiceIntoForm(this.selectedServiceIndex);
     this.updateGraph();
+    this.analyzeConfig();
   }
 
   // Delete a service
@@ -445,6 +512,8 @@ export class ComposeFormComponent implements OnInit {
     this.loadServiceIntoForm(this.selectedServiceIndex);
     this.updateYamlPreview();
     this.updateGraph();
+    this.analyzeConfig();
+    this.analyzeConfig();
   }
 
   // Select a service to edit
@@ -527,6 +596,8 @@ export class ComposeFormComponent implements OnInit {
       if (this.activeTab === 'diagram') {
         this.updateGraph();
       }
+      // Analyze config for suggestions
+      this.analyzeConfig();
     });
   }
 

@@ -54,31 +54,127 @@
       <div class="container">
         <!-- Tabs Navigation -->
         <div class="tabs-navigation">
-          <button 
-            type="button"
-            class="tab-button"
-            [class.active]="activeTab === 'form'"
-            (click)="setActiveTab('form')">
-            Form
-          </button>
-          <button 
-            type="button"
-            class="tab-button"
-            [class.active]="activeTab === 'diagram'"
-            (click)="setActiveTab('diagram')">
-            Diagram
-          </button>
-          <button 
-            type="button"
-            class="tab-button"
-            [class.active]="activeTab === 'yaml'"
-            (click)="setActiveTab('yaml')">
-            YAML Preview
-          </button>
+          <div class="tabs-left">
+            <button 
+              type="button"
+              class="tab-button"
+              [class.active]="activeTab === 'form'"
+              (click)="setActiveTab('form')">
+              Form
+            </button>
+            <button 
+              type="button"
+              class="tab-button"
+              [class.active]="activeTab === 'diagram'"
+              (click)="setActiveTab('diagram')">
+              Diagram
+            </button>
+            <button 
+              type="button"
+              class="tab-button"
+              [class.active]="activeTab === 'yaml'"
+              (click)="setActiveTab('yaml')">
+              YAML Preview
+            </button>
+          </div>
+          <div class="tab-actions">
+            <button 
+              type="button"
+              class="btn-learning-center"
+              (click)="openLearningCenter()"
+              title="Open Learning Center">
+              Learning Center
+            </button>
+            <button 
+              type="button"
+              class="btn-suggestions"
+              *ngIf="getConfigSuggestions().length > 0"
+              (click)="openSuggestionsPopup()"
+              [title]="'View ' + getConfigSuggestions().length + ' configuration suggestions'">
+              💡 Suggestions ({{ getConfigSuggestions().length }})
+            </button>
+          </div>
         </div>
 
         <!-- Tab Content Wrapper -->
         <div class="tab-content-wrapper">
+          <!-- Learning Panel (can be shown alongside form) -->
+          <div class="learning-panel" *ngIf="showLearningPanel && activeTab === 'form'">
+            <div class="learning-panel-header">
+              <h3>
+                <span *ngIf="activeFieldTips.length > 0">Tips: {{ activeFieldName }}</span>
+                <span *ngIf="activeFieldTips.length === 0">Learning Center</span>
+              </h3>
+              <button type="button" class="btn-close-panel" (click)="toggleLearningPanel()">×</button>
+            </div>
+            
+            <div class="learning-panel-content">
+              <!-- Field-specific tips -->
+              <div class="tips-section" *ngIf="activeFieldTips.length > 0">
+                <div *ngFor="let tip of activeFieldTips" class="tip-item" [class]="'tip-' + tip.category">
+                  <div class="tip-header">
+                    <strong>{{ tip.title }}</strong>
+                    <a *ngIf="tip.link" [href]="tip.link" target="_blank" class="tip-link" title="View documentation">
+                      📖 Docs
+                    </a>
+                  </div>
+                  <p>{{ tip.message }}</p>
+                </div>
+              </div>
+
+              <!-- Config Suggestions -->
+              <div class="suggestions-section" *ngIf="getConfigSuggestions().length > 0 && activeFieldTips.length === 0">
+                <h4>Configuration Suggestions</h4>
+                <div *ngFor="let suggestion of getConfigSuggestions()" class="suggestion-item" [class]="'suggestion-' + suggestion.type">
+                  <div class="suggestion-header">
+                    <span class="suggestion-icon">
+                      <span *ngIf="suggestion.type === 'error'">❌</span>
+                      <span *ngIf="suggestion.type === 'warning'">⚠️</span>
+                      <span *ngIf="suggestion.type === 'suggestion'">💡</span>
+                      <span *ngIf="suggestion.type === 'optimization'">⚡</span>
+                    </span>
+                    <strong>{{ suggestion.title }}</strong>
+                    <span class="severity-badge" [class]="'severity-' + suggestion.severity">
+                      {{ suggestion.severity }}
+                    </span>
+                  </div>
+                  <p>{{ suggestion.message }}</p>
+                  <div class="suggestion-fix" *ngIf="suggestion.fix">
+                    <strong>Fix:</strong> {{ suggestion.fix }}
+                  </div>
+                </div>
+              </div>
+
+              <!-- Quick References -->
+              <div class="references-section" *ngIf="activeFieldTips.length === 0 && getConfigSuggestions().length === 0">
+                <h4>Quick References</h4>
+                <div *ngFor="let category of getQuickReferences()" class="reference-category">
+                  <h5>{{ category.category }}</h5>
+                  <div *ngFor="let example of category.examples" class="reference-example">
+                    <strong>{{ example.title }}</strong>
+                    <p class="reference-description">{{ example.description }}</p>
+                    <pre class="reference-yaml"><code>{{ example.yaml }}</code></pre>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Best Practices -->
+              <div class="best-practices-section" *ngIf="activeFieldTips.length === 0 && getConfigSuggestions().length === 0">
+                <h4>Best Practices</h4>
+                <div *ngFor="let category of getBestPractices()" class="practice-category">
+                  <h5>{{ category.category }}</h5>
+                  <div *ngFor="let practice of category.practices" class="practice-item">
+                    <strong>{{ practice.title }}</strong>
+                    <p>{{ practice.description }}</p>
+                    <a *ngIf="practice.link" [href]="practice.link" target="_blank" class="practice-link">
+                      Learn more →
+                    </a>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
           <!-- Service List Sidebar (shown in form and diagram tabs) -->
           <div class="service-list-sidebar" *ngIf="activeTab === 'form' || activeTab === 'diagram'">
           <div class="service-list-header">
@@ -159,7 +255,16 @@
               </div>
   
               <div class="form-group">
-                <label for="serviceName">Service Name <span class="required">*</span></label>
+                <label for="serviceName">
+                  Service Name <span class="required">*</span>
+                  <button 
+                    type="button" 
+                    class="help-trigger"
+                    (click)="showTipsForField('serviceName')"
+                    title="Get tips for this field">
+                    ℹ️
+                  </button>
+                </label>
                 <input 
                   type="text" 
                   id="serviceName" 
@@ -184,7 +289,16 @@
               </div>
   
               <div class="form-group">
-                <label for="dockerImage">Docker Image <span class="required">*</span></label>
+                <label for="dockerImage">
+                  Docker Image <span class="required">*</span>
+                  <button 
+                    type="button" 
+                    class="help-trigger"
+                    (click)="showTipsForField('dockerImage')"
+                    title="Get tips for this field">
+                    ℹ️
+                  </button>
+                </label>
                 <input 
                   type="text" 
                   id="dockerImage" 
@@ -201,12 +315,21 @@
   
               <div class="form-group grid-2">
                 <div>
-                  <label for="hostPort">Host Port <span class="required">*</span></label>
+                  <label for="hostPort">
+                    Host Port <span class="required">*</span>
+                    <button 
+                      type="button" 
+                      class="help-trigger"
+                      (click)="showTipsForField('hostPort')"
+                      title="Get tips for this field">
+                      ℹ️
+                    </button>
+                  </label>
                   <input 
                     type="number" 
                     id="hostPort" 
                     formControlName="hostPort"
-                    placeholder="Port to expose on host"
+                    placeholder="Port to expose on host" 
                     [class.error]="composeForm.get('hostPort')?.invalid && composeForm.get('hostPort')?.touched"
                     min="1" 
                     max="65535">
@@ -218,12 +341,21 @@
                   </div>
                 </div>
                 <div>
-                  <label for="containerPort">Container Port <span class="required">*</span></label>
+                  <label for="containerPort">
+                    Container Port <span class="required">*</span>
+                    <button 
+                      type="button" 
+                      class="help-trigger"
+                      (click)="showTipsForField('containerPort')"
+                      title="Get tips for this field">
+                      ℹ️
+                    </button>
+                  </label>
                   <input 
                     type="number" 
                     id="containerPort" 
                     formControlName="containerPort"
-                    placeholder="Port inside container"
+                    placeholder="Port inside container" 
                     [class.error]="composeForm.get('containerPort')?.invalid && composeForm.get('containerPort')?.touched"
                     min="1" 
                     max="65535">
@@ -242,7 +374,16 @@
               <h3>Configuration</h3>
               
               <div class="form-group">
-                <label for="environment">Environment Variables</label>
+                  <label for="environment">
+                    Environment Variables
+                    <button 
+                      type="button" 
+                      class="help-trigger"
+                      (click)="showTipsForField('environment')"
+                      title="Get tips for this field">
+                      ℹ️
+                    </button>
+                  </label>
                 <textarea 
                   id="environment" 
                   formControlName="environment"
@@ -252,7 +393,16 @@
               </div>
   
               <div class="form-group">
-                <label for="volumes">Volumes</label>
+                  <label for="volumes">
+                    Volumes
+                    <button 
+                      type="button" 
+                      class="help-trigger"
+                      (click)="showTipsForField('volumes')"
+                      title="Get tips for this field">
+                      ℹ️
+                    </button>
+                  </label>
                 <textarea 
                   id="volumes" 
                   formControlName="volumes"
@@ -266,7 +416,13 @@
 <div class="form-section" formGroupName="healthCheck">
     <h3>
       Health Check
-      <span class="help-icon" title="Tests if service is healthy. Interval = how often to check, Timeout = max wait time, Retries = failures before marking unhealthy">ℹ️</span>
+      <button 
+        type="button" 
+        class="help-trigger"
+        (click)="showTipsForField('healthCheck')"
+        title="Get tips for health checks">
+        ℹ️
+      </button>
     </h3>
   
     <div class="form-group checkbox">
@@ -384,7 +540,13 @@
                   <div>
                     <label for="cpuLimit">
                       CPU Limit
-                      <span class="help-icon" title="CPU cores allocated to this service. 0.5 = half a core, 1.0 = 1 full core, 2.5 = 2.5 cores. This is NOT a percentage of your total CPU cores.">ℹ️</span>
+                      <button 
+                        type="button" 
+                        class="help-trigger"
+                        (click)="showTipsForField('cpuLimit')"
+                        title="Get tips for CPU limits">
+                        ℹ️
+                      </button>
                     </label>
                     <div class="preset-buttons">
                       <button type="button" class="preset-btn" (click)="applyResourcePreset('low')">Low (0.5)</button>
@@ -400,10 +562,16 @@
                     <small class="help-text">Examples: 0.5 = half core, 1.0 = 1 core, 2.5 = 2.5 cores</small>
                   </div>
                   <div>
-                    <label for="memoryLimit">
-                      Memory Limit (MB)
-                      <span class="help-icon" title="Memory allocated to this service in megabytes (MB). 1024 MB = 1 GB">ℹ️</span>
-                    </label>
+                      <label for="memoryLimit">
+                        Memory Limit (MB)
+                        <button 
+                          type="button" 
+                          class="help-trigger"
+                          (click)="showTipsForField('memoryLimit')"
+                          title="Get tips for memory limits">
+                          ℹ️
+                        </button>
+                      </label>
                     <input 
                       type="number" 
                       id="memoryLimit" 
@@ -428,7 +596,13 @@
                 <div>
                   <label for="restart">
                     Restart Policy
-                    <span class="help-icon" title="always = restart on failure, unless-stopped = restart unless manually stopped, on-failure = restart only on failure, no = never restart">ℹ️</span>
+                    <button 
+                      type="button" 
+                      class="help-trigger"
+                      (click)="showTipsForField('restart')"
+                      title="Get tips for restart policies">
+                      ℹ️
+                    </button>
                   </label>
                   <select id="restart" formControlName="restart">
                     <option value="always">Always</option>
@@ -441,7 +615,16 @@
               </div>
   
               <div class="form-group">
-                <label for="depends_on">Dependencies</label>
+                <label for="depends_on">
+                  Dependencies
+                  <button 
+                    type="button" 
+                    class="help-trigger"
+                    (click)="showTipsForField('depends_on')"
+                    title="Get tips for dependencies">
+                    ℹ️
+                  </button>
+                </label>
                 <div class="dependencies-checkboxes" *ngIf="getAvailableServicesForDependencies().length > 0">
                   <div 
                     *ngFor="let service of getAvailableServicesForDependencies()" 
@@ -468,7 +651,13 @@
               <div class="form-group">
                 <label for="networks">
                   Networks
-                  <span class="help-icon" title="Docker networks this service should connect to. Services on the same network can communicate with each other.">ℹ️</span>
+                  <button 
+                    type="button" 
+                    class="help-trigger"
+                    (click)="showTipsForField('networks')"
+                    title="Get tips for networks">
+                    ℹ️
+                  </button>
                 </label>
                 <div class="networks-checkboxes" *ngIf="getAllNetworks().length > 0">
                   <div 
@@ -504,7 +693,13 @@
               <div class="form-group">
                 <label for="labels">
                   Labels
-                  <span class="help-icon" title="Metadata labels for this service. Common labels include com.docker.compose.project, traefik labels, etc.">ℹ️</span>
+                  <button 
+                    type="button" 
+                    class="help-trigger"
+                    (click)="showTipsForField('labels')"
+                    title="Get tips for labels">
+                    ℹ️
+                  </button>
                 </label>
                 <div class="labels-section">
                   <div class="labels-presets" *ngIf="getLabelsArray().length === 0">
@@ -579,7 +774,7 @@
             </div>
           </form>
         </div>
-
+  
         <!-- Diagram Tab Content -->
         <div class="diagram-container" *ngIf="activeTab === 'diagram'">
           <!-- Template Sidebar for Drag and Drop -->
@@ -732,9 +927,45 @@
           </div>
         </div>
       </div>
+    <!-- Suggestions Popup -->
+    <div class="suggestions-popup-overlay" *ngIf="showSuggestionsPopup" (click)="closeSuggestionsPopup()">
+      <div class="suggestions-popup" (click)="$event.stopPropagation()">
+        <div class="popup-header">
+          <h3>
+            <span class="suggestions-icon">💡</span>
+            Configuration Suggestions ({{ getConfigSuggestions().length }})
+          </h3>
+          <button type="button" class="btn-close-popup" (click)="closeSuggestionsPopup()">×</button>
+        </div>
+        <div class="popup-content">
+          <div *ngFor="let suggestion of getConfigSuggestions()" class="suggestion-item-popup" [class]="'suggestion-' + suggestion.type">
+            <div class="suggestion-header-popup">
+              <span class="suggestion-icon">
+                <span *ngIf="suggestion.type === 'error'">❌</span>
+                <span *ngIf="suggestion.type === 'warning'">⚠️</span>
+                <span *ngIf="suggestion.type === 'suggestion'">💡</span>
+                <span *ngIf="suggestion.type === 'optimization'">⚡</span>
+              </span>
+              <strong>{{ suggestion.title }}</strong>
+              <span class="severity-badge" [class]="'severity-' + suggestion.severity">
+                {{ suggestion.severity }}
+              </span>
+            </div>
+            <p>{{ suggestion.message }}</p>
+            <div class="suggestion-fix" *ngIf="suggestion.fix">
+              <strong>Fix:</strong> {{ suggestion.fix }}
+            </div>
+          </div>
+        </div>
+        <div class="popup-footer">
+          <button type="button" class="btn-open-learning" (click)="openLearningCenter(); closeSuggestionsPopup()">
+            Open Learning Center
+          </button>
+        </div>
+      </div>
+    </div>
     </main>
-  
+
     <footer>
       <p>© 2025 Docker Compose Manager. All rights reserved. | <a routerLink="/privacy">Privacy Policy</a></p>
     </footer>
-  </body>

@@ -24,5 +24,6 @@ export interface ServiceConfig {
   depends_on: string[];
   networks: string[];
   labels: { [key: string]: string };
+  notes?: string; // Optional notes/comments for the service
 }
 

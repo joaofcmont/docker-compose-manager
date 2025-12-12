@@ -1026,6 +1026,48 @@ main {
       }
     }
 
+    .service-header-actions {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+
+    .undo-redo-buttons {
+      display: flex;
+      gap: 0.25rem;
+      
+      .btn-undo,
+      .btn-redo {
+        padding: 0.5rem;
+        background: #fff;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        cursor: pointer;
+        transition: all $trans;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: $secondary;
+        
+        &:hover:not(:disabled) {
+          background: $light;
+          border-color: $primary;
+          color: $primary;
+        }
+        
+        &:disabled {
+          opacity: 0.4;
+          cursor: not-allowed;
+        }
+        
+        svg {
+          width: 16px;
+          height: 16px;
+        }
+      }
+    }
+
     .btn-add-service {
       background: $primary;
       color: #fff;
@@ -1146,6 +1188,15 @@ main {
     &:hover {
       background: darken($light, 2%);
       border-color: $primary;
+      
+      .drag-handle {
+        opacity: 0.8;
+      }
+    }
+
+    &.dragging {
+      opacity: 0.5;
+      cursor: grabbing;
     }
 
     &.selected {
@@ -1160,6 +1211,26 @@ main {
       gap: 0.5rem;
       flex: 1;
       min-width: 0;
+
+      .drag-handle {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: $gray;
+        opacity: 0.4;
+        cursor: grab;
+        flex-shrink: 0;
+        transition: opacity $trans;
+        
+        &:active {
+          cursor: grabbing;
+        }
+        
+        svg {
+          width: 12px;
+          height: 12px;
+        }
+      }
 
       .service-status-badge {
         width: 18px;

@@ -180,6 +180,18 @@
             </button>
             <button 
               type="button"
+              class="btn-export-import"
+              (click)="exportAsDockerRunCommands()"
+              [disabled]="services.length === 0"
+              title="Export as Docker Run commands">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="16 18 22 12 16 6"></polyline>
+                <polyline points="8 6 2 12 8 18"></polyline>
+              </svg>
+              Export Run Cmds
+            </button>
+            <button 
+              type="button"
               class="btn-template"
               (click)="quickSaveTemplate()"
               [disabled]="isSavingTemplate || services.length === 0"
@@ -296,13 +308,39 @@
                 {{ services.length }}
               </span>
             </div>
-            <button type="button" class="btn-add-service" (click)="addNewService()" title="Add a new service to your Docker Compose configuration">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <line x1="12" y1="5" x2="12" y2="19"></line>
-                <line x1="5" y1="12" x2="19" y2="12"></line>
-              </svg>
-              <span>Add Service</span>
-            </button>
+            <div class="service-header-actions">
+              <div class="undo-redo-buttons">
+                <button 
+                  type="button" 
+                  class="btn-undo"
+                  (click)="undo()"
+                  [disabled]="!canUndo()"
+                  title="Undo (Ctrl+Z)">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M3 7v6h6"></path>
+                    <path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13"></path>
+                  </svg>
+                </button>
+                <button 
+                  type="button" 
+                  class="btn-redo"
+                  (click)="redo()"
+                  [disabled]="!canRedo()"
+                  title="Redo (Ctrl+Y or Ctrl+Shift+Z)">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 7v6h-6"></path>
+                    <path d="M3 17a9 9 0 0 1 9-9 9 9 0 0 1 6 2.3L21 13"></path>
+                  </svg>
+                </button>
+              </div>
+              <button type="button" class="btn-add-service" (click)="addNewService()" title="Add a new service to your Docker Compose configuration">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <line x1="12" y1="5" x2="12" y2="19"></line>
+                  <line x1="5" y1="12" x2="19" y2="12"></line>
+                </svg>
+                <span>Add Service</span>
+              </button>
+            </div>
             <div class="multi-service-hint" *ngIf="services.length === 1 && !hasSeenMultiServiceHint">
               <span class="hint-icon">💡</span>
               <span class="hint-text">You can add multiple services to build complex multi-container applications!</span>
@@ -364,9 +402,25 @@
               *ngFor="let service of getFilteredServices(); let i = index" 
               class="service-item"
               [class.selected]="services.indexOf(service) === selectedServiceIndex"
+              [class.dragging]="draggedServiceIndex === services.indexOf(service)"
               [class]="getServiceStatusClass(service)"
+              [draggable]="true"
+              (dragstart)="onServiceDragStart($event, services.indexOf(service))"
+              (dragover)="onServiceDragOver($event, services.indexOf(service))"
+              (drop)="onServiceDrop($event, services.indexOf(service))"
+              (dragend)="onServiceDragEnd()"
               (click)="selectService(services.indexOf(service))">
               <div class="service-item-content">
+                <span class="drag-handle" title="Drag to reorder">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="9" cy="12" r="1"></circle>
+                    <circle cx="9" cy="5" r="1"></circle>
+                    <circle cx="9" cy="19" r="1"></circle>
+                    <circle cx="15" cy="12" r="1"></circle>
+                    <circle cx="15" cy="5" r="1"></circle>
+                    <circle cx="15" cy="19" r="1"></circle>
+                  </svg>
+                </span>
                 <span class="service-status-badge" [class]="getServiceStatusClass(service)" [title]="'Status: ' + getServiceStatus(service)">
                   {{ getServiceStatusIcon(service) }}
                 </span>
@@ -1116,6 +1170,26 @@
                 <small class="help-text">
                   Add key-value pairs for service metadata. Common labels: com.docker.compose.project, traefik.*, etc.
                 </small>
+              </div>
+
+              <!-- Service Notes -->
+              <div class="form-group">
+                <label for="notes">
+                  Service Notes
+                  <button 
+                    type="button" 
+                    class="help-trigger"
+                    (click)="showTipsForField('notes')"
+                    title="Get tips for this field">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+                  </button>
+                </label>
+                <textarea 
+                  id="notes" 
+                  formControlName="notes"
+                  rows="3" 
+                  placeholder="Add notes or comments about this service (e.g., purpose, configuration details, etc.)"></textarea>
+                <small class="help-text">Optional: Add documentation or notes about this service. These notes are saved in exported JSON files.</small>
               </div>
               </div>
             </div>

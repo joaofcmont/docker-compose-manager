@@ -1,4 +1,4 @@
-import { Component, OnInit, AfterViewInit, inject } from '@angular/core';
+import { Component, OnInit, AfterViewInit, inject, HostListener } from '@angular/core';
 import { FormArray, FormControl, FormGroup, ReactiveFormsModule, Validators, FormsModule } from '@angular/forms';
 import { DockerComposeService } from '../services/docker-compose.service';
 import { AnalyticsService } from '../services/analytics.service';
@@ -66,7 +66,8 @@ export class ComposeFormComponent implements OnInit, AfterViewInit {
     restart: new FormControl('always'),
     depends_on: new FormControl<string[]>([]),
     networks: new FormControl<string[]>([]),
-    labels: new FormControl<{ [key: string]: string }>({})
+    labels: new FormControl<{ [key: string]: string }>({}),
+    notes: new FormControl('')
   });
 
   // Get available services for dependencies (excluding current service)
@@ -366,6 +367,15 @@ export class ComposeFormComponent implements OnInit, AfterViewInit {
   totalCpu: number = 0;
   totalMemory: number = 0;
 
+  // Undo/Redo functionality
+  private historyStack: ServiceConfig[][] = [];
+  private historyIndex: number = -1;
+  private maxHistorySize: number = 50;
+  private isUndoRedoOperation: boolean = false;
+  
+  // Service reordering
+  draggedServiceIndex: number = -1;
+
   // Form organization
   expandedSections: { basic: boolean; configuration: boolean; healthcheck: boolean; resources: boolean } = {
     basic: true,
@@ -520,6 +530,11 @@ export class ComposeFormComponent implements OnInit, AfterViewInit {
     
     // Initialize resource calculator
     this.calculateResourceUsage();
+    
+    // Initialize history with initial state (after a small delay to ensure services are set)
+    setTimeout(() => {
+      this.saveToHistory();
+    }, 100);
   }
 
   ngAfterViewInit(): void {
@@ -1098,13 +1113,15 @@ export class ComposeFormComponent implements OnInit, AfterViewInit {
       restart: 'always',
       depends_on: [],
       networks: [],
-      labels: {}
+      labels: {},
+      notes: ''
     };
   }
 
   // Add a new service to the services array
   addNewService(): void {
     this.saveCurrentServiceToArray(); // Save current service before adding new
+    this.saveToHistory(); // Save state before adding
     const newService = this.createDefaultService();
     newService.serviceName = `service-${this.services.length + 1}`;
     this.services.push(newService);
@@ -1112,6 +1129,7 @@ export class ComposeFormComponent implements OnInit, AfterViewInit {
     this.loadServiceIntoForm(this.selectedServiceIndex);
     this.updateGraph();
     this.analyzeConfig();
+    this.calculateResourceUsage();
   }
 
   // Duplicate the currently selected service
@@ -1131,6 +1149,8 @@ export class ComposeFormComponent implements OnInit, AfterViewInit {
 
   // Delete a service
   deleteService(index: number): void {
+    this.saveCurrentServiceToArray(); // Save current service before deleting
+    this.saveToHistory(); // Save state before deleting
     if (this.services.length <= 1) {
       alert('You must have at least one service');
       return;
@@ -1147,7 +1167,7 @@ export class ComposeFormComponent implements OnInit, AfterViewInit {
     this.updateYamlPreview();
     this.updateGraph();
     this.analyzeConfig();
-    this.analyzeConfig();
+    this.calculateResourceUsage();
   }
 
   // Select a service to edit
@@ -1176,13 +1196,154 @@ export class ComposeFormComponent implements OnInit, AfterViewInit {
       resources: service.resources,
       deploy: service.deploy,
       restart: service.restart,
-      depends_on: service.depends_on || []
+      depends_on: service.depends_on || [],
+      networks: service.networks || [],
+      labels: service.labels || {},
+      notes: service.notes || ''
     }, { emitEvent: false });
     this.updateYamlPreview();
     this.updateGraph();
   }
 
   // Save current form data to the services array
+  // Save state to history (for undo/redo)
+  private saveToHistory(): void {
+    if (this.isUndoRedoOperation) {
+      return; // Don't save history during undo/redo operations
+    }
+
+    // Deep clone current services state
+    const currentState = JSON.parse(JSON.stringify(this.services));
+    
+    // Remove any future history if we're not at the end
+    if (this.historyIndex < this.historyStack.length - 1) {
+      this.historyStack = this.historyStack.slice(0, this.historyIndex + 1);
+    }
+    
+    // Add new state to history
+    this.historyStack.push(currentState);
+    this.historyIndex++;
+    
+    // Limit history size
+    if (this.historyStack.length > this.maxHistorySize) {
+      this.historyStack.shift();
+      this.historyIndex--;
+    }
+  }
+
+  // Undo last change
+  undo(): void {
+    if (this.historyIndex > 0) {
+      this.isUndoRedoOperation = true;
+      this.historyIndex--;
+      const previousState = JSON.parse(JSON.stringify(this.historyStack[this.historyIndex]));
+      this.services = previousState;
+      
+      // Update UI
+      if (this.selectedServiceIndex >= this.services.length) {
+        this.selectedServiceIndex = Math.max(0, this.services.length - 1);
+      }
+      if (this.services.length > 0) {
+        this.loadServiceIntoForm(this.selectedServiceIndex);
+      }
+      this.updateYamlPreview();
+      this.updateGraph();
+      this.analyzeConfig();
+      this.calculateResourceUsage();
+      
+      this.isUndoRedoOperation = false;
+      this.analyticsService.trackEvent('undo_action', {});
+    }
+  }
+
+  // Redo last undone change
+  redo(): void {
+    if (this.historyIndex < this.historyStack.length - 1) {
+      this.isUndoRedoOperation = true;
+      this.historyIndex++;
+      const nextState = JSON.parse(JSON.stringify(this.historyStack[this.historyIndex]));
+      this.services = nextState;
+      
+      // Update UI
+      if (this.selectedServiceIndex >= this.services.length) {
+        this.selectedServiceIndex = Math.max(0, this.services.length - 1);
+      }
+      if (this.services.length > 0) {
+        this.loadServiceIntoForm(this.selectedServiceIndex);
+      }
+      this.updateYamlPreview();
+      this.updateGraph();
+      this.analyzeConfig();
+      this.calculateResourceUsage();
+      
+      this.isUndoRedoOperation = false;
+      this.analyticsService.trackEvent('redo_action', {});
+    }
+  }
+
+  // Check if undo is available
+  canUndo(): boolean {
+    return this.historyIndex > 0;
+  }
+
+  // Check if redo is available
+  canRedo(): boolean {
+    return this.historyIndex < this.historyStack.length - 1;
+  }
+
+  // Service reordering with drag and drop
+  onServiceDragStart(event: DragEvent, index: number): void {
+    this.draggedServiceIndex = index;
+    if (event.dataTransfer) {
+      event.dataTransfer.effectAllowed = 'move';
+      event.dataTransfer.setData('text/plain', index.toString());
+    }
+  }
+
+  onServiceDragOver(event: DragEvent, index: number): void {
+    event.preventDefault();
+    if (event.dataTransfer) {
+      event.dataTransfer.dropEffect = 'move';
+    }
+  }
+
+  onServiceDrop(event: DragEvent, targetIndex: number): void {
+    event.preventDefault();
+    
+    if (this.draggedServiceIndex === -1 || this.draggedServiceIndex === targetIndex) {
+      this.draggedServiceIndex = -1;
+      return;
+    }
+
+    this.saveCurrentServiceToArray();
+    this.saveToHistory(); // Save state before reordering
+
+    // Move service to new position
+    const serviceToMove = this.services[this.draggedServiceIndex];
+    this.services.splice(this.draggedServiceIndex, 1);
+    this.services.splice(targetIndex, 0, serviceToMove);
+
+    // Update selected index
+    if (this.selectedServiceIndex === this.draggedServiceIndex) {
+      this.selectedServiceIndex = targetIndex;
+    } else if (this.selectedServiceIndex === targetIndex) {
+      this.selectedServiceIndex = this.draggedServiceIndex;
+    } else if (this.draggedServiceIndex < this.selectedServiceIndex && targetIndex >= this.selectedServiceIndex) {
+      this.selectedServiceIndex--;
+    } else if (this.draggedServiceIndex > this.selectedServiceIndex && targetIndex <= this.selectedServiceIndex) {
+      this.selectedServiceIndex++;
+    }
+
+    this.draggedServiceIndex = -1;
+    this.updateGraph();
+    this.updateYamlPreview();
+    this.analyticsService.trackEvent('service_reordered', {});
+  }
+
+  onServiceDragEnd(): void {
+    this.draggedServiceIndex = -1;
+  }
+
   private saveCurrentServiceToArray(): void {
     if (this.selectedServiceIndex < 0 || this.selectedServiceIndex >= this.services.length) {
       return;
@@ -1211,7 +1372,8 @@ export class ComposeFormComponent implements OnInit, AfterViewInit {
       restart: formValue.restart || 'always',
       depends_on: Array.isArray(formValue.depends_on) ? formValue.depends_on : [],
       networks: Array.isArray(formValue.networks) ? formValue.networks : [],
-      labels: formValue.labels && typeof formValue.labels === 'object' ? formValue.labels : {}
+      labels: formValue.labels && typeof formValue.labels === 'object' ? formValue.labels : {},
+      notes: formValue.notes || ''
     };
   }
 
@@ -1737,6 +1899,94 @@ export class ComposeFormComponent implements OnInit, AfterViewInit {
         window.getSelection()?.addRange(range);
         alert('YAML selected. Press Ctrl+C (or Cmd+C) to copy.');
       }
+    }
+  }
+
+  // Export as Docker Run commands
+  exportAsDockerRunCommands(): void {
+    try {
+      this.saveCurrentServiceToArray();
+      
+      let commands = '# Docker Run Commands\n';
+      commands += '# Generated from Docker Compose configuration\n\n';
+      
+      this.services.forEach((service, index) => {
+        if (!service.serviceName || !service.dockerImage) {
+          return; // Skip invalid services
+        }
+        
+        commands += `# Service: ${service.serviceName}\n`;
+        if (service.notes) {
+          commands += `# ${service.notes.split('\n').join('\n# ')}\n`;
+        }
+        commands += `docker run -d \\\n`;
+        commands += `  --name ${service.serviceName} \\\n`;
+        
+        // Port mapping
+        if (service.hostPort && service.containerPort) {
+          commands += `  -p ${service.hostPort}:${service.containerPort} \\\n`;
+        }
+        
+        // Environment variables
+        if (service.environment) {
+          const envVars = service.environment.split('\n').filter(v => v.trim());
+          envVars.forEach(env => {
+            commands += `  -e "${env.trim()}" \\\n`;
+          });
+        }
+        
+        // Volumes
+        if (service.volumes) {
+          const volumes = service.volumes.split('\n').filter(v => v.trim());
+          volumes.forEach(vol => {
+            commands += `  -v "${vol.trim()}" \\\n`;
+          });
+        }
+        
+        // Restart policy
+        if (service.restart && service.restart !== 'no') {
+          commands += `  --restart=${service.restart} \\\n`;
+        }
+        
+        // Resource limits
+        if (service.resources) {
+          if (service.resources.cpuLimit) {
+            commands += `  --cpus="${service.resources.cpuLimit}" \\\n`;
+          }
+          if (service.resources.memoryLimit) {
+            commands += `  --memory="${service.resources.memoryLimit}m" \\\n`;
+          }
+        }
+        
+        // Labels
+        if (service.labels && Object.keys(service.labels).length > 0) {
+          Object.entries(service.labels).forEach(([key, value]) => {
+            commands += `  --label "${key}=${value}" \\\n`;
+          });
+        }
+        
+        // Remove trailing backslash and add image
+        commands = commands.trim().replace(/\\$/, '');
+        commands += ` \\\n  ${service.dockerImage}\n\n`;
+      });
+      
+      // Create and download file
+      const blob = new Blob([commands], { type: 'text/plain' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `docker-run-commands-${new Date().toISOString().split('T')[0]}.sh`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+      
+      this.analyticsService.trackEvent('docker_run_exported', {
+        service_count: this.services.length
+      });
+    } catch (error) {
+      console.error('Error exporting Docker Run commands:', error);
+      alert('Failed to export Docker Run commands. Please try again.');
     }
   }
 
@@ -2321,7 +2571,8 @@ export class ComposeFormComponent implements OnInit, AfterViewInit {
       restart: service.restart || 'always',
       depends_on: [],
       networks: [],
-      labels: {}
+      labels: {},
+      notes: ''
     };
 
     // Parse ports (format: "host:container" or "host:container/protocol" or object format)
@@ -2426,6 +2677,9 @@ export class ComposeFormComponent implements OnInit, AfterViewInit {
         serviceConfig.labels = service.labels;
       }
     }
+
+    // Notes are not in YAML, so leave as empty string
+    serviceConfig.notes = '';
 
     return serviceConfig;
   }

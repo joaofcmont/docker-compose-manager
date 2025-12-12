@@ -77,7 +77,20 @@
 
     <!-- Stack Templates Section -->
     <div class="stack-templates-section" *ngIf="stackTemplates.length > 0">
-      <h2 class="section-title">Stack Templates</h2>
+      <div class="section-header-with-badge">
+        <h2 class="section-title">Stack Templates</h2>
+        <span class="pro-badge-section" *ngIf="!subscriptionService.isPro()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 2L2 7l10 5 10-5-10-5z"></path>
+            <path d="M2 17l10 5 10-5"></path>
+            <path d="M2 12l10 5 10-5"></path>
+          </svg>
+          Pro Feature
+        </span>
+      </div>
+      <p class="section-description" *ngIf="!subscriptionService.isPro()">
+        Upgrade to Pro to unlock pre-built stack templates for popular technology combinations.
+      </p>
       <p class="section-description">Quick-start full-stack configurations with multiple services</p>
       <div class="stack-templates-grid">
         <div *ngFor="let stack of stackTemplates" class="stack-template-card">

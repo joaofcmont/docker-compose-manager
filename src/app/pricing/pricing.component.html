@@ -1,0 +1,194 @@
+<header>
+  <nav>
+    <a routerLink="/" class="logo-link">
+      <img src="assets/favicon.png" alt="ComposeFlow" class="logo">
+    </a>
+    <ul class="nav-links">
+      <li><a routerLink="/home" class="nav-link">Home</a></li>
+      <li><a routerLink="/editor" class="nav-link">Editor</a></li>
+      <li><a routerLink="/templates" class="nav-link">Templates</a></li>
+      <li><a routerLink="/pricing" class="nav-link active">Pricing</a></li>
+      <li class="contact_button"><a routerLink="/contact" class="nav-link contact-link">Contact</a></li>
+    </ul>
+  </nav>
+</header>
+
+<main class="pricing-page">
+  <section class="pricing-hero">
+    <h1>Simple, Transparent Pricing</h1>
+    <p class="hero-subtitle">Choose the plan that works for you. Upgrade or downgrade anytime.</p>
+  </section>
+
+  <section class="pricing-cards">
+    <!-- Free Tier -->
+    <div class="pricing-card">
+      <div class="card-header">
+        <h2>Free</h2>
+        <div class="price">
+          <span class="amount">$0</span>
+          <span class="period">/forever</span>
+        </div>
+        <p class="card-description">Perfect for individuals and small projects</p>
+      </div>
+      <div class="card-features">
+        <ul>
+          <li>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+            <span>Up to <strong>3 services</strong> per configuration</span>
+          </li>
+          <li>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+            <span><strong>1 environment</strong> (base configuration)</span>
+          </li>
+          <li>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+            <span>Basic service templates</span>
+          </li>
+          <li>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+            <span>Visual editor & diagram view</span>
+          </li>
+          <li>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+            <span>YAML export</span>
+          </li>
+          <li>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+            <span>Learning center & suggestions</span>
+          </li>
+        </ul>
+      </div>
+      <div class="card-footer">
+        <button 
+          type="button" 
+          class="btn-pricing btn-free"
+          [class.active]="currentTier === 'free'"
+          disabled>
+          {{ currentTier === 'free' ? 'Current Plan' : 'Free Forever' }}
+        </button>
+      </div>
+    </div>
+
+    <!-- Pro Tier -->
+    <div class="pricing-card featured">
+      <div class="badge">Most Popular</div>
+      <div class="card-header">
+        <h2>Pro</h2>
+        <div class="price">
+          <span class="amount">$9</span>
+          <span class="period">/month</span>
+        </div>
+        <p class="card-description">For teams and power users</p>
+      </div>
+      <div class="card-features">
+        <ul>
+          <li>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+            <span><strong>Unlimited services</strong> per configuration</span>
+          </li>
+          <li>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+            <span><strong>Unlimited environments</strong> (dev, staging, prod, etc.)</span>
+          </li>
+          <li>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+            <span><strong>Stack templates</strong> (Node+Postgres, LAMP, etc.)</span>
+          </li>
+          <li>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+            <span><strong>Shareable links</strong> for configurations</span>
+          </li>
+          <li>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+            <span><strong>Docker Run commands</strong> export</span>
+          </li>
+          <li>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+            <span>Everything in Free, plus:</span>
+          </li>
+          <li>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+            <span>Priority support</span>
+          </li>
+          <li>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+            <span>Team collaboration (coming soon)</span>
+          </li>
+        </ul>
+      </div>
+      <div class="card-footer">
+        <button 
+          type="button" 
+          class="btn-pricing btn-pro"
+          [class.active]="currentTier === 'pro'"
+          (click)="upgradeToPro()">
+          {{ currentTier === 'pro' ? 'Current Plan' : 'Upgrade to Pro' }}
+        </button>
+        <p class="trial-note">14-day free trial • Cancel anytime</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="pricing-faq">
+    <h2>Frequently Asked Questions</h2>
+    <div class="faq-grid">
+      <div class="faq-item">
+        <h3>Can I change plans later?</h3>
+        <p>Yes! You can upgrade or downgrade your plan at any time. Changes take effect immediately.</p>
+      </div>
+      <div class="faq-item">
+        <h3>What payment methods do you accept?</h3>
+        <p>We accept all major credit cards. Payment is processed securely through Stripe.</p>
+      </div>
+      <div class="faq-item">
+        <h3>Is there a free trial?</h3>
+        <p>Yes! Pro plans include a 14-day free trial. No credit card required to start.</p>
+      </div>
+      <div class="faq-item">
+        <h3>What happens if I exceed free tier limits?</h3>
+        <p>You'll see upgrade prompts when you hit limits. Your existing work is never lost.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="pricing-cta">
+    <h2>Ready to get started?</h2>
+    <p>Start building Docker applications for free, or upgrade to Pro for unlimited features.</p>
+    <div class="cta-buttons">
+      <a routerLink="/editor" class="btn-cta btn-primary">Start Building Free</a>
+      <a routerLink="/contact" class="btn-cta btn-secondary">Contact Sales</a>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <p>© 2025 ComposeFlow. All rights reserved. | <a routerLink="/privacy">Privacy Policy</a></p>
+</footer>

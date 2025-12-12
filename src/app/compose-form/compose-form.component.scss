@@ -1035,6 +1035,87 @@ main {
     }
   }
 
+  .service-limit-indicator {
+    background: linear-gradient(135deg, #fff3cd 0%, #ffe69c 100%);
+    border: 1px solid #ffc107;
+    border-radius: $radius;
+    padding: 0.75rem 1rem;
+    margin: 0.5rem 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    .limit-info {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      width: 100%;
+      gap: 1rem;
+
+      .limit-text {
+        font-size: 0.9rem;
+        color: #856404;
+        font-weight: 500;
+
+        .limit-reached {
+          color: $danger;
+          font-weight: 600;
+        }
+      }
+
+      .upgrade-link {
+        color: $primary;
+        font-weight: 600;
+        text-decoration: none;
+        font-size: 0.9rem;
+        padding: 0.25rem 0.75rem;
+        border-radius: 4px;
+        transition: all $trans;
+
+        &:hover {
+          background: rgba(0, 123, 255, 0.1);
+          text-decoration: underline;
+        }
+      }
+    }
+  }
+
+  .pro-badge {
+    background: linear-gradient(135deg, $primary 0%, #0056b3 100%);
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: $radius;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    margin: 0.5rem 0;
+
+    svg {
+      width: 16px;
+      height: 16px;
+    }
+  }
+
+  .environment-limit-indicator {
+    @extend .service-limit-indicator;
+  }
+
+  .pro-badge-small {
+    background: $primary;
+    color: white;
+    font-size: 0.7rem;
+    padding: 0.15rem 0.4rem;
+    border-radius: 4px;
+    font-weight: 600;
+    margin-left: 0.5rem;
+  }
+
+  .pro-feature {
+    position: relative;
+  }
+
   .service-list-header {
     display: flex;
     flex-direction: column;

@@ -34,6 +34,10 @@ export const routes: Routes = [
     loadComponent: () => import('./privacy/privacy.component').then(m => m.PrivacyComponent)
   },
   {
+    path: 'pricing',
+    loadComponent: () => import('./pricing/pricing.component').then(m => m.PricingComponent)
+  },
+  {
     path: 'share/:data',
     loadComponent: () => import('./compose-form/compose-form.component').then(m => m.ComposeFormComponent)
   },

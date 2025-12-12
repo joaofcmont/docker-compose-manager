@@ -8,6 +8,7 @@ import { LearningService, LearningTip, ConfigSuggestion } from '../services/lear
 import { TemplateService } from '../services/template.service';
 import { Template } from '../models/template.model';
 import { SEOService } from '../services/seo.service';
+import { SubscriptionService } from '../services/subscription.service';
 import { ServiceConfig } from '../models/service-config.model';
 import { ComposeGraph } from '../models/compose-graph.model';
 import { Environment, ProjectConfig } from '../models/environment.model';
@@ -34,6 +35,7 @@ export class ComposeFormComponent implements OnInit, AfterViewInit {
   private templateService = inject(TemplateService);
   private route = inject(ActivatedRoute);
   private seoService = inject(SEOService);
+  private subscriptionService = inject(SubscriptionService);
 
   // Expose Object to template
   Object = Object;
@@ -56,6 +58,24 @@ export class ComposeFormComponent implements OnInit, AfterViewInit {
   // Sharing
   shareableLink: string = '';
   showShareModal: boolean = false;
+  
+  // Subscription
+  get isPro(): boolean {
+    return this.subscriptionService.isPro();
+  }
+  
+  get serviceLimit(): number {
+    return this.subscriptionService.getMaxServices();
+  }
+  
+  get canAddMoreServices(): boolean {
+    return this.subscriptionService.canAddService(this.services.length);
+  }
+  
+  get servicesRemaining(): number {
+    const limit = this.serviceLimit;
+    return limit === Infinity ? Infinity : Math.max(0, limit - this.services.length);
+  }
 
   composeForm = new FormGroup({
     serviceTemplate: new FormControl<string>(''),
@@ -1185,6 +1205,12 @@ export class ComposeFormComponent implements OnInit, AfterViewInit {
 
   // Add a new service to the services array
   addNewService(): void {
+    // Check service limit for free tier
+    if (!this.subscriptionService.canAddService(this.services.length)) {
+      this.showUpgradePrompt('services', this.services.length, 3);
+      return;
+    }
+
     this.saveCurrentServiceToArray(); // Save current service before adding new
     this.saveToHistory(); // Save state before adding
     const newService = this.createDefaultService();
@@ -1195,6 +1221,43 @@ export class ComposeFormComponent implements OnInit, AfterViewInit {
     this.updateGraph();
     this.analyzeConfig();
     this.calculateResourceUsage();
+    
+    this.analyticsService.trackEvent('service_added', {
+      total_services: this.services.length,
+      tier: this.subscriptionService.getTier()
+    });
+  }
+
+  showUpgradePrompt(feature: string, current: number, limit: number): void {
+    const featureNames: { [key: string]: string } = {
+      'services': 'services',
+      'environments': 'environments',
+      'stack-templates': 'stack templates',
+      'share': 'shareable links',
+      'docker-run': 'Docker Run export'
+    };
+    
+    const featureName = featureNames[feature] || feature;
+    const message = `You've reached the free tier limit of ${limit} ${featureName}.\n\nUpgrade to Pro for unlimited ${featureName} and more features!`;
+    
+    if (confirm(message + '\n\nWould you like to upgrade to Pro?')) {
+      this.analyticsService.trackEvent('upgrade_prompt_accepted', {
+        feature,
+        current,
+        limit
+      });
+      window.location.href = '/#/pricing';
+    } else {
+      this.analyticsService.trackEvent('upgrade_prompt_declined', {
+        feature,
+        current,
+        limit
+      });
+    }
+  }
+
+  trackUpgradeClick(source: string): void {
+    this.analyticsService.trackEvent('upgrade_cta_clicked', { source });
   }
 
   // Duplicate the currently selected service
@@ -1991,6 +2054,12 @@ export class ComposeFormComponent implements OnInit, AfterViewInit {
 
   // Export as Docker Run commands
   exportAsDockerRunCommands(): void {
+    // Check if Pro feature
+    if (!this.subscriptionService.canExportDockerRun()) {
+      this.showUpgradePrompt('docker-run', 0, 0);
+      return;
+    }
+
     try {
       this.saveCurrentServiceToArray();
       
@@ -3248,6 +3317,13 @@ export class ComposeFormComponent implements OnInit, AfterViewInit {
       return;
     }
 
+    // Check environment limit for free tier (base is free, additional ones need Pro)
+    const currentEnvCount = this.environments.length;
+    if (!this.subscriptionService.canAddEnvironment(currentEnvCount)) {
+      this.showUpgradePrompt('environments', currentEnvCount, 1);
+      return;
+    }
+
     if (this.environments.find(e => e.name === this.newEnvironmentName.trim())) {
       alert('Environment with this name already exists');
       return;
@@ -3339,6 +3415,12 @@ export class ComposeFormComponent implements OnInit, AfterViewInit {
   // ========== SHARING ==========
   
   generateShareableLink(): void {
+    // Check if Pro feature
+    if (!this.subscriptionService.canShareConfigs()) {
+      this.showUpgradePrompt('share', 0, 0);
+      return;
+    }
+
     this.saveCurrentServiceToArray();
     
     const shareData = {

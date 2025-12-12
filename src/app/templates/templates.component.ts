@@ -7,6 +7,7 @@ import { Template, TemplateMetadata, StackTemplate } from '../models/template.mo
 import { AnalyticsService } from '../services/analytics.service';
 import { DockerComposeService } from '../services/docker-compose.service';
 import { SEOService } from '../services/seo.service';
+import { SubscriptionService } from '../services/subscription.service';
 
 @Component({
   selector: 'app-templates',
@@ -21,6 +22,7 @@ export class TemplatesComponent implements OnInit {
   private dockerComposeService = inject(DockerComposeService);
   private router = inject(Router);
   private seoService = inject(SEOService);
+  subscriptionService = inject(SubscriptionService); // Public for template access
 
   templates: TemplateMetadata[] = [];
   stackTemplates: StackTemplate[] = [];
@@ -151,6 +153,23 @@ export class TemplatesComponent implements OnInit {
   }
 
   async loadStackTemplate(stackId: string): Promise<void> {
+    // Check if Pro feature
+    if (!this.subscriptionService.canUseStackTemplates()) {
+      if (confirm('Stack templates are a Pro feature. Upgrade to Pro to use pre-built stack configurations like Node.js + PostgreSQL, LAMP, and more!\n\nWould you like to upgrade?')) {
+        this.analyticsService.trackEvent('upgrade_prompt_accepted', {
+          feature: 'stack-templates',
+          source: 'templates_page'
+        });
+        this.router.navigate(['/pricing']);
+      } else {
+        this.analyticsService.trackEvent('upgrade_prompt_declined', {
+          feature: 'stack-templates',
+          source: 'templates_page'
+        });
+      }
+      return;
+    }
+
     try {
       const stackTemplate = this.dockerComposeService.getStackTemplate(stackId);
       if (!stackTemplate) {

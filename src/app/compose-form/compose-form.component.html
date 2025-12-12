@@ -17,6 +17,7 @@
           <li><a routerLink="/home" class="nav-link">Home</a></li>
           <li><a routerLink="/editor" class="nav-link active">Editor</a></li>
           <li><a routerLink="/templates" class="nav-link">Templates</a></li>
+          <li><a routerLink="/pricing" class="nav-link">Pricing</a></li>
           <li class="contact_button"><a routerLink="/contact" class="nav-link contact-link">Contact</a></li>
         </ul>
       </nav>
@@ -238,14 +239,16 @@
             <button 
               type="button"
               class="btn-export-import"
+              [class.pro-feature]="!isPro"
               (click)="exportAsDockerRunCommands()"
               [disabled]="services.length === 0"
-              title="Export as Docker Run commands">
+              title="Export as Docker Run commands (Pro feature)">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <polyline points="16 18 22 12 16 6"></polyline>
                 <polyline points="8 6 2 12 8 18"></polyline>
               </svg>
               Export Run Cmds
+              <span class="pro-badge-small" *ngIf="!isPro">Pro</span>
             </button>
             <button 
               type="button"
@@ -390,13 +393,39 @@
                   </svg>
                 </button>
               </div>
-              <button type="button" class="btn-add-service" (click)="addNewService()" title="Add a new service to your Docker Compose configuration">
+              <button 
+                type="button" 
+                class="btn-add-service" 
+                (click)="addNewService()" 
+                [disabled]="!canAddMoreServices"
+                title="Add a new service to your Docker Compose configuration">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                   <line x1="12" y1="5" x2="12" y2="19"></line>
                   <line x1="5" y1="12" x2="19" y2="12"></line>
                 </svg>
                 <span>Add Service</span>
               </button>
+            </div>
+            <!-- Service Limit Indicator -->
+            <div class="service-limit-indicator" *ngIf="!isPro">
+              <div class="limit-info">
+                <span class="limit-text">
+                  {{ services.length }} / {{ serviceLimit }} services
+                  <span *ngIf="servicesRemaining === 0" class="limit-reached">(Limit reached)</span>
+                </span>
+                <a routerLink="/pricing" class="upgrade-link" (click)="trackUpgradeClick('service_limit')">
+                  Upgrade to Pro
+                </a>
+              </div>
+            </div>
+            <!-- Pro Badge -->
+            <div class="pro-badge" *ngIf="isPro">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 2L2 7l10 5 10-5-10-5z"></path>
+                <path d="M2 17l10 5 10-5"></path>
+                <path d="M2 12l10 5 10-5"></path>
+              </svg>
+              <span>Pro</span>
             </div>
             <div class="multi-service-hint" *ngIf="services.length === 1 && !hasSeenMultiServiceHint">
               <span class="hint-icon">💡</span>

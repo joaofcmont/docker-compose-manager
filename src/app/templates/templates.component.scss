@@ -260,6 +260,30 @@ main {
 }
 
 // Stack Templates Section
+.section-header-with-badge {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 0.5rem;
+
+  .pro-badge-section {
+    background: linear-gradient(135deg, $primary 0%, #0056b3 100%);
+    color: white;
+    padding: 0.4rem 0.8rem;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+
+    svg {
+      width: 14px;
+      height: 14px;
+    }
+  }
+}
+
 .stack-templates-section {
   margin-bottom: 3rem;
 

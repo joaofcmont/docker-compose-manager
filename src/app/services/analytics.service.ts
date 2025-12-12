@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { logEvent, isSupported } from 'firebase/analytics';
+import { logEvent } from 'firebase/analytics';
 import { analytics } from '../../firebase';
 
 @Injectable({
@@ -7,21 +7,8 @@ import { analytics } from '../../firebase';
 })
 export class AnalyticsService {
   constructor() {
-    // Check if analytics is available
-    this.checkAnalyticsSupport();
   }
 
-  private async checkAnalyticsSupport(): Promise<void> {
-    try {
-      const supported = await isSupported();
-      console.log('📊 Firebase Analytics supported:', supported);
-      if (!supported) {
-        console.warn('⚠️ Firebase Analytics is not supported in this environment');
-      }
-    } catch (error) {
-      console.error('❌ Error checking analytics support:', error);
-    }
-  }
 
   trackEvent(eventName: string, eventParams?: { [key: string]: any }): void {
     try {

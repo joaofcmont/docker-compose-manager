@@ -32,18 +32,20 @@ export class PricingComponent implements OnInit {
 
   upgradeToPro(): void {
     
-    // Fake upgrade - just set to pro for testing
-    this.subscriptionService.upgradeToPro();
-    this.currentTier = 'pro';
-    
-    // Track event
     this.analyticsService.trackUpgradeToProClicked('pricing_page');
     
-    // Show success message
-    alert('🎉 Welcome to ComposeFlow Pro! (This is a test - no payment required)');
-    
-    // Redirect to editor
-    window.location.href = '/#/editor';
+    // Small delay to ensure event is sent before redirect
+    setTimeout(() => {
+      // Fake upgrade - just set to pro for testing
+      this.subscriptionService.upgradeToPro();
+      this.currentTier = 'pro';
+      
+      // Show success message
+      alert('🎉 Welcome to ComposeFlow Pro! (This is a test - no payment required)');
+      
+      // Redirect to editor
+      window.location.href = '/#/editor';
+    }, 100);
   }
 
   requestProAccess(): void {

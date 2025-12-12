@@ -31,12 +31,13 @@ export class PricingComponent implements OnInit {
   }
 
   upgradeToPro(): void {
+    
     // Fake upgrade - just set to pro for testing
     this.subscriptionService.upgradeToPro();
     this.currentTier = 'pro';
-    this.analyticsService.trackEvent('upgrade_to_pro_clicked', {
-      source: 'pricing_page'
-    });
+    
+    // Track event
+    this.analyticsService.trackUpgradeToProClicked('pricing_page');
     
     // Show success message
     alert('🎉 Welcome to ComposeFlow Pro! (This is a test - no payment required)');
@@ -47,11 +48,8 @@ export class PricingComponent implements OnInit {
 
   requestProAccess(): void {
     // Track intent
-    this.analyticsService.trackEvent('pro_access_requested', {
-      source: 'pricing_page'
-    });
+    this.analyticsService.trackProAccessRequested('pricing_page');
     
-    // Redirect to contact form with pre-filled message
     window.location.href = '/#/contact?message=I%27m%20interested%20in%20ComposeFlow%20Pro';
   }
 }

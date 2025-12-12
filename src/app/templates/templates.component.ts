@@ -153,19 +153,12 @@ export class TemplatesComponent implements OnInit {
   }
 
   async loadStackTemplate(stackId: string): Promise<void> {
-    // Check if Pro feature
     if (!this.subscriptionService.canUseStackTemplates()) {
       if (confirm('Stack templates are a Pro feature. Upgrade to Pro to use pre-built stack configurations like Node.js + PostgreSQL, LAMP, and more!\n\nWould you like to upgrade?')) {
-        this.analyticsService.trackEvent('upgrade_prompt_accepted', {
-          feature: 'stack-templates',
-          source: 'templates_page'
-        });
+        this.analyticsService.trackUpgradePromptAccepted('stack-templates', 'templates_page');
         this.router.navigate(['/pricing']);
       } else {
-        this.analyticsService.trackEvent('upgrade_prompt_declined', {
-          feature: 'stack-templates',
-          source: 'templates_page'
-        });
+        this.analyticsService.trackUpgradePromptDeclined('stack-templates', 'templates_page');
       }
       return;
     }
@@ -177,14 +170,12 @@ export class TemplatesComponent implements OnInit {
         return;
       }
 
-      // Store stack template data in sessionStorage to pass to editor
       sessionStorage.setItem('loadTemplate', JSON.stringify({
         id: stackId,
         services: stackTemplate.services,
         isStackTemplate: true
       }));
 
-      // Navigate to editor
       this.analyticsService.trackEvent('stack_template_loaded', {
         stack_id: stackId,
         stack_name: stackTemplate.name

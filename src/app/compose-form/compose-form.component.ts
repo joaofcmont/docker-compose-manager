@@ -1229,6 +1229,8 @@ export class ComposeFormComponent implements OnInit, AfterViewInit {
   }
 
   showUpgradePrompt(feature: string, current: number, limit: number): void {
+    console.log('🚫 Upgrade prompt triggered:', { feature, current, limit });
+    
     const featureNames: { [key: string]: string } = {
       'services': 'services',
       'environments': 'environments',
@@ -1241,23 +1243,26 @@ export class ComposeFormComponent implements OnInit, AfterViewInit {
     const message = `You've reached the free tier limit of ${limit} ${featureName}.\n\nUpgrade to Pro for unlimited ${featureName} and more features!`;
     
     if (confirm(message + '\n\nWould you like to upgrade to Pro?')) {
-      this.analyticsService.trackEvent('upgrade_prompt_accepted', {
-        feature,
+      console.log('✅ User accepted upgrade prompt');
+      this.analyticsService.trackUpgradePromptAccepted(feature, 'editor', {
         current,
-        limit
+        limit,
+        timestamp: new Date().toISOString()
       });
       window.location.href = '/#/pricing';
     } else {
-      this.analyticsService.trackEvent('upgrade_prompt_declined', {
-        feature,
+      console.log('❌ User declined upgrade prompt');
+      this.analyticsService.trackUpgradePromptDeclined(feature, 'editor', {
         current,
-        limit
+        limit,
+        timestamp: new Date().toISOString()
       });
     }
   }
 
   trackUpgradeClick(source: string): void {
-    this.analyticsService.trackEvent('upgrade_cta_clicked', { source });
+    console.log('🔗 Upgrade CTA clicked:', source);
+    this.analyticsService.trackUpgradeCtaClicked(source);
   }
 
   // Duplicate the currently selected service

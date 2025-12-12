@@ -285,6 +285,24 @@ export class LearningService {
           fix: 'Rename one of the duplicate services'
         });
       }
+
+      // Check for port conflicts
+      if (service.hostPort && service.hostPort.trim()) {
+        const conflictingServices = services.filter(
+          (s, i) => i !== index && s.hostPort && s.hostPort.trim() === service.hostPort.trim()
+        );
+        if (conflictingServices.length > 0) {
+          const conflictingNames = conflictingServices.map(s => s.serviceName).join(', ');
+          suggestions.push({
+            type: 'error',
+            severity: 'high',
+            title: 'Port Conflict',
+            message: `Service "${service.serviceName}" uses host port ${service.hostPort}, which is already used by: ${conflictingNames}. Ports must be unique.`,
+            field: `services[${index}].hostPort`,
+            fix: `Change the host port for "${service.serviceName}" to a different port`
+          });
+        }
+      }
     });
 
     // Check for circular dependencies

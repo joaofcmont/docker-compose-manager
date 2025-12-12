@@ -199,6 +199,39 @@ main {
     align-items: center;
     margin-left: auto;
 
+    .btn-export-import {
+      padding: 0.625rem 1rem;
+      background: #fff;
+      border: 2px solid $primary;
+      border-radius: 6px;
+      font-size: 0.9rem;
+      font-weight: 500;
+      color: $primary;
+      cursor: pointer;
+      transition: all $trans;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      white-space: nowrap;
+
+      &:hover {
+        background: $primary;
+        color: #fff;
+        transform: translateY(-1px);
+      }
+
+      &:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+        background: #fff;
+        color: $primary;
+      }
+
+      input[type="file"] {
+        display: none;
+      }
+    }
+
     .btn-learning-center,
     .btn-suggestions {
       padding: 0.625rem 1rem;
@@ -1707,7 +1740,8 @@ main {
       }
     }
 
-    .btn-sync-yaml {
+    .btn-sync-yaml,
+    .btn-copy-yaml {
       padding: 0.5rem 1.25rem;
       background: #28a745;
       color: #fff;
@@ -1729,6 +1763,14 @@ main {
       &:disabled {
         opacity: 0.6;
         cursor: not-allowed;
+      }
+    }
+
+    .btn-copy-yaml {
+      background: #007BFF;
+
+      &:hover:not(:disabled) {
+        background: #0056b3;
       }
     }
   }
@@ -2515,6 +2557,44 @@ main {
           line-height: 1.4;
           display: block;
           font-style: italic;
+        }
+      }
+    }
+
+    .port-conflict-warning {
+      margin-top: 0.5rem;
+      padding: 0.75rem;
+      background: #fffbf0;
+      border: 1px solid #ffd700;
+      border-left: 3px solid #ff9800;
+      border-radius: 6px;
+      display: flex;
+      align-items: flex-start;
+      gap: 0.75rem;
+      animation: slideDown 0.2s ease-out;
+
+      .warning-content {
+        display: flex;
+        align-items: flex-start;
+        gap: 0.75rem;
+        flex: 1;
+      }
+
+      .warning-icon {
+        color: #ff9800;
+        flex-shrink: 0;
+        margin-top: 0.125rem;
+      }
+
+      .warning-text {
+        flex: 1;
+        color: #856404;
+        font-size: 0.875rem;
+        line-height: 1.4;
+
+        strong {
+          color: #ff9800;
+          font-weight: 600;
         }
       }
     }

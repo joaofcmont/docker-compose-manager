@@ -1692,6 +1692,78 @@ export class ComposeFormComponent implements OnInit, AfterViewInit {
     this.showGenerateSuccessPopup = false;
   }
 
+  // Copy YAML to clipboard
+  async copyYamlToClipboard(): Promise<void> {
+    try {
+      if (!this.yamlPreview) {
+        this.updateYamlPreview();
+      }
+      
+      await navigator.clipboard.writeText(this.yamlPreview);
+      
+      // Show temporary success feedback
+      const button = document.querySelector('.btn-copy-yaml') as HTMLElement;
+      if (button) {
+        const originalText = button.textContent;
+        button.textContent = 'Copied!';
+        button.style.opacity = '0.7';
+        setTimeout(() => {
+          button.textContent = originalText;
+          button.style.opacity = '1';
+        }, 2000);
+      }
+      
+      this.analyticsService.trackEvent('yaml_copied', {});
+    } catch (error) {
+      console.error('Failed to copy to clipboard:', error);
+      // Fallback: select text for manual copy
+      const yamlElement = document.querySelector('.yaml-preview-content pre code');
+      if (yamlElement) {
+        const range = document.createRange();
+        range.selectNode(yamlElement);
+        window.getSelection()?.removeAllRanges();
+        window.getSelection()?.addRange(range);
+        alert('YAML selected. Press Ctrl+C (or Cmd+C) to copy.');
+      }
+    }
+  }
+
+  // Export configuration as JSON
+  exportConfigAsJson(): void {
+    try {
+      this.saveCurrentServiceToArray();
+      
+      const config = {
+        version: '1.0',
+        exportedAt: new Date().toISOString(),
+        services: this.services,
+        metadata: {
+          serviceCount: this.services.length,
+          serviceNames: this.services.map(s => s.serviceName).filter(Boolean)
+        }
+      };
+      
+      const jsonString = JSON.stringify(config, null, 2);
+      const blob = new Blob([jsonString], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `docker-compose-config-${new Date().toISOString().split('T')[0]}.json`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+      
+      this.analyticsService.trackEvent('config_exported', {
+        service_count: this.services.length
+      });
+    } catch (error) {
+      console.error('Error exporting configuration:', error);
+      alert('Failed to export configuration. Please try again.');
+    }
+  }
+
+
   // Validate all services in the array
   private validateAllServices(): string[] {
     const errors: string[] = [];
@@ -1793,6 +1865,15 @@ export class ComposeFormComponent implements OnInit, AfterViewInit {
       return {
         message: `A service with this name already exists`,
         suggestion: `Try adding a number or suffix, like "${value}-2" or "${value}-db"`
+      };
+    }
+
+    // Check for port conflicts (real-time validation)
+    if (fieldName === 'hostPort' && this.hasPortConflict()) {
+      const conflictingServices = this.getConflictingServiceNames();
+      return {
+        message: `Port ${value} is already used by ${conflictingServices.length} other service${conflictingServices.length > 1 ? 's' : ''}`,
+        suggestion: `Conflicting services: ${conflictingServices.join(', ')}. Choose a different port.`
       };
     }
 
@@ -1905,33 +1986,134 @@ export class ComposeFormComponent implements OnInit, AfterViewInit {
     return null;
   }
 
-  // Method to handle file selection
+  // Unified method to handle file selection (YAML or JSON)
   onFileSelected(event: any): void {
     const file = event.target.files[0];
-    if (file) {
-      this.isImporting = true;
-      this.analyticsService.trackFileUploaded();
-      const reader = new FileReader();
-      reader.onload = () => {
-        const content = reader.result as string;
-        try {
-          const parsedYaml = yaml.load(content) as any;
-          this.populateFormFromYaml(parsedYaml);
-          // Check for advanced features
-          this.checkAdvancedFeatures(parsedYaml);
-          // YAML preview will be updated by populateFormFromYaml via updateYamlPreview()
-        } catch (error) {
-          console.error('Error parsing YAML file:', error);
-          alert('Error parsing YAML file. Please ensure it is a valid Docker Compose file.');
-        } finally {
-          this.isImporting = false;
+    if (!file) {
+      return;
+    }
+
+    this.isImporting = true;
+    const reader = new FileReader();
+    
+    reader.onload = () => {
+      const content = reader.result as string;
+      const fileName = file.name.toLowerCase();
+      const isJson = fileName.endsWith('.json');
+      const isYaml = fileName.endsWith('.yaml') || fileName.endsWith('.yml');
+
+      try {
+        if (isJson) {
+          this.importFromJson(content);
+        } else if (isYaml) {
+          this.importFromYaml(content);
+        } else {
+          throw new Error('Unsupported file type. Please use .yaml, .yml, or .json files.');
         }
-      };
-      reader.onerror = () => {
+      } catch (error: any) {
+        console.error('Error importing file:', error);
+        alert(`Error importing file: ${error.message || 'Invalid file format'}`);
+      } finally {
         this.isImporting = false;
-        alert('Error reading file. Please try again.');
+        // Reset file input
+        event.target.value = '';
+      }
+    };
+
+    reader.onerror = () => {
+      this.isImporting = false;
+      alert('Error reading file. Please try again.');
+      event.target.value = '';
+    };
+
+    reader.readAsText(file);
+  }
+
+  // Import from YAML content
+  private importFromYaml(content: string): void {
+    this.analyticsService.trackFileUploaded();
+    const parsedYaml = yaml.load(content) as any;
+    
+    if (!parsedYaml || !parsedYaml.services) {
+      throw new Error('Invalid Docker Compose file. No services found.');
+    }
+
+    this.populateFormFromYaml(parsedYaml);
+    this.checkAdvancedFeatures(parsedYaml);
+  }
+
+  // Import from JSON content
+  private importFromJson(content: string): void {
+    const config = JSON.parse(content);
+    
+    // Validate the imported config structure
+    if (!config.services || !Array.isArray(config.services)) {
+      throw new Error('Invalid configuration format. Expected a "services" array.');
+    }
+
+    if (config.services.length === 0) {
+      throw new Error('No services found in the configuration file.');
+    }
+
+    // Clear current services and load imported ones
+    // Be lenient - allow empty fields and provide defaults
+    this.services = config.services.map((service: any, index: number) => {
+      // Ensure serviceName exists (use index as fallback for unnamed services)
+      const serviceName = service.serviceName?.trim() || `service-${index + 1}`;
+      
+      return {
+        serviceName: serviceName,
+        dockerImage: service.dockerImage || '',
+        hostPort: service.hostPort || '',
+        containerPort: service.containerPort || '',
+        environment: service.environment || '',
+        volumes: service.volumes || '',
+        healthCheck: service.healthCheck ? {
+          enabled: service.healthCheck.enabled ?? false,
+          interval: service.healthCheck.interval || '30s',
+          timeout: service.healthCheck.timeout || '10s',
+          retries: service.healthCheck.retries ?? 3,
+          startPeriod: service.healthCheck.startPeriod || '',
+          test: service.healthCheck.test || []
+        } : {
+          enabled: false,
+          interval: '30s',
+          timeout: '10s',
+          retries: 3,
+          startPeriod: '',
+          test: []
+        },
+        resources: service.resources ? {
+          cpuLimit: service.resources.cpuLimit ?? 0.5,
+          memoryLimit: service.resources.memoryLimit ?? 512
+        } : {
+          cpuLimit: 0.5,
+          memoryLimit: 512
+        },
+        deploy: service.deploy ? {
+          replicas: service.deploy.replicas ?? 1
+        } : {
+          replicas: 1
+        },
+        restart: service.restart || 'always',
+        depends_on: Array.isArray(service.depends_on) ? service.depends_on : [],
+        networks: Array.isArray(service.networks) ? service.networks : [],
+        labels: service.labels && typeof service.labels === 'object' ? service.labels : {}
       };
-      reader.readAsText(file);
+    });
+
+    // Select first service and load into form
+    if (this.services.length > 0) {
+      this.selectedServiceIndex = 0;
+      this.loadServiceIntoForm(0);
+      this.updateYamlPreview();
+      this.updateGraph();
+      this.analyzeConfig();
+      
+      this.analyticsService.trackEvent('config_imported', {
+        service_count: this.services.length,
+        format: 'json'
+      });
     }
   }
 
@@ -2215,6 +2397,66 @@ export class ComposeFormComponent implements OnInit, AfterViewInit {
     }
 
     return null;
+  }
+
+  // Check for port conflicts
+  getPortConflicts(): { port: string; services: string[] }[] {
+    const portMap = new Map<string, string[]>();
+    
+    this.services.forEach((service, index) => {
+      if (service.hostPort && service.hostPort.trim()) {
+        const port = service.hostPort.trim();
+        if (!portMap.has(port)) {
+          portMap.set(port, []);
+        }
+        portMap.get(port)!.push(service.serviceName || `Service ${index + 1}`);
+      }
+    });
+
+    // Return only ports with conflicts (used by multiple services)
+    const conflicts: { port: string; services: string[] }[] = [];
+    portMap.forEach((services, port) => {
+      if (services.length > 1) {
+        conflicts.push({ port, services });
+      }
+    });
+
+    return conflicts;
+  }
+
+  // Check if current service's port conflicts with others
+  hasPortConflict(): boolean {
+    const currentPort = this.composeForm.get('hostPort')?.value;
+    if (!currentPort || !currentPort.trim()) {
+      return false;
+    }
+
+    const port = currentPort.trim();
+    const conflictingServices = this.services.filter(
+      (service, index) => 
+        index !== this.selectedServiceIndex && 
+        service.hostPort && 
+        service.hostPort.trim() === port
+    );
+
+    return conflictingServices.length > 0;
+  }
+
+  // Get conflicting service names for current port
+  getConflictingServiceNames(): string[] {
+    const currentPort = this.composeForm.get('hostPort')?.value;
+    if (!currentPort || !currentPort.trim()) {
+      return [];
+    }
+
+    const port = currentPort.trim();
+    return this.services
+      .filter((service, index) => 
+        index !== this.selectedServiceIndex && 
+        service.hostPort && 
+        service.hostPort.trim() === port
+      )
+      .map(service => service.serviceName || 'Unnamed Service');
   }
 
   // Feedback handling

@@ -3,8 +3,10 @@ import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { TemplateService } from '../services/template.service';
-import { Template, TemplateMetadata } from '../models/template.model';
+import { Template, TemplateMetadata, StackTemplate } from '../models/template.model';
 import { AnalyticsService } from '../services/analytics.service';
+import { DockerComposeService } from '../services/docker-compose.service';
+import { SEOService } from '../services/seo.service';
 
 @Component({
   selector: 'app-templates',
@@ -16,16 +18,33 @@ import { AnalyticsService } from '../services/analytics.service';
 export class TemplatesComponent implements OnInit {
   private templateService = inject(TemplateService);
   private analyticsService = inject(AnalyticsService);
+  private dockerComposeService = inject(DockerComposeService);
   private router = inject(Router);
+  private seoService = inject(SEOService);
 
   templates: TemplateMetadata[] = [];
+  stackTemplates: StackTemplate[] = [];
   isLoading: boolean = false;
   searchQuery: string = '';
   selectedTag: string = '';
   availableTags: string[] = [];
+  showStackTemplates: boolean = true;
 
   ngOnInit(): void {
     this.loadTemplates();
+    this.loadStackTemplates();
+    
+    // Update SEO for templates page
+    this.seoService.updateSEO({
+      title: 'Docker Compose Templates - Pre-built Configurations | Docker Compose Manager',
+      description: 'Browse and use pre-built Docker Compose templates. Quick-start configurations for Node.js, Java, LAMP, MEAN, Django, and more. Save and share your own templates.',
+      keywords: 'docker compose templates, docker templates, compose file templates, docker stack templates, pre-built docker configs',
+      url: 'https://docker-compose-manager-d829b.web.app/templates'
+    });
+  }
+
+  loadStackTemplates(): void {
+    this.stackTemplates = this.dockerComposeService.getStackTemplates();
   }
 
   async loadTemplates(): Promise<void> {
@@ -129,5 +148,33 @@ export class TemplatesComponent implements OnInit {
 
   hasActiveFilters(): boolean {
     return !!this.searchQuery.trim() || !!this.selectedTag;
+  }
+
+  async loadStackTemplate(stackId: string): Promise<void> {
+    try {
+      const stackTemplate = this.dockerComposeService.getStackTemplate(stackId);
+      if (!stackTemplate) {
+        alert('Stack template not found');
+        return;
+      }
+
+      // Store stack template data in sessionStorage to pass to editor
+      sessionStorage.setItem('loadTemplate', JSON.stringify({
+        id: stackId,
+        services: stackTemplate.services,
+        isStackTemplate: true
+      }));
+
+      // Navigate to editor
+      this.analyticsService.trackEvent('stack_template_loaded', {
+        stack_id: stackId,
+        stack_name: stackTemplate.name
+      });
+
+      this.router.navigate(['/editor']);
+    } catch (error: any) {
+      console.error('Error loading stack template:', error);
+      alert(`Failed to load stack template: ${error.message || 'Unknown error'}`);
+    }
   }
 }

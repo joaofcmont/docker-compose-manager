@@ -163,8 +163,65 @@
               (click)="setActiveTab('yaml')">
               YAML Preview
             </button>
+            <button 
+              type="button"
+              class="tab-button"
+              [class.active]="activeTab === 'commands'"
+              (click)="setActiveTab('commands')">
+              Commands
+            </button>
           </div>
           <div class="tab-actions">
+            <!-- Environment Switcher -->
+            <div class="environment-switcher" *ngIf="environments.length > 0">
+              <label for="environment-select" class="env-label">Environment:</label>
+              <select 
+                id="environment-select"
+                [(ngModel)]="currentEnvironment"
+                (change)="switchEnvironment(currentEnvironment)"
+                [ngModelOptions]="{standalone: true}"
+                class="env-select">
+                <option value="base">Base</option>
+                <option *ngFor="let env of environments" [value]="env.name" [disabled]="env.name === 'base'">
+                  {{ env.name | titlecase }}{{ env.profile ? ' (' + env.profile + ')' : '' }}
+                </option>
+              </select>
+              <button 
+                type="button"
+                class="btn-env-manage"
+                (click)="showEnvironmentModal = true"
+                title="Manage environments">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="12" cy="12" r="3"></circle>
+                  <path d="M12 1v6m0 6v6M5.64 5.64l4.24 4.24m4.24 4.24l4.24 4.24M1 12h6m6 0h6M5.64 18.36l4.24-4.24m4.24-4.24l4.24-4.24"></path>
+                </svg>
+              </button>
+              <button 
+                type="button"
+                class="btn-env-diff"
+                (click)="showEnvironmentDiff = true"
+                *ngIf="environments.length > 1"
+                title="Compare environments">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                  <polyline points="17 8 12 3 7 8"></polyline>
+                  <line x1="12" y1="3" x2="12" y2="15"></line>
+                </svg>
+              </button>
+            </div>
+            <button 
+              type="button"
+              class="btn-export-import"
+              (click)="generateShareableLink()"
+              [disabled]="services.length === 0"
+              title="Generate shareable link">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path>
+                <polyline points="16 6 12 2 8 6"></polyline>
+                <line x1="12" y1="2" x2="12" y2="15"></line>
+              </svg>
+              Share
+            </button>
             <button 
               type="button"
               class="btn-export-import"
@@ -1363,8 +1420,7 @@
           </div>
         </div>
 
-        </div>
-        <!-- YAML Preview Tab Content -->
+      <!-- YAML Preview Tab Content -->
         <div class="yaml-preview" *ngIf="activeTab === 'yaml'">
           <div class="yaml-header">
             <h3>YAML Editor</h3>
@@ -1428,6 +1484,139 @@
           </div>
         </div>
       </div>
+
+      <!-- Commands Tab Content -->
+        <div class="commands-tab" *ngIf="activeTab === 'commands'">
+          <div class="commands-header">
+          <h3>Docker Commands</h3>
+          <p class="commands-description">Copy and run these commands in your terminal</p>
+        </div>
+        <div class="commands-list" *ngIf="services.length > 0">
+          <!-- Docker Compose Up -->
+          <div class="command-card">
+            <div class="command-header">
+              <div class="command-info">
+                <h4>Start Services</h4>
+                <p>Start all services in detached mode</p>
+              </div>
+              <button 
+                type="button"
+                class="btn-copy-command"
+                (click)="copyCommandToClipboard('up')"
+                title="Copy command">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                  <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                </svg>
+                Copy
+              </button>
+            </div>
+            <div class="command-content">
+              <code>{{ getDockerComposeCommand('up') }}</code>
+            </div>
+          </div>
+
+          <!-- Docker Compose Down -->
+          <div class="command-card">
+            <div class="command-header">
+              <div class="command-info">
+                <h4>Stop Services</h4>
+                <p>Stop and remove all containers</p>
+              </div>
+              <button 
+                type="button"
+                class="btn-copy-command"
+                (click)="copyCommandToClipboard('down')"
+                title="Copy command">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                  <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                </svg>
+                Copy
+              </button>
+            </div>
+            <div class="command-content">
+              <code>{{ getDockerComposeCommand('down') }}</code>
+            </div>
+          </div>
+
+          <!-- Docker Compose Logs -->
+          <div class="command-card">
+            <div class="command-header">
+              <div class="command-info">
+                <h4>View Logs</h4>
+                <p>View logs from all services</p>
+              </div>
+              <button 
+                type="button"
+                class="btn-copy-command"
+                (click)="copyCommandToClipboard('logs')"
+                title="Copy command">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                  <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                </svg>
+                Copy
+              </button>
+            </div>
+            <div class="command-content">
+              <code>{{ getDockerComposeCommand('logs') }}</code>
+            </div>
+          </div>
+
+          <!-- Docker Compose Restart -->
+          <div class="command-card">
+            <div class="command-header">
+              <div class="command-info">
+                <h4>Restart Services</h4>
+                <p>Restart all services</p>
+              </div>
+              <button 
+                type="button"
+                class="btn-copy-command"
+                (click)="copyCommandToClipboard('restart')"
+                title="Copy command">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                  <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                </svg>
+                Copy
+              </button>
+            </div>
+            <div class="command-content">
+              <code>{{ getDockerComposeCommand('restart') }}</code>
+            </div>
+          </div>
+
+          <!-- Service-Specific Logs -->
+          <div class="command-card" *ngFor="let service of services">
+            <div class="command-header">
+              <div class="command-info">
+                <h4>Logs: {{ service.serviceName }}</h4>
+                <p>View logs for {{ service.serviceName }} service</p>
+              </div>
+              <button 
+                type="button"
+                class="btn-copy-command"
+                (click)="copyServiceLogsCommand(service.serviceName)"
+                title="Copy command">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                  <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                </svg>
+                Copy
+              </button>
+            </div>
+            <div class="command-content">
+              <code>{{ getServiceLogsCommand(service.serviceName) }}</code>
+            </div>
+          </div>
+        </div>
+        <div class="commands-empty" *ngIf="services.length === 0">
+          <p>Add services to generate Docker commands</p>
+        </div>
+      </div>
+        </div>
 
     <!-- Save Template Modal -->
     <div class="modal-overlay" *ngIf="showSaveTemplateModal" (click)="closeSaveTemplateModal()">
@@ -1556,9 +1745,9 @@
             Open Learning Center
           </button>
         </div>
-        </div>
       </div>
-    </main>
+    </div>
+  </main>
   
     <!-- Onboarding Modal -->
     <div class="onboarding-overlay" *ngIf="showOnboardingModal" (click)="closeOnboardingModal()">
@@ -1625,6 +1814,181 @@
         </div>
         <div class="onboarding-footer">
           <button type="button" class="btn-skip" (click)="closeOnboardingModal()">Skip for now</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Share Modal -->
+    <div class="modal-overlay" *ngIf="showShareModal" (click)="closeShareModal()">
+      <div class="modal-content" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h2>Share Configuration</h2>
+          <button type="button" class="btn-close-modal" (click)="closeShareModal()">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+          </button>
+        </div>
+        <div class="modal-body">
+          <p>Share this link with others to let them view and use your Docker Compose configuration:</p>
+          <div class="share-link-container">
+            <input 
+              type="text" 
+              [value]="shareableLink"
+              readonly
+              class="share-link-input">
+            <button 
+              type="button"
+              class="btn-copy-link"
+              (click)="copyShareableLink()"
+              title="Copy link">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+              </svg>
+              Copy
+            </button>
+          </div>
+          <p class="share-note">Note: This link contains your full configuration. Anyone with the link can view it.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Environment Management Modal -->
+    <div class="modal-overlay" *ngIf="showEnvironmentModal" (click)="showEnvironmentModal = false">
+      <div class="modal-content" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h2>Manage Environments</h2>
+          <button type="button" class="btn-close-modal" (click)="showEnvironmentModal = false">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+          </button>
+        </div>
+        <div class="modal-body">
+          <div class="environments-list">
+            <div *ngIf="environments.length === 0" class="empty-state">
+              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="12" y1="8" x2="12" y2="12"></line>
+                <line x1="12" y1="16" x2="12.01" y2="16"></line>
+              </svg>
+              <p>No environments yet. Create your first environment below.</p>
+            </div>
+            <div *ngFor="let env of environments" class="environment-item">
+              <div class="env-info">
+                <strong>{{ env.name | titlecase }}</strong>
+                <span *ngIf="env.profile" class="env-profile">Profile: {{ env.profile }}</span>
+              </div>
+              <button 
+                type="button"
+                class="btn-delete-env"
+                (click)="deleteEnvironment(env.name)"
+                [disabled]="env.name === 'base'"
+                title="Delete environment">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="3 6 5 6 21 6"></polyline>
+                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                </svg>
+              </button>
+            </div>
+          </div>
+          <div class="add-environment-form">
+            <h3>Add New Environment</h3>
+            <div class="form-group">
+              <label for="new-env-name">Environment Name *</label>
+              <input 
+                type="text" 
+                id="new-env-name"
+                [(ngModel)]="newEnvironmentName"
+                [ngModelOptions]="{standalone: true}"
+                placeholder="e.g., staging, test"
+                class="form-input">
+            </div>
+            <div class="form-group">
+              <label for="new-env-profile">Docker Compose Profile <span class="optional-label">(optional)</span></label>
+              <input 
+                type="text" 
+                id="new-env-profile"
+                [(ngModel)]="newEnvironmentProfile"
+                [ngModelOptions]="{standalone: true}"
+                placeholder="e.g., staging, production"
+                class="form-input">
+              <small class="help-text">If specified, services will use this profile in the generated YAML</small>
+            </div>
+            <div class="form-actions">
+              <button type="button" class="btn-secondary" (click)="showEnvironmentModal = false">Cancel</button>
+              <button type="button" class="btn-primary" (click)="addEnvironment()" [disabled]="!newEnvironmentName.trim()">Add Environment</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Environment Diff Modal -->
+    <div class="modal-overlay" *ngIf="showEnvironmentDiff" (click)="closeEnvironmentDiff()">
+      <div class="modal-content modal-large" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h2>Compare Environments</h2>
+          <button type="button" class="btn-close-modal" (click)="closeEnvironmentDiff()">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+          </button>
+        </div>
+        <div class="modal-body">
+          <div class="diff-selectors">
+            <div class="form-group">
+              <label>Environment 1</label>
+              <select 
+                [(ngModel)]="diffEnvironment1"
+                [ngModelOptions]="{standalone: true}"
+                class="form-input">
+                <option value="">Select environment...</option>
+                <option *ngFor="let env of environments" [value]="env.name">{{ env.name | titlecase }}</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Environment 2</label>
+              <select 
+                [(ngModel)]="diffEnvironment2"
+                [ngModelOptions]="{standalone: true}"
+                class="form-input">
+                <option value="">Select environment...</option>
+                <option *ngFor="let env of environments" [value]="env.name">{{ env.name | titlecase }}</option>
+              </select>
+            </div>
+            <button 
+              type="button" 
+              class="btn-primary"
+              (click)="openEnvironmentDiff()"
+              [disabled]="!diffEnvironment1 || !diffEnvironment2 || diffEnvironment1 === diffEnvironment2">
+              Compare
+            </button>
+          </div>
+          <div class="diff-results" *ngIf="diffEnvironment1 && diffEnvironment2 && diffEnvironment1 !== diffEnvironment2">
+            <div *ngFor="let serviceName of Object.keys(getEnvironmentDiff(diffEnvironment1, diffEnvironment2))" class="diff-service">
+              <h4>{{ serviceName }}</h4>
+              <div class="diff-table">
+                <div class="diff-row diff-header">
+                  <div class="diff-cell">Property</div>
+                  <div class="diff-cell">{{ diffEnvironment1 | titlecase }}</div>
+                  <div class="diff-cell">{{ diffEnvironment2 | titlecase }}</div>
+                </div>
+                <div *ngFor="let prop of Object.keys(getEnvironmentDiff(diffEnvironment1, diffEnvironment2)[serviceName])" class="diff-row">
+                  <div class="diff-cell diff-property">{{ prop }}</div>
+                  <div class="diff-cell">{{ getEnvironmentDiff(diffEnvironment1, diffEnvironment2)[serviceName][prop].env1 | json }}</div>
+                  <div class="diff-cell">{{ getEnvironmentDiff(diffEnvironment1, diffEnvironment2)[serviceName][prop].env2 | json }}</div>
+                </div>
+              </div>
+            </div>
+            <div *ngIf="Object.keys(getEnvironmentDiff(diffEnvironment1, diffEnvironment2)).length === 0" class="no-diff">
+              No differences found between these environments.
+            </div>
+          </div>
         </div>
       </div>
     </div>

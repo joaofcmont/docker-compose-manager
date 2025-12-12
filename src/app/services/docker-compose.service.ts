@@ -1,5 +1,7 @@
 import { Injectable } from '@angular/core';
 import * as yaml from 'js-yaml';
+import { ServiceConfig } from '../models/service-config.model';
+import { StackTemplate } from '../models/template.model';
 
 
 interface ServiceTemplate {
@@ -94,6 +96,334 @@ export class DockerComposeService {
     return this.SERVICE_TEMPLATES[templateName as keyof typeof this.SERVICE_TEMPLATES];
   }
 
+  // Get all available stack templates
+  getStackTemplates(): StackTemplate[] {
+    return Object.values(this.STACK_TEMPLATES);
+  }
+
+  // Get a stack template by ID
+  getStackTemplate(stackId: string): StackTemplate | undefined {
+    return this.STACK_TEMPLATES[stackId];
+  }
+
+  private readonly STACK_TEMPLATES: { [key: string]: StackTemplate } = {
+    'node-postgres': {
+      id: 'node-postgres',
+      name: 'Node.js + PostgreSQL',
+      description: 'Full-stack Node.js application with Express and PostgreSQL database',
+      icon: 'node',
+      tags: ['nodejs', 'postgresql', 'fullstack', 'api'],
+      services: [
+        {
+          serviceName: 'app',
+          dockerImage: 'node:18-alpine',
+          hostPort: '3000',
+          containerPort: '3000',
+          environment: 'NODE_ENV=production\nDATABASE_URL=postgresql://user:password@db:5432/mydb',
+          volumes: './app:/usr/src/app\n/usr/src/app/node_modules',
+          healthCheck: {
+            enabled: true,
+            interval: '30s',
+            timeout: '10s',
+            retries: 3,
+            test: ['CMD', 'curl', '-f', 'http://localhost:3000/health']
+          },
+          resources: {
+            cpuLimit: 1.0,
+            memoryLimit: 512
+          },
+          deploy: {
+            replicas: 1
+          },
+          restart: 'always',
+          depends_on: ['db'],
+          networks: [],
+          labels: {},
+          notes: 'Node.js Express application'
+        },
+        {
+          serviceName: 'db',
+          dockerImage: 'postgres:13',
+          hostPort: '5432',
+          containerPort: '5432',
+          environment: 'POSTGRES_USER=user\nPOSTGRES_PASSWORD=password\nPOSTGRES_DB=mydb',
+          volumes: 'postgres-data:/var/lib/postgresql/data',
+          healthCheck: {
+            enabled: true,
+            interval: '10s',
+            timeout: '5s',
+            retries: 5,
+            test: ['CMD', 'pg_isready']
+          },
+          resources: {
+            cpuLimit: 0.5,
+            memoryLimit: 512
+          },
+          deploy: {
+            replicas: 1
+          },
+          restart: 'always',
+          depends_on: [],
+          networks: [],
+          labels: {},
+          notes: 'PostgreSQL database'
+        }
+      ]
+    },
+    'java-postgres': {
+      id: 'java-postgres',
+      name: 'Java + PostgreSQL',
+      description: 'Spring Boot Java application with PostgreSQL database',
+      icon: 'java',
+      tags: ['java', 'spring-boot', 'postgresql', 'backend'],
+      services: [
+        {
+          serviceName: 'app',
+          dockerImage: 'openjdk:17-jdk-slim',
+          hostPort: '8080',
+          containerPort: '8080',
+          environment: 'SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/mydb\nSPRING_DATASOURCE_USERNAME=user\nSPRING_DATASOURCE_PASSWORD=password',
+          volumes: './app:/app',
+          healthCheck: {
+            enabled: true,
+            interval: '30s',
+            timeout: '10s',
+            retries: 3,
+            test: ['CMD', 'curl', '-f', 'http://localhost:8080/actuator/health']
+          },
+          resources: {
+            cpuLimit: 1.0,
+            memoryLimit: 1024
+          },
+          deploy: {
+            replicas: 1
+          },
+          restart: 'always',
+          depends_on: ['db'],
+          networks: [],
+          labels: {},
+          notes: 'Spring Boot Java application'
+        },
+        {
+          serviceName: 'db',
+          dockerImage: 'postgres:13',
+          hostPort: '5432',
+          containerPort: '5432',
+          environment: 'POSTGRES_USER=user\nPOSTGRES_PASSWORD=password\nPOSTGRES_DB=mydb',
+          volumes: 'postgres-data:/var/lib/postgresql/data',
+          healthCheck: {
+            enabled: true,
+            interval: '10s',
+            timeout: '5s',
+            retries: 5,
+            test: ['CMD', 'pg_isready']
+          },
+          resources: {
+            cpuLimit: 0.5,
+            memoryLimit: 512
+          },
+          deploy: {
+            replicas: 1
+          },
+          restart: 'always',
+          depends_on: [],
+          networks: [],
+          labels: {},
+          notes: 'PostgreSQL database'
+        }
+      ]
+    },
+    'lamp': {
+      id: 'lamp',
+      name: 'LAMP Stack',
+      description: 'Linux, Apache, MySQL, PHP stack for web applications',
+      icon: 'php',
+      tags: ['php', 'apache', 'mysql', 'lamp', 'web'],
+      services: [
+        {
+          serviceName: 'web',
+          dockerImage: 'php:8.2-apache',
+          hostPort: '80',
+          containerPort: '80',
+          environment: 'PHP_MYSQL_HOST=db\nPHP_MYSQL_DATABASE=mydb\nPHP_MYSQL_USER=user\nPHP_MYSQL_PASSWORD=password',
+          volumes: './www:/var/www/html',
+          healthCheck: {
+            enabled: true,
+            interval: '30s',
+            timeout: '10s',
+            retries: 3,
+            test: ['CMD', 'curl', '-f', 'http://localhost:80']
+          },
+          resources: {
+            cpuLimit: 0.5,
+            memoryLimit: 512
+          },
+          deploy: {
+            replicas: 1
+          },
+          restart: 'always',
+          depends_on: ['db'],
+          networks: [],
+          labels: {},
+          notes: 'Apache web server with PHP'
+        },
+        {
+          serviceName: 'db',
+          dockerImage: 'mysql:8',
+          hostPort: '3306',
+          containerPort: '3306',
+          environment: 'MYSQL_ROOT_PASSWORD=rootpassword\nMYSQL_DATABASE=mydb\nMYSQL_USER=user\nMYSQL_PASSWORD=password',
+          volumes: 'mysql-data:/var/lib/mysql',
+          healthCheck: {
+            enabled: true,
+            interval: '10s',
+            timeout: '5s',
+            retries: 5,
+            test: ['CMD', 'mysqladmin', 'ping', '-h', 'localhost']
+          },
+          resources: {
+            cpuLimit: 0.5,
+            memoryLimit: 512
+          },
+          deploy: {
+            replicas: 1
+          },
+          restart: 'always',
+          depends_on: [],
+          networks: [],
+          labels: {},
+          notes: 'MySQL database'
+        }
+      ]
+    },
+    'mean': {
+      id: 'mean',
+      name: 'MEAN Stack',
+      description: 'MongoDB, Express, Angular, Node.js full-stack application',
+      icon: 'mean',
+      tags: ['mongodb', 'express', 'angular', 'nodejs', 'mean', 'fullstack'],
+      services: [
+        {
+          serviceName: 'app',
+          dockerImage: 'node:18-alpine',
+          hostPort: '3000',
+          containerPort: '3000',
+          environment: 'NODE_ENV=production\nMONGODB_URI=mongodb://db:27017/mydb',
+          volumes: './app:/usr/src/app\n/usr/src/app/node_modules',
+          healthCheck: {
+            enabled: true,
+            interval: '30s',
+            timeout: '10s',
+            retries: 3,
+            test: ['CMD', 'curl', '-f', 'http://localhost:3000/health']
+          },
+          resources: {
+            cpuLimit: 1.0,
+            memoryLimit: 512
+          },
+          deploy: {
+            replicas: 1
+          },
+          restart: 'always',
+          depends_on: ['db'],
+          networks: [],
+          labels: {},
+          notes: 'Node.js Express API server'
+        },
+        {
+          serviceName: 'db',
+          dockerImage: 'mongo:7',
+          hostPort: '27017',
+          containerPort: '27017',
+          environment: 'MONGO_INITDB_ROOT_USERNAME=admin\nMONGO_INITDB_ROOT_PASSWORD=password',
+          volumes: 'mongo-data:/data/db',
+          healthCheck: {
+            enabled: true,
+            interval: '10s',
+            timeout: '5s',
+            retries: 3,
+            test: ['CMD', 'mongosh', '--eval', 'db.adminCommand("ping")']
+          },
+          resources: {
+            cpuLimit: 0.5,
+            memoryLimit: 512
+          },
+          deploy: {
+            replicas: 1
+          },
+          restart: 'always',
+          depends_on: [],
+          networks: [],
+          labels: {},
+          notes: 'MongoDB database'
+        }
+      ]
+    },
+    'django-postgres': {
+      id: 'django-postgres',
+      name: 'Django + PostgreSQL',
+      description: 'Python Django web framework with PostgreSQL database',
+      icon: 'python',
+      tags: ['python', 'django', 'postgresql', 'web'],
+      services: [
+        {
+          serviceName: 'web',
+          dockerImage: 'python:3.11-slim',
+          hostPort: '8000',
+          containerPort: '8000',
+          environment: 'DJANGO_SETTINGS_MODULE=myproject.settings\nDATABASE_URL=postgresql://user:password@db:5432/mydb',
+          volumes: './app:/app',
+          healthCheck: {
+            enabled: true,
+            interval: '30s',
+            timeout: '10s',
+            retries: 3,
+            test: ['CMD', 'curl', '-f', 'http://localhost:8000/health']
+          },
+          resources: {
+            cpuLimit: 0.5,
+            memoryLimit: 512
+          },
+          deploy: {
+            replicas: 1
+          },
+          restart: 'always',
+          depends_on: ['db'],
+          networks: [],
+          labels: {},
+          notes: 'Django web application'
+        },
+        {
+          serviceName: 'db',
+          dockerImage: 'postgres:13',
+          hostPort: '5432',
+          containerPort: '5432',
+          environment: 'POSTGRES_USER=user\nPOSTGRES_PASSWORD=password\nPOSTGRES_DB=mydb',
+          volumes: 'postgres-data:/var/lib/postgresql/data',
+          healthCheck: {
+            enabled: true,
+            interval: '10s',
+            timeout: '5s',
+            retries: 5,
+            test: ['CMD', 'pg_isready']
+          },
+          resources: {
+            cpuLimit: 0.5,
+            memoryLimit: 512
+          },
+          deploy: {
+            replicas: 1
+          },
+          restart: 'always',
+          depends_on: [],
+          networks: [],
+          labels: {},
+          notes: 'PostgreSQL database'
+        }
+      ]
+    }
+  };
+
   // Generate and download the Docker Compose file
   generateAndDownloadFile(config: any): void {
     const yamlContent = yaml.dump(config, {
@@ -111,7 +441,7 @@ export class DockerComposeService {
   }
 
   // Create the Docker Compose configuration from multiple services
-  generateDockerComposeConfigFromServices(services: any[]): any {
+  generateDockerComposeConfigFromServices(services: any[], profile?: string): any {
     const servicesConfig: any = {};
 
     services.forEach(service => {
@@ -128,6 +458,11 @@ export class DockerComposeService {
         volumes: this.parseListInput(service.volumes || ''),
         restart: service.restart || 'always',
       };
+
+      // Add profile if specified
+      if (profile) {
+        serviceConfig.profiles = [profile];
+      }
 
       // Add healthcheck
       if (service.healthCheck?.enabled) {

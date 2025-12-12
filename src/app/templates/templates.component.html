@@ -75,6 +75,48 @@
       </button>
     </div>
 
+    <!-- Stack Templates Section -->
+    <div class="stack-templates-section" *ngIf="stackTemplates.length > 0">
+      <h2 class="section-title">Stack Templates</h2>
+      <p class="section-description">Quick-start full-stack configurations with multiple services</p>
+      <div class="stack-templates-grid">
+        <div *ngFor="let stack of stackTemplates" class="stack-template-card">
+          <div class="stack-card-header">
+            <h3>{{ stack.name }}</h3>
+            <button 
+              type="button"
+              class="btn-load-stack"
+              (click)="loadStackTemplate(stack.id)"
+              title="Load this stack template">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="7 10 12 15 17 10"></polyline>
+                <line x1="12" y1="15" x2="12" y2="3"></line>
+              </svg>
+              Use Stack
+            </button>
+          </div>
+          <p class="stack-description">{{ stack.description }}</p>
+          <div class="stack-services">
+            <div class="stack-services-label">Services included:</div>
+            <div class="stack-services-list">
+              <span *ngFor="let service of stack.services" class="service-badge">
+                {{ service.serviceName }}
+              </span>
+            </div>
+          </div>
+          <div class="stack-tags" *ngIf="stack.tags && stack.tags.length > 0">
+            <span *ngFor="let tag of stack.tags" class="tag">{{ tag }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- User Templates Section -->
+    <div class="user-templates-section" *ngIf="templates.length > 0 || !isLoading">
+      <h2 class="section-title">Your Templates</h2>
+    </div>
+
     <!-- Templates Grid -->
     <div class="templates-grid" *ngIf="!isLoading">
       <div *ngIf="filteredTemplates.length === 0" class="empty-state">

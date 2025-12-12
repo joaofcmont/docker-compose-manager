@@ -7,12 +7,14 @@ import { GraphService } from '../services/graph.service';
 import { LearningService, LearningTip, ConfigSuggestion } from '../services/learning.service';
 import { TemplateService } from '../services/template.service';
 import { Template } from '../models/template.model';
+import { SEOService } from '../services/seo.service';
 import { ServiceConfig } from '../models/service-config.model';
 import { ComposeGraph } from '../models/compose-graph.model';
+import { Environment, ProjectConfig } from '../models/environment.model';
 import { SvgIconComponent } from '../shared/svg-icon.component';
 import * as yaml from 'js-yaml';
 import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router';
+import { RouterModule, ActivatedRoute } from '@angular/router';
 
 @Component({
   selector: 'app-compose-form',
@@ -30,11 +32,30 @@ export class ComposeFormComponent implements OnInit, AfterViewInit {
   private graphService = inject(GraphService);
   private learningService = inject(LearningService);
   private templateService = inject(TemplateService);
+  private route = inject(ActivatedRoute);
+  private seoService = inject(SEOService);
+
+  // Expose Object to template
+  Object = Object;
 
   services: ServiceConfig[] = [];
   selectedServiceIndex: number = 0;
-  activeTab: 'form' | 'diagram' | 'yaml' = 'form';
+  activeTab: 'form' | 'diagram' | 'yaml' | 'commands' = 'form';
   composeGraph: ComposeGraph = { nodes: [], edges: [] };
+
+  // Environment management
+  environments: Environment[] = [];
+  currentEnvironment: string = 'base';
+  showEnvironmentModal: boolean = false;
+  showEnvironmentDiff: boolean = false;
+  diffEnvironment1: string = '';
+  diffEnvironment2: string = '';
+  newEnvironmentName: string = '';
+  newEnvironmentProfile: string = '';
+  
+  // Sharing
+  shareableLink: string = '';
+  showShareModal: boolean = false;
 
   composeForm = new FormGroup({
     serviceTemplate: new FormControl<string>(''),
@@ -481,6 +502,21 @@ export class ComposeFormComponent implements OnInit, AfterViewInit {
 
 
   ngOnInit() {
+    // Check if loading from share URL
+    this.route.params.subscribe(params => {
+      if (params['data']) {
+        try {
+          const shareData = JSON.parse(atob(params['data']));
+          this.loadFromShareData(shareData);
+          // Don't show onboarding when loading from share
+          this.hasSeenOnboarding = true;
+          return;
+        } catch (error) {
+          console.error('Error parsing share data:', error);
+        }
+      }
+    });
+    
     // Check if user has seen onboarding FIRST (before loading template)
     const seenOnboarding = localStorage.getItem('hasSeenOnboarding');
     this.hasSeenOnboarding = seenOnboarding === 'true';
@@ -497,6 +533,24 @@ export class ComposeFormComponent implements OnInit, AfterViewInit {
           this.updateYamlPreview();
           this.updateGraph();
           this.analyzeConfig();
+          this.calculateResourceUsage();
+          // Initialize history with loaded template
+          setTimeout(() => {
+            this.saveToHistory();
+          }, 100);
+          
+          // Track analytics
+          if (templateData.isStackTemplate) {
+            this.analyticsService.trackEvent('stack_template_loaded_in_editor', {
+              stack_id: templateData.id,
+              service_count: this.services.length
+            });
+          } else {
+            this.analyticsService.trackEvent('template_loaded_in_editor', {
+              template_id: templateData.id,
+              service_count: this.services.length
+            });
+          }
         }
         sessionStorage.removeItem('loadTemplate');
         // Don't show onboarding if loading a template (user already knows what they're doing)
@@ -535,6 +589,17 @@ export class ComposeFormComponent implements OnInit, AfterViewInit {
     setTimeout(() => {
       this.saveToHistory();
     }, 100);
+    
+    // Initialize environments (dev, staging, prod)
+    this.initializeEnvironments();
+    
+    // Update SEO for editor page
+    this.seoService.updateSEO({
+      title: 'Docker Compose Editor - Visual Builder | Docker Compose Manager',
+      description: 'Create and edit Docker Compose files visually. Build multi-container applications with our intuitive editor. Export to YAML, JSON, or Docker Run commands.',
+      keywords: 'docker compose editor, docker compose builder, visual docker editor, yaml generator, docker compose creator',
+      url: 'https://docker-compose-manager-d829b.web.app/editor'
+    });
   }
 
   ngAfterViewInit(): void {
@@ -1387,6 +1452,15 @@ export class ComposeFormComponent implements OnInit, AfterViewInit {
       this.composeForm.valueChanges.subscribe(() => {
         // Save current service when form changes
         this.saveCurrentServiceToArray();
+        
+        // Save environment override if not in base environment
+        if (this.currentEnvironment !== 'base' && this.selectedServiceIndex >= 0 && this.selectedServiceIndex < this.services.length) {
+          const service = this.services[this.selectedServiceIndex];
+          if (service && service.serviceName) {
+            this.saveEnvironmentOverride(service.serviceName);
+          }
+        }
+        
         this.updateYamlPreview();
         // Only update graph if we're on the diagram tab to avoid unnecessary re-renders
         if (this.activeTab === 'diagram') {
@@ -1432,7 +1506,7 @@ export class ComposeFormComponent implements OnInit, AfterViewInit {
   }
 
   // Switch tabs
-  setActiveTab(tab: 'form' | 'diagram' | 'yaml'): void {
+  setActiveTab(tab: 'form' | 'diagram' | 'yaml' | 'commands'): void {
     // Save current service before switching
     if (this.activeTab === 'form') {
       this.saveCurrentServiceToArray();
@@ -1807,7 +1881,14 @@ export class ComposeFormComponent implements OnInit, AfterViewInit {
     try {
       // Save current service before generating
       this.saveCurrentServiceToArray();
-      const config = this.dockerComposeService.generateDockerComposeConfigFromServices(this.services);
+      
+      // Get services for current environment
+      const servicesToUse = this.getCurrentEnvironmentServices();
+      const config = this.dockerComposeService.generateDockerComposeConfigFromServices(
+        servicesToUse,
+        this.currentEnvironment !== 'base' ? this.environments.find(e => e.name === this.currentEnvironment)?.profile : undefined
+      );
+      
       this.yamlPreview = yaml.dump(config, {
         indent: 2,
         lineWidth: -1,
@@ -1843,7 +1924,13 @@ export class ComposeFormComponent implements OnInit, AfterViewInit {
 
     this.isGenerating = true;
     try {
-      const config = this.dockerComposeService.generateDockerComposeConfigFromServices(this.services);
+      // Get services for current environment
+      const servicesToUse = this.getCurrentEnvironmentServices();
+      const profile = this.currentEnvironment !== 'base' 
+        ? this.environments.find(e => e.name === this.currentEnvironment)?.profile 
+        : undefined;
+      
+      const config = this.dockerComposeService.generateDockerComposeConfigFromServices(servicesToUse, profile);
       this.dockerComposeService.generateAndDownloadFile(config);
       this.analyticsService.trackFileGenerated();
       
@@ -3015,6 +3102,362 @@ export class ComposeFormComponent implements OnInit, AfterViewInit {
       alert(`Failed to save template: ${error.message || 'Unknown error'}`);
     } finally {
       this.isSavingTemplate = false;
+    }
+  }
+
+  // ========== ENVIRONMENT MANAGEMENT ==========
+  
+  initializeEnvironments(): void {
+    // Check if environments already exist in localStorage
+    const savedEnvironments = localStorage.getItem('dockerComposeEnvironments');
+    if (savedEnvironments) {
+      try {
+        this.environments = JSON.parse(savedEnvironments);
+        // Ensure base environment exists
+        if (!this.environments.find(e => e.name === 'base')) {
+          this.environments.unshift({ name: 'base', overrides: {} });
+        }
+      } catch (error) {
+        console.error('Error loading environments:', error);
+        this.createDefaultEnvironments();
+      }
+    } else {
+      this.createDefaultEnvironments();
+    }
+    
+    // Check if user has seen environment onboarding
+    const seenEnvHint = localStorage.getItem('hasSeenEnvironmentHint');
+    if (!seenEnvHint && this.services.length > 0) {
+      // Show hint after a delay
+      setTimeout(() => {
+        if (confirm('Would you like to set up dev and prod environments? This allows you to manage different configurations for development and production.')) {
+          this.showEnvironmentModal = true;
+        }
+        localStorage.setItem('hasSeenEnvironmentHint', 'true');
+      }, 2000);
+    }
+  }
+
+  createDefaultEnvironments(): void {
+    this.environments = [
+      { name: 'base', overrides: {} },
+      { name: 'dev', profile: 'dev', overrides: {} },
+      { name: 'prod', profile: 'prod', overrides: {} }
+    ];
+    this.saveEnvironments();
+  }
+
+  saveEnvironments(): void {
+    localStorage.setItem('dockerComposeEnvironments', JSON.stringify(this.environments));
+  }
+
+  switchEnvironment(envName: string): void {
+    if (envName === 'base') {
+      this.currentEnvironment = 'base';
+      // Reload base services
+      this.updateYamlPreview();
+      return;
+    }
+
+    const env = this.environments.find(e => e.name === envName);
+    if (!env) {
+      return;
+    }
+
+    this.currentEnvironment = envName;
+    this.applyEnvironmentOverrides(env);
+    this.updateYamlPreview();
+    this.analyticsService.trackEvent('environment_switched', { environment: envName });
+  }
+
+  applyEnvironmentOverrides(env: Environment): void {
+    // Apply overrides to services
+    this.services.forEach((service, index) => {
+      const override = env.overrides[service.serviceName];
+      if (override) {
+        // Merge override with base service
+        this.services[index] = { ...service, ...override };
+      }
+    });
+
+    // Reload current service into form
+    if (this.selectedServiceIndex >= 0 && this.selectedServiceIndex < this.services.length) {
+      this.loadServiceIntoForm(this.selectedServiceIndex);
+    }
+  }
+
+  getCurrentEnvironmentServices(): ServiceConfig[] {
+    if (this.currentEnvironment === 'base') {
+      return this.services;
+    }
+
+    const env = this.environments.find(e => e.name === this.currentEnvironment);
+    if (!env) {
+      return this.services;
+    }
+
+    // Apply overrides
+    return this.services.map(service => {
+      const override = env.overrides[service.serviceName];
+      return override ? { ...service, ...override } : service;
+    });
+  }
+
+  saveEnvironmentOverride(serviceName: string): void {
+    if (this.currentEnvironment === 'base') {
+      return; // Base environment doesn't have overrides
+    }
+
+    const env = this.environments.find(e => e.name === this.currentEnvironment);
+    if (!env) {
+      return;
+    }
+
+    const service = this.services.find(s => s.serviceName === serviceName);
+    if (!service) {
+      return;
+    }
+
+    // Get base service (from base environment)
+    const baseService = this.services.find(s => s.serviceName === serviceName);
+    if (!baseService) {
+      return;
+    }
+
+    // Calculate differences
+    const override: Partial<ServiceConfig> = {};
+    Object.keys(service).forEach(key => {
+      const serviceKey = key as keyof ServiceConfig;
+      if (JSON.stringify(service[serviceKey]) !== JSON.stringify(baseService[serviceKey])) {
+        (override as any)[serviceKey] = service[serviceKey];
+      }
+    });
+
+    if (Object.keys(override).length > 0) {
+      env.overrides[serviceName] = override;
+    } else {
+      delete env.overrides[serviceName];
+    }
+
+    this.saveEnvironments();
+  }
+
+  addEnvironment(): void {
+    if (!this.newEnvironmentName.trim()) {
+      alert('Please enter an environment name');
+      return;
+    }
+
+    if (this.environments.find(e => e.name === this.newEnvironmentName.trim())) {
+      alert('Environment with this name already exists');
+      return;
+    }
+
+    const newEnv: Environment = {
+      name: this.newEnvironmentName.trim(),
+      profile: this.newEnvironmentProfile.trim() || undefined,
+      overrides: {}
+    };
+
+    this.environments.push(newEnv);
+    this.saveEnvironments();
+    this.newEnvironmentName = '';
+    this.newEnvironmentProfile = '';
+    this.showEnvironmentModal = false;
+
+    this.analyticsService.trackEvent('environment_added', { environment: newEnv.name });
+  }
+
+  deleteEnvironment(envName: string): void {
+    if (envName === 'base') {
+      alert('Cannot delete base environment');
+      return;
+    }
+
+    if (!confirm(`Are you sure you want to delete the "${envName}" environment?`)) {
+      return;
+    }
+
+    this.environments = this.environments.filter(e => e.name !== envName);
+    if (this.currentEnvironment === envName) {
+      this.currentEnvironment = 'base';
+    }
+    this.saveEnvironments();
+
+    this.analyticsService.trackEvent('environment_deleted', { environment: envName });
+  }
+
+  getEnvironmentDiff(env1Name: string, env2Name: string): { [serviceName: string]: { [key: string]: { base: any; env1: any; env2: any } } } {
+    const diff: { [serviceName: string]: { [key: string]: { base: any; env1: any; env2: any } } } = {};
+    const env1 = this.environments.find(e => e.name === env1Name);
+    const env2 = this.environments.find(e => e.name === env2Name);
+
+    this.services.forEach(service => {
+      const serviceDiff: { [key: string]: { base: any; env1: any; env2: any } } = {};
+      const baseService = service;
+      const env1Service = env1?.overrides[service.serviceName] ? { ...baseService, ...env1.overrides[service.serviceName] } : baseService;
+      const env2Service = env2?.overrides[service.serviceName] ? { ...baseService, ...env2.overrides[service.serviceName] } : baseService;
+
+      // Compare all properties
+      Object.keys(baseService).forEach(key => {
+        const serviceKey = key as keyof ServiceConfig;
+        const baseValue = baseService[serviceKey];
+        const env1Value = env1Service[serviceKey];
+        const env2Value = env2Service[serviceKey];
+
+        if (JSON.stringify(env1Value) !== JSON.stringify(env2Value)) {
+          serviceDiff[key] = {
+            base: baseValue,
+            env1: env1Value,
+            env2: env2Value
+          };
+        }
+      });
+
+      if (Object.keys(serviceDiff).length > 0) {
+        diff[service.serviceName] = serviceDiff;
+      }
+    });
+
+    return diff;
+  }
+
+  openEnvironmentDiff(): void {
+    if (!this.diffEnvironment1 || !this.diffEnvironment2) {
+      alert('Please select two environments to compare');
+      return;
+    }
+    this.showEnvironmentDiff = true;
+  }
+
+  closeEnvironmentDiff(): void {
+    this.showEnvironmentDiff = false;
+    this.diffEnvironment1 = '';
+    this.diffEnvironment2 = '';
+  }
+
+  // ========== SHARING ==========
+  
+  generateShareableLink(): void {
+    this.saveCurrentServiceToArray();
+    
+    const shareData = {
+      services: this.services,
+      environments: this.environments,
+      timestamp: Date.now()
+    };
+    
+    // Encode data as base64
+    const encoded = btoa(JSON.stringify(shareData));
+    
+    // Create shareable URL
+    const baseUrl = window.location.origin;
+    this.shareableLink = `${baseUrl}/share/${encoded}`;
+    this.showShareModal = true;
+    
+    this.analyticsService.trackEvent('share_link_generated');
+  }
+
+  async copyShareableLink(): Promise<void> {
+    try {
+      await navigator.clipboard.writeText(this.shareableLink);
+      this.analyticsService.trackEvent('share_link_copied');
+    } catch (error) {
+      console.error('Failed to copy link:', error);
+      alert('Failed to copy link to clipboard');
+    }
+  }
+
+  closeShareModal(): void {
+    this.showShareModal = false;
+  }
+
+  loadFromShareData(shareData: any): void {
+    try {
+      if (shareData.services && Array.isArray(shareData.services)) {
+        this.services = shareData.services;
+        if (this.services.length > 0) {
+          this.selectedServiceIndex = 0;
+          this.loadServiceIntoForm(0);
+        }
+      }
+      
+      if (shareData.environments && Array.isArray(shareData.environments)) {
+        this.environments = shareData.environments;
+        this.saveEnvironments();
+      }
+      
+      this.updateYamlPreview();
+      this.updateGraph();
+      this.calculateResourceUsage();
+      
+      this.analyticsService.trackEvent('config_loaded_from_share');
+    } catch (error) {
+      console.error('Error loading shared configuration:', error);
+      alert('Failed to load shared configuration');
+    }
+  }
+
+  // ========== DOCKER COMMANDS ==========
+  
+  getDockerComposeCommand(command: 'up' | 'down' | 'logs' | 'restart'): string {
+    const profile = this.currentEnvironment !== 'base' 
+      ? this.environments.find(e => e.name === this.currentEnvironment)?.profile 
+      : undefined;
+    
+    let cmd = 'docker compose';
+    
+    if (profile) {
+      cmd += ` --profile ${profile}`;
+    }
+    
+    switch (command) {
+      case 'up':
+        return `${cmd} up -d`;
+      case 'down':
+        return `${cmd} down`;
+      case 'logs':
+        return `${cmd} logs -f`;
+      case 'restart':
+        return `${cmd} restart`;
+      default:
+        return cmd;
+    }
+  }
+
+  getServiceLogsCommand(serviceName: string): string {
+    const profile = this.currentEnvironment !== 'base' 
+      ? this.environments.find(e => e.name === this.currentEnvironment)?.profile 
+      : undefined;
+    
+    let cmd = 'docker compose';
+    
+    if (profile) {
+      cmd += ` --profile ${profile}`;
+    }
+    
+    return `${cmd} logs -f ${serviceName}`;
+  }
+
+  async copyCommandToClipboard(command: 'up' | 'down' | 'logs' | 'restart'): Promise<void> {
+    const cmd = this.getDockerComposeCommand(command);
+    try {
+      await navigator.clipboard.writeText(cmd);
+      this.analyticsService.trackEvent('command_copied', { command });
+    } catch (error) {
+      console.error('Failed to copy command:', error);
+      alert('Failed to copy command to clipboard');
+    }
+  }
+
+  async copyServiceLogsCommand(serviceName: string): Promise<void> {
+    const cmd = this.getServiceLogsCommand(serviceName);
+    try {
+      await navigator.clipboard.writeText(cmd);
+      this.analyticsService.trackEvent('service_logs_command_copied', { service: serviceName });
+    } catch (error) {
+      console.error('Failed to copy command:', error);
+      alert('Failed to copy command to clipboard');
     }
   }
 

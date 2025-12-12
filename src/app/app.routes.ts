@@ -33,6 +33,10 @@ export const routes: Routes = [
     path: 'privacy',
     loadComponent: () => import('./privacy/privacy.component').then(m => m.PrivacyComponent)
   },
+  {
+    path: 'share/:data',
+    loadComponent: () => import('./compose-form/compose-form.component').then(m => m.ComposeFormComponent)
+  },
   { path: '', redirectTo: '/home', pathMatch: 'full' }
 ];
 

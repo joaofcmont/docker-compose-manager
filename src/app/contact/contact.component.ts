@@ -1,9 +1,10 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { RouterModule } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { ContactService } from '../services/contact.service';
 import { AnalyticsService } from '../services/analytics.service';
+import { SEOService } from '../services/seo.service';
 
 @Component({
   selector: 'app-contact',
@@ -12,7 +13,7 @@ import { AnalyticsService } from '../services/analytics.service';
   templateUrl: './contact.component.html',
   styleUrl: './contact.component.scss'
 })
-export class ContactComponent {
+export class ContactComponent implements OnInit {
   contactForm: FormGroup;
   isSubmitting = false;
   submitSuccess = false;
@@ -21,12 +22,22 @@ export class ContactComponent {
   constructor(
     private fb: FormBuilder,
     private contactService: ContactService,
-    private analyticsService: AnalyticsService
+    private analyticsService: AnalyticsService,
+    private seoService: SEOService
   ) {
     this.contactForm = this.fb.group({
       name: ['', [Validators.required, Validators.minLength(2)]],
       email: ['', [Validators.required, Validators.email]],
       message: ['', [Validators.required, Validators.minLength(10)]]
+    });
+  }
+
+  ngOnInit(): void {
+    this.seoService.updateSEO({
+      title: 'Contact Us - Docker Compose Manager',
+      description: 'Get in touch with the Docker Compose Manager team. Have questions, feedback, or need support? We\'d love to hear from you.',
+      keywords: 'contact docker compose manager, support, feedback, help',
+      url: 'https://docker-compose-manager-d829b.web.app/contact'
     });
   }
 

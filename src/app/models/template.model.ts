@@ -14,6 +14,15 @@ export interface Template {
   usageCount?: number; // Track how many times template is used
 }
 
+export interface StackTemplate {
+  id: string;
+  name: string;
+  description: string;
+  services: ServiceConfig[];
+  icon?: string;
+  tags?: string[];
+}
+
 export interface TemplateMetadata {
   id: string;
   name: string;

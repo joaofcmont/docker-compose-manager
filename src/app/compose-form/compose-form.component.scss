@@ -7,6 +7,27 @@ $gray: #666;
 $radius: 8px;
 $trans: .3s;
 
+// Common mixins
+@mixin flex-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@mixin flex-between {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+@mixin btn-base {
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all $trans;
+  font-weight: 600;
+}
+
 // General Styles
 body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
@@ -43,17 +64,14 @@ header {
 }
 
 nav {
+  @include flex-between;
   background: #fff;
   padding: 1.25rem 2rem;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
   max-width: 1400px;
   margin: 0 auto;
 
   .logo-link {
-    display: flex;
-    align-items: center;
+    @include flex-center;
     gap: 0.75rem;
     text-decoration: none;
     transition: transform $trans;
@@ -70,10 +88,9 @@ nav {
   }
 
   .nav-links {
-    display: flex;
+    @include flex-center;
     list-style: none;
     gap: 2rem;
-    align-items: center;
     margin: 0;
     padding: 0;
 
@@ -194,23 +211,19 @@ main {
   }
 
   .tab-actions {
-    display: flex;
+    @include flex-center;
     gap: 0.75rem;
-    align-items: center;
     margin-left: auto;
 
     .btn-export-import {
+      @include btn-base;
+      @include flex-center;
       padding: 0.625rem 1rem;
       background: #fff;
       border: 2px solid $primary;
-      border-radius: 6px;
       font-size: 0.9rem;
       font-weight: 500;
       color: $primary;
-      cursor: pointer;
-      transition: all $trans;
-      display: flex;
-      align-items: center;
       gap: 0.5rem;
       white-space: nowrap;
 
@@ -234,23 +247,18 @@ main {
 
     .btn-learning-center,
     .btn-suggestions {
+      @include btn-base;
+      @include flex-center;
       padding: 0.625rem 1rem;
-      border: none;
-      border-radius: 6px;
       font-size: 0.9rem;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all $trans;
-      display: flex;
-      align-items: center;
       gap: 0.5rem;
       white-space: nowrap;
     }
 
     .btn-template {
+      @include btn-base;
       background: $primary;
       color: #fff;
-      border: none;
 
       &:hover:not(:disabled) {
         background: darken($primary, 10%);
@@ -341,22 +349,20 @@ main {
       }
     }
 
-    .btn-close-success {
-      background: transparent;
-      border: none;
-      color: #fff;
-      font-size: 1.25rem;
-      cursor: pointer;
-      padding: 0;
-      width: 24px;
-      height: 24px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      border-radius: 50%;
-      transition: all $trans;
-      flex-shrink: 0;
-      opacity: 0.8;
+      .btn-close-success {
+        @include flex-center;
+        background: transparent;
+        border: none;
+        color: #fff;
+        font-size: 1.25rem;
+        cursor: pointer;
+        padding: 0;
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        transition: all $trans;
+        flex-shrink: 0;
+        opacity: 0.8;
 
       &:hover {
         opacity: 1;
@@ -630,6 +636,7 @@ main {
     }
 
     .btn-close-panel {
+      @include flex-center;
       background: transparent;
       border: none;
       font-size: 1.5rem;
@@ -638,9 +645,6 @@ main {
       padding: 0;
       width: 24px;
       height: 24px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
       border-radius: 50%;
       transition: all $trans;
 
@@ -950,8 +954,7 @@ main {
     border-left: 3px solid $primary;
     
     .resource-summary-header {
-      display: flex;
-      align-items: center;
+      @include flex-center;
       gap: 0.5rem;
       margin-bottom: 0.5rem;
       
@@ -998,8 +1001,7 @@ main {
     border-bottom: 2px solid $light;
 
     .service-header-title {
-      display: flex;
-      align-items: center;
+      @include flex-center;
       gap: 0.5rem;
 
       h3 {
@@ -1027,8 +1029,7 @@ main {
     }
 
     .service-header-actions {
-      display: flex;
-      align-items: center;
+      @include flex-center;
       gap: 0.5rem;
       flex-wrap: wrap;
     }
@@ -1039,15 +1040,11 @@ main {
       
       .btn-undo,
       .btn-redo {
+        @include flex-center;
         padding: 0.5rem;
         background: #fff;
         border: 1px solid #ddd;
         border-radius: 4px;
-        cursor: pointer;
-        transition: all $trans;
-        display: flex;
-        align-items: center;
-        justify-content: center;
         color: $secondary;
         
         &:hover:not(:disabled) {
@@ -1069,18 +1066,12 @@ main {
     }
 
     .btn-add-service {
+      @include btn-base;
+      @include flex-center;
       background: $primary;
       color: #fff;
-      border: none;
-      border-radius: 6px;
       padding: 0.75rem 1.25rem;
       font-size: 0.95rem;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all $trans;
-      display: flex;
-      align-items: center;
-      justify-content: center;
       gap: 0.5rem;
       width: 100%;
       box-shadow: 0 2px 6px rgba(0, 123, 255, 0.25);
@@ -1205,22 +1196,19 @@ main {
       font-weight: 600;
     }
 
-    .service-item-content {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-      flex: 1;
-      min-width: 0;
+      .service-item-content {
+        @include flex-center;
+        gap: 0.5rem;
+        flex: 1;
+        min-width: 0;
 
-      .drag-handle {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: $gray;
-        opacity: 0.4;
-        cursor: grab;
-        flex-shrink: 0;
-        transition: opacity $trans;
+        .drag-handle {
+          @include flex-center;
+          color: $gray;
+          opacity: 0.4;
+          cursor: grab;
+          flex-shrink: 0;
+          transition: opacity $trans;
         
         &:active {
           cursor: grabbing;
@@ -3598,14 +3586,10 @@ button {
   }
 
   .btn-option {
+    @include btn-base;
     padding: 0.75rem 1.5rem;
     background: $primary;
     color: #fff;
-    border: none;
-    border-radius: 6px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all $trans;
 
     &:hover {
       background: darken($primary, 10%);
@@ -3654,10 +3638,9 @@ button {
   border-top: 1px solid $light;
 
   .btn-skip {
+    @include btn-base;
     background: transparent;
-    border: none;
     color: $gray;
-    cursor: pointer;
     font-size: 0.9rem;
     padding: 0.5rem 1rem;
     transition: color $trans;

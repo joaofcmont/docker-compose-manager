@@ -110,12 +110,34 @@ export class DockerComposeService {
         const retries = service.healthCheck.retries;
 
         if (interval && timeout && retries !== undefined && retries >= 0) {
-          serviceConfig.healthcheck = {
-            test: this.getHealthCheckTest(service.dockerImage, service.containerPort),
+          const healthcheck: any = {
             interval: interval,
             timeout: timeout,
             retries: Number(retries) || 3,
           };
+
+          // Use custom test if provided, otherwise auto-detect
+          if (service.healthCheck.test && Array.isArray(service.healthCheck.test) && service.healthCheck.test.length > 0) {
+            const test = service.healthCheck.test.filter((t: string) => t && t.trim());
+            if (test.length === 1 && test[0] === 'NONE') {
+              healthcheck.test = 'NONE';
+            } else if (test.length === 2 && test[0] === 'CMD-SHELL') {
+              healthcheck.test = ['CMD-SHELL', test[1]];
+            } else if (test.length > 0) {
+              healthcheck.test = test;
+            } else {
+              healthcheck.test = this.getHealthCheckTest(service.dockerImage, service.containerPort);
+            }
+          } else {
+            healthcheck.test = this.getHealthCheckTest(service.dockerImage, service.containerPort);
+          }
+
+          // Add start_period if provided
+          if (service.healthCheck.startPeriod && service.healthCheck.startPeriod.trim()) {
+            healthcheck.start_period = service.healthCheck.startPeriod.trim();
+          }
+
+          serviceConfig.healthcheck = healthcheck;
         }
       }
 
@@ -137,13 +159,54 @@ export class DockerComposeService {
         serviceConfig.depends_on = service.depends_on.filter((dep: string) => dep && dep.trim());
       }
 
+      // Add networks
+      if (service.networks && Array.isArray(service.networks) && service.networks.length > 0) {
+        serviceConfig.networks = service.networks.filter((net: string) => net && net.trim());
+      }
+
+      // Add labels
+      if (service.labels && typeof service.labels === 'object' && Object.keys(service.labels).length > 0) {
+        // Filter out empty keys
+        const cleanLabels: { [key: string]: string } = {};
+        Object.entries(service.labels).forEach(([key, value]) => {
+          if (key && key.trim() && value !== undefined && value !== null) {
+            cleanLabels[key.trim()] = String(value).trim();
+          }
+        });
+        if (Object.keys(cleanLabels).length > 0) {
+          serviceConfig.labels = cleanLabels;
+        }
+      }
+
       servicesConfig[service.serviceName] = serviceConfig;
     });
 
-    return {
+    // Collect all unique networks for top-level networks section
+    const allNetworks = new Set<string>();
+    services.forEach(service => {
+      if (service.networks && Array.isArray(service.networks)) {
+        service.networks.forEach((net: string) => {
+          if (net && net.trim()) {
+            allNetworks.add(net.trim());
+          }
+        });
+      }
+    });
+
+    const config: any = {
       version: '3.8',
       services: servicesConfig,
     };
+
+    // Add top-level networks section if any networks are used
+    if (allNetworks.size > 0) {
+      config.networks = {};
+      allNetworks.forEach(net => {
+        config.networks[net] = {};
+      });
+    }
+
+    return config;
   }
 
   // Create the Docker Compose configuration based on form values (legacy single-service method)

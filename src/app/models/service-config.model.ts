@@ -10,6 +10,8 @@ export interface ServiceConfig {
     interval: string;
     timeout: string;
     retries: number;
+    startPeriod?: string;
+    test?: string[];
   };
   resources: {
     cpuLimit: number;
@@ -20,5 +22,7 @@ export interface ServiceConfig {
   };
   restart: string;
   depends_on: string[];
+  networks: string[];
+  labels: { [key: string]: string };
 }
 

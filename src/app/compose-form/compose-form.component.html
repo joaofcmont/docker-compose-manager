@@ -82,14 +82,24 @@
           <!-- Service List Sidebar (shown in form and diagram tabs) -->
           <div class="service-list-sidebar" *ngIf="activeTab === 'form' || activeTab === 'diagram'">
           <div class="service-list-header">
-            <h3>Services</h3>
-            <button type="button" class="btn-add-service" (click)="addNewService()" title="Add New Service">
+            <div class="service-header-title">
+              <h3>Services</h3>
+              <span class="service-count-badge" *ngIf="services.length > 0" [title]="services.length + ' service' + (services.length > 1 ? 's' : '')">
+                {{ services.length }}
+              </span>
+            </div>
+            <button type="button" class="btn-add-service" (click)="addNewService()" title="Add a new service to your Docker Compose configuration">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <line x1="12" y1="5" x2="12" y2="19"></line>
                 <line x1="5" y1="12" x2="19" y2="12"></line>
               </svg>
-              Add Service
+              <span>Add Service</span>
             </button>
+            <div class="multi-service-hint" *ngIf="services.length === 1 && !hasSeenMultiServiceHint">
+              <span class="hint-icon">💡</span>
+              <span class="hint-text">You can add multiple services to build complex multi-container applications!</span>
+              <button type="button" class="hint-close" (click)="dismissMultiServiceHint()" title="Dismiss">×</button>
+            </div>
           </div>
           <div class="service-list">
             <div 
@@ -299,6 +309,67 @@
             min="0">
           <small class="help-text">Failures before marking unhealthy</small>
         </div>
+        <div>
+          <label for="healthCheckStartPeriod">
+            Start Period
+            <span class="help-icon" title="Time to wait before starting health checks (e.g., 40s, 1m). Useful for services that need time to initialize.">ℹ️</span>
+          </label>
+          <input 
+            type="text" 
+            id="healthCheckStartPeriod" 
+            formControlName="startPeriod"
+            placeholder="40s">
+          <small class="help-text">Wait time before first check (optional)</small>
+        </div>
+      </div>
+      <div class="form-group">
+        <label for="healthCheckTest">
+          Test Command
+          <span class="help-icon" title="Custom health check command. Leave empty to auto-detect based on image type.">ℹ️</span>
+        </label>
+        <div class="healthcheck-test-options">
+          <select 
+            id="healthCheckTestPreset" 
+            (change)="applyHealthCheckTestPreset($any($event.target).value)"
+            [value]="''">
+            <option value="">Auto-detect (recommended)</option>
+            <option value="CMD-SHELL">CMD-SHELL (custom command)</option>
+            <option value="CMD">CMD (command array)</option>
+            <option value="NONE">NONE (disable)</option>
+          </select>
+          <div *ngIf="getHealthCheckTestArray().length > 0" class="test-command-display">
+            <div *ngFor="let cmd of getHealthCheckTestArray(); let i = index" class="test-command-item">
+              <input 
+                type="text" 
+                [value]="cmd"
+                (blur)="updateTestCommand(i, $any($event.target).value)"
+                placeholder="Command or argument">
+              <button 
+                type="button" 
+                class="btn-remove-test"
+                (click)="removeTestCommand(i)"
+                *ngIf="getHealthCheckTestArray().length > 1">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <line x1="18" y1="6" x2="6" y2="18"></line>
+                  <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+              </button>
+            </div>
+            <button 
+              type="button" 
+              class="btn-add-test-arg"
+              (click)="addTestCommand()">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="12" y1="5" x2="12" y2="19"></line>
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+              </svg>
+              Add Argument
+            </button>
+          </div>
+        </div>
+        <small class="help-text">
+          Custom health check command. Auto-detection works for: HTTP (curl/wget), PostgreSQL (pg_isready), Redis (redis-cli ping), MySQL (mysqladmin ping).
+        </small>
       </div>
     </div>
   </div>
@@ -391,6 +462,107 @@
                 </div>
                 <small class="help-text" *ngIf="getAvailableServicesForDependencies().length > 0">
                   Select services this service depends on. They will start before this service.
+                </small>
+              </div>
+
+              <div class="form-group">
+                <label for="networks">
+                  Networks
+                  <span class="help-icon" title="Docker networks this service should connect to. Services on the same network can communicate with each other.">ℹ️</span>
+                </label>
+                <div class="networks-checkboxes" *ngIf="getAllNetworks().length > 0">
+                  <div 
+                    *ngFor="let network of getAllNetworks()" 
+                    class="network-checkbox-item">
+                    <input 
+                      type="checkbox" 
+                      [id]="'net-' + network"
+                      [checked]="isNetworkSelected(network)"
+                      (change)="toggleNetwork(network)">
+                    <label [for]="'net-' + network">
+                      {{ network }}
+                    </label>
+                  </div>
+                </div>
+                <div class="networks-actions">
+                  <button 
+                    type="button" 
+                    class="btn-add-network"
+                    (click)="addNewNetwork()">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <line x1="12" y1="5" x2="12" y2="19"></line>
+                      <line x1="5" y1="12" x2="19" y2="12"></line>
+                    </svg>
+                    Add Network
+                  </button>
+                </div>
+                <small class="help-text">
+                  Select networks this service should connect to. Click "Add Network" to create a new network.
+                </small>
+              </div>
+
+              <div class="form-group">
+                <label for="labels">
+                  Labels
+                  <span class="help-icon" title="Metadata labels for this service. Common labels include com.docker.compose.project, traefik labels, etc.">ℹ️</span>
+                </label>
+                <div class="labels-section">
+                  <div class="labels-presets" *ngIf="getLabelsArray().length === 0">
+                    <small class="help-text" style="margin-bottom: 0.5rem; display: block;">Common labels:</small>
+                    <div class="preset-buttons">
+                      <button 
+                        *ngFor="let preset of getCommonLabelPresets()"
+                        type="button" 
+                        class="preset-btn-small"
+                        (click)="applyLabelPreset(preset)"
+                        [title]="preset.description">
+                        {{ preset.key }}
+                      </button>
+                    </div>
+                  </div>
+                  <div class="labels-list" *ngIf="getLabelsArray().length > 0">
+                    <div 
+                      *ngFor="let label of getLabelsArray(); let i = index" 
+                      class="label-item">
+                      <input 
+                        type="text" 
+                        class="label-key"
+                        [value]="label.key"
+                        (blur)="updateLabelKey(label.key, $any($event.target).value)"
+                        placeholder="Label key"
+                        [class.error]="!isLabelKeyValid(label.key)">
+                      <span class="label-separator">=</span>
+                      <input 
+                        type="text" 
+                        class="label-value"
+                        [value]="label.value"
+                        (blur)="updateLabelValue(label.key, $any($event.target).value)"
+                        placeholder="Label value">
+                      <button 
+                        type="button" 
+                        class="btn-remove-label"
+                        (click)="removeLabel(label.key)"
+                        title="Remove label">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                          <line x1="18" y1="6" x2="6" y2="18"></line>
+                          <line x1="6" y1="6" x2="18" y2="18"></line>
+                        </svg>
+                      </button>
+                    </div>
+                  </div>
+                  <button 
+                    type="button" 
+                    class="btn-add-label"
+                    (click)="addNewLabel()">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <line x1="12" y1="5" x2="12" y2="19"></line>
+                      <line x1="5" y1="12" x2="19" y2="12"></line>
+                    </svg>
+                    Add Label
+                  </button>
+                </div>
+                <small class="help-text">
+                  Add key-value pairs for service metadata. Common labels: com.docker.compose.project, traefik.*, etc.
                 </small>
               </div>
             </div>
@@ -510,8 +682,54 @@
         </div>
         <!-- YAML Preview Tab Content -->
         <div class="yaml-preview" *ngIf="activeTab === 'yaml'">
-          <h3>Live YAML Preview</h3>
-          <pre><code>{{ yamlPreview || '# Your YAML will appear here...' }}</code></pre>
+          <div class="yaml-header">
+            <h3>YAML Editor</h3>
+            <div class="yaml-mode-controls">
+              <button 
+                type="button" 
+                class="mode-toggle-btn"
+                [class.active]="!yamlEditMode"
+                (click)="yamlEditMode = false">
+                Preview
+              </button>
+              <button 
+                type="button" 
+                class="mode-toggle-btn"
+                [class.active]="yamlEditMode"
+                (click)="enableYamlEditMode()">
+                Edit
+              </button>
+              <button 
+                type="button" 
+                class="btn-sync-yaml"
+                *ngIf="yamlEditMode"
+                (click)="syncYamlToForm()"
+                [disabled]="isSyncingYaml || yamlEditError">
+                <span *ngIf="!isSyncingYaml">Sync to Form</span>
+                <span *ngIf="isSyncingYaml" class="loading-text">
+                  <span class="spinner-small"></span>
+                  Syncing...
+                </span>
+              </button>
+            </div>
+          </div>
+          
+          <div class="yaml-error" *ngIf="yamlEditError">
+            <strong>YAML Error:</strong> {{ yamlEditError }}
+          </div>
+          
+          <div *ngIf="!yamlEditMode" class="yaml-preview-content">
+            <pre><code>{{ yamlPreview || '# Your YAML will appear here...' }}</code></pre>
+          </div>
+          
+          <div *ngIf="yamlEditMode" class="yaml-editor-content">
+            <textarea 
+              class="yaml-editor"
+              [(ngModel)]="yamlEditContent"
+              (input)="onYamlEdit()"
+              placeholder="Edit your Docker Compose YAML here..."
+              spellcheck="false"></textarea>
+          </div>
         </div>
       </div>
     </main>

@@ -47,7 +47,9 @@ export class ComposeFormComponent implements OnInit {
       enabled: new FormControl(false),
       interval: new FormControl('30s'),
       timeout: new FormControl('10s'),
-      retries: new FormControl(3)
+      retries: new FormControl(3),
+      startPeriod: new FormControl(''),
+      test: new FormControl<string[]>([])
     }),
     resources: new FormGroup({
       cpuLimit: new FormControl(0.5),
@@ -57,12 +59,191 @@ export class ComposeFormComponent implements OnInit {
       replicas: new FormControl(1)
     }),
     restart: new FormControl('always'),
-    depends_on: new FormControl<string[]>([])
+    depends_on: new FormControl<string[]>([]),
+    networks: new FormControl<string[]>([]),
+    labels: new FormControl<{ [key: string]: string }>({})
   });
 
   // Get available services for dependencies (excluding current service)
   getAvailableServicesForDependencies(): ServiceConfig[] {
     return this.services.filter((_, index) => index !== this.selectedServiceIndex && this.services[index].serviceName.trim());
+  }
+
+  // Get all unique network names from all services
+  getAllNetworks(): string[] {
+    const networkSet = new Set<string>();
+    this.services.forEach(service => {
+      if (service.networks && Array.isArray(service.networks)) {
+        service.networks.forEach(net => {
+          if (net && net.trim()) {
+            networkSet.add(net.trim());
+          }
+        });
+      }
+    });
+    return Array.from(networkSet).sort();
+  }
+
+  // Toggle network checkbox
+  toggleNetwork(networkName: string): void {
+    const currentNetworks = this.composeForm.get('networks')?.value || [];
+    const index = currentNetworks.indexOf(networkName);
+    
+    if (index > -1) {
+      // Remove network
+      currentNetworks.splice(index, 1);
+    } else {
+      // Add network
+      currentNetworks.push(networkName);
+    }
+    
+    this.composeForm.get('networks')?.setValue([...currentNetworks]);
+  }
+
+  // Check if a network is selected
+  isNetworkSelected(networkName: string): boolean {
+    const networks = this.composeForm.get('networks')?.value || [];
+    return networks.includes(networkName);
+  }
+
+  // Add new network
+  addNewNetwork(): void {
+    const networkName = prompt('Enter network name:');
+    if (networkName && networkName.trim()) {
+      const trimmedName = networkName.trim();
+      // Validate network name
+      if (!/^[a-zA-Z0-9][a-zA-Z0-9_.-]*$/.test(trimmedName)) {
+        alert('Network name must start with alphanumeric character and contain only alphanumeric, underscore, period, or hyphen characters');
+        return;
+      }
+      
+      const currentNetworks = this.composeForm.get('networks')?.value || [];
+      if (!currentNetworks.includes(trimmedName)) {
+        currentNetworks.push(trimmedName);
+        this.composeForm.get('networks')?.setValue([...currentNetworks]);
+      }
+    }
+  }
+
+  // Get labels as array of key-value pairs for display
+  getLabelsArray(): Array<{ key: string; value: string }> {
+    const labels = this.composeForm.get('labels')?.value || {};
+    return Object.entries(labels).map(([key, value]) => ({
+      key,
+      value: value as string
+    }));
+  }
+
+  // Add new label
+  addNewLabel(): void {
+    const labels = this.composeForm.get('labels')?.value || {};
+    const newLabels = { ...labels, '': '' };
+    this.composeForm.get('labels')?.setValue(newLabels);
+  }
+
+  // Remove label
+  removeLabel(key: string): void {
+    const labels = this.composeForm.get('labels')?.value || {};
+    const newLabels = { ...labels };
+    delete newLabels[key];
+    this.composeForm.get('labels')?.setValue(newLabels);
+  }
+
+  // Update label key
+  updateLabelKey(oldKey: string, newKey: string): void {
+    const labels = this.composeForm.get('labels')?.value || {};
+    if (oldKey === newKey) return;
+    
+    // Validate key
+    if (newKey && !/^[a-zA-Z0-9][a-zA-Z0-9_.-]*$/.test(newKey)) {
+      alert('Label key must start with alphanumeric character and contain only alphanumeric, underscore, period, or hyphen characters');
+      return;
+    }
+
+    const newLabels = { ...labels };
+    if (oldKey in newLabels) {
+      const value = newLabels[oldKey];
+      delete newLabels[oldKey];
+      if (newKey) {
+        newLabels[newKey] = value;
+      }
+    }
+    this.composeForm.get('labels')?.setValue(newLabels);
+  }
+
+  // Update label value
+  updateLabelValue(key: string, value: string): void {
+    const labels = this.composeForm.get('labels')?.value || {};
+    const newLabels = { ...labels };
+    if (value) {
+      newLabels[key] = value;
+    } else {
+      delete newLabels[key];
+    }
+    this.composeForm.get('labels')?.setValue(newLabels);
+  }
+
+  // Get common label presets
+  getCommonLabelPresets(): Array<{ key: string; value: string; description: string }> {
+    return [
+      { key: 'com.docker.compose.project', value: 'myproject', description: 'Project name' },
+      { key: 'com.docker.compose.service', value: this.composeForm.get('serviceName')?.value || 'myservice', description: 'Service name' },
+      { key: 'traefik.enable', value: 'true', description: 'Enable Traefik' },
+      { key: 'traefik.http.routers.myservice.rule', value: 'Host(`example.com`)', description: 'Traefik router rule' }
+    ];
+  }
+
+  // Apply label preset
+  applyLabelPreset(preset: { key: string; value: string }): void {
+    const labels = this.composeForm.get('labels')?.value || {};
+    const newLabels = { ...labels, [preset.key]: preset.value };
+    this.composeForm.get('labels')?.setValue(newLabels);
+  }
+
+  // Check if label key is valid
+  isLabelKeyValid(key: string): boolean {
+    if (!key) return false;
+    return /^[a-zA-Z0-9][a-zA-Z0-9_.-]*$/.test(key);
+  }
+
+  // Health check test command management
+  applyHealthCheckTestPreset(preset: string): void {
+    const testControl = this.composeForm.get('healthCheck.test') as FormControl<string[]>;
+    
+    if (preset === '') {
+      // Auto-detect - leave empty, service will handle it
+      testControl.setValue([]);
+    } else if (preset === 'CMD-SHELL') {
+      testControl.setValue(['CMD-SHELL', '']);
+    } else if (preset === 'CMD') {
+      testControl.setValue(['']);
+    } else if (preset === 'NONE') {
+      testControl.setValue(['NONE']);
+    }
+  }
+
+  updateTestCommand(index: number, value: string): void {
+    const test = this.composeForm.get('healthCheck.test')?.value || [];
+    const newTest = [...test];
+    newTest[index] = value;
+    this.composeForm.get('healthCheck.test')?.setValue(newTest);
+  }
+
+  removeTestCommand(index: number): void {
+    const test = this.composeForm.get('healthCheck.test')?.value || [];
+    const newTest = test.filter((_: any, i: number) => i !== index);
+    this.composeForm.get('healthCheck.test')?.setValue(newTest);
+  }
+
+  addTestCommand(): void {
+    const testControl = this.composeForm.get('healthCheck.test') as FormControl<string[]>;
+    const test = testControl.value || [];
+    testControl.setValue([...test, '']);
+  }
+
+  getHealthCheckTestArray(): string[] {
+    const test = this.composeForm.get('healthCheck.test')?.value;
+    return Array.isArray(test) ? test : [];
   }
 
   // Toggle dependency checkbox
@@ -122,6 +303,11 @@ export class ComposeFormComponent implements OnInit {
   showFeedbackComment: boolean = false;
   feedbackComment: string = '';
   feedbackSubmitted: boolean = false;
+  hasSeenMultiServiceHint: boolean = false;
+  yamlEditMode: boolean = false;
+  yamlEditContent: string = '';
+  yamlEditError: string = '';
+  isSyncingYaml: boolean = false;
 
 
   ngOnInit() {
@@ -130,6 +316,64 @@ export class ComposeFormComponent implements OnInit {
     this.setupFormSubscriptions();
     this.updateGraph();
     this.analyticsService.trackEditorUsed();
+    
+    // Check if user has seen the multi-service hint
+    const seenHint = localStorage.getItem('hasSeenMultiServiceHint');
+    this.hasSeenMultiServiceHint = seenHint === 'true';
+  }
+
+  dismissMultiServiceHint(): void {
+    this.hasSeenMultiServiceHint = true;
+    localStorage.setItem('hasSeenMultiServiceHint', 'true');
+  }
+
+  // YAML Edit Mode
+  enableYamlEditMode(): void {
+    this.yamlEditMode = true;
+    this.yamlEditContent = this.yamlPreview || '';
+    this.yamlEditError = '';
+  }
+
+  onYamlEdit(): void {
+    // Clear error when user starts editing
+    this.yamlEditError = '';
+  }
+
+  syncYamlToForm(): void {
+    if (!this.yamlEditContent || !this.yamlEditContent.trim()) {
+      this.yamlEditError = 'YAML content is empty';
+      return;
+    }
+
+    this.isSyncingYaml = true;
+    this.yamlEditError = '';
+
+    try {
+      const parsedYaml = yaml.load(this.yamlEditContent) as any;
+      
+      if (!parsedYaml || typeof parsedYaml !== 'object') {
+        throw new Error('Invalid YAML structure');
+      }
+
+      // Populate form from parsed YAML
+      this.populateFormFromYaml(parsedYaml);
+      
+      // Update preview with formatted YAML
+      this.updateYamlPreview();
+      this.yamlEditContent = this.yamlPreview;
+      
+      // Switch back to preview mode
+      this.yamlEditMode = false;
+      
+      this.analyticsService.trackEvent('yaml_synced', {
+        service_count: this.services.length
+      });
+    } catch (error: any) {
+      this.yamlEditError = error.message || 'Failed to parse YAML. Please check the syntax.';
+      console.error('YAML sync error:', error);
+    } finally {
+      this.isSyncingYaml = false;
+    }
   }
 
   // Initialize a new service with default values
@@ -155,7 +399,9 @@ export class ComposeFormComponent implements OnInit {
         replicas: 1
       },
       restart: 'always',
-      depends_on: []
+      depends_on: [],
+      networks: [],
+      labels: {}
     };
   }
 
@@ -260,7 +506,9 @@ export class ComposeFormComponent implements OnInit {
         replicas: formValue.deploy?.replicas || 1
       },
       restart: formValue.restart || 'always',
-      depends_on: Array.isArray(formValue.depends_on) ? formValue.depends_on : []
+      depends_on: Array.isArray(formValue.depends_on) ? formValue.depends_on : [],
+      networks: Array.isArray(formValue.networks) ? formValue.networks : [],
+      labels: formValue.labels && typeof formValue.labels === 'object' ? formValue.labels : {}
     };
   }
 
@@ -414,7 +662,9 @@ export class ComposeFormComponent implements OnInit {
         replicas: 1
       },
       restart: 'always',
-      depends_on: []
+      depends_on: [],
+      networks: [],
+      labels: {}
     };
 
     // Ensure unique service name
@@ -518,7 +768,7 @@ export class ComposeFormComponent implements OnInit {
       if (formErrors.length > 0) {
         alert('Please fix the following errors:\n\n' + formErrors.join('\n'));
       } else {
-        alert('Please fill in all required fields correctly');
+      alert('Please fill in all required fields correctly');
       }
       return;
     }
@@ -526,7 +776,7 @@ export class ComposeFormComponent implements OnInit {
     this.isGenerating = true;
     try {
       const config = this.dockerComposeService.generateDockerComposeConfigFromServices(this.services);
-      this.dockerComposeService.generateAndDownloadFile(config);
+    this.dockerComposeService.generateAndDownloadFile(config);
       this.analyticsService.trackFileGenerated();
     } catch (error: any) {
       // Show graceful error message instead of crashing
@@ -733,7 +983,9 @@ export class ComposeFormComponent implements OnInit {
         replicas: 1
       },
       restart: service.restart || 'always',
-      depends_on: []
+      depends_on: [],
+      networks: [],
+      labels: {}
     };
 
     // Parse ports (format: "host:container" or "host:container/protocol" or object format)
@@ -777,6 +1029,15 @@ export class ComposeFormComponent implements OnInit {
       };
     }
 
+    // Parse networks (already initialized to [])
+    if (service.networks) {
+      if (Array.isArray(service.networks)) {
+        serviceConfig.networks = service.networks;
+      } else if (typeof service.networks === 'object') {
+        serviceConfig.networks = Object.keys(service.networks);
+      }
+    }
+
     // Parse deploy resources
     if (service.deploy) {
       serviceConfig.deploy = {
@@ -798,6 +1059,35 @@ export class ComposeFormComponent implements OnInit {
         serviceConfig.depends_on = service.depends_on;
       } else if (typeof service.depends_on === 'object') {
         serviceConfig.depends_on = Object.keys(service.depends_on);
+      }
+    }
+
+    // Parse networks
+    if (service.networks) {
+      if (Array.isArray(service.networks)) {
+        // Array format: networks: [network1, network2]
+        serviceConfig.networks = service.networks;
+      } else if (typeof service.networks === 'object') {
+        // Object format: networks: { network1: {}, network2: { aliases: [...] } }
+        serviceConfig.networks = Object.keys(service.networks);
+      }
+    }
+
+    // Parse labels
+    if (service.labels) {
+      if (Array.isArray(service.labels)) {
+        // Array format: labels: ["key=value", "key2=value2"]
+        const labelsObj: { [key: string]: string } = {};
+        service.labels.forEach((label: string) => {
+          const [key, ...valueParts] = label.split('=');
+          if (key && valueParts.length > 0) {
+            labelsObj[key.trim()] = valueParts.join('=').trim();
+          }
+        });
+        serviceConfig.labels = labelsObj;
+      } else if (typeof service.labels === 'object') {
+        // Object format: labels: { key: value, key2: value2 }
+        serviceConfig.labels = service.labels;
       }
     }
 

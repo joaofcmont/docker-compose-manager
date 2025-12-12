@@ -323,9 +323,29 @@ app-theme-toggle {
     box-shadow: 0 6px 14px rgba(0, 0, 0, 0.05);
     transition: transform $transition-speed ease, box-shadow $transition-speed ease;
 
+    &.featured {
+      border: 2px solid $primary-color;
+      background: linear-gradient(135deg, rgba(0, 123, 255, 0.05) 0%, rgba(0, 123, 255, 0.02) 100%);
+      transform: scale(1.02);
+      box-shadow: 0 4px 12px rgba(0, 123, 255, 0.15);
+
+      .icon-container {
+        background: linear-gradient(135deg, $primary-color 0%, darken($primary-color, 10%) 100%);
+        color: $white;
+      }
+
+      h3 {
+        color: $primary-color;
+      }
+    }
+
     &:hover {
       transform: translateY(-6px);
       box-shadow: 0 10px 18px rgba(0, 0, 0, 0.08);
+    }
+
+    &.featured:hover {
+      transform: translateY(-6px) scale(1.02);
     }
 
     .icon-container {

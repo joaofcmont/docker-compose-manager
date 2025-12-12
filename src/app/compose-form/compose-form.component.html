@@ -701,9 +701,20 @@
             (change)="applyHealthCheckTestPreset($any($event.target).value)"
             [value]="''">
             <option value="">Auto-detect (recommended)</option>
-            <option value="CMD-SHELL">CMD-SHELL (custom command)</option>
-            <option value="CMD">CMD (command array)</option>
-            <option value="NONE">NONE (disable)</option>
+            <optgroup label="Common Services">
+              <option value="nginx">Nginx (curl)</option>
+              <option value="postgres">PostgreSQL (pg_isready)</option>
+              <option value="mysql">MySQL (mysqladmin ping)</option>
+              <option value="redis">Redis (redis-cli ping)</option>
+              <option value="mongo">MongoDB (mongosh ping)</option>
+              <option value="node">Node.js (curl /health)</option>
+              <option value="http">HTTP Endpoint (curl)</option>
+            </optgroup>
+            <optgroup label="Custom Commands">
+              <option value="CMD-SHELL">CMD-SHELL (custom command)</option>
+              <option value="CMD">CMD (command array)</option>
+              <option value="NONE">NONE (disable)</option>
+            </optgroup>
           </select>
           <div *ngIf="getHealthCheckTestArray().length > 0" class="test-command-display">
             <div *ngFor="let cmd of getHealthCheckTestArray(); let i = index" class="test-command-item">
@@ -790,8 +801,12 @@
                       id="cpuLimit" 
                       formControlName="cpuLimit"
                       placeholder="0.5"
-                      step="0.1">
+                      step="0.1"
+                      [class.error]="composeForm.get('resources.cpuLimit')?.invalid && composeForm.get('resources.cpuLimit')?.touched">
                     <small class="help-text">Examples: 0.5 = half core, 1.0 = 1 core, 2.5 = 2.5 cores</small>
+                    <small class="error-text" *ngIf="composeForm.get('resources.cpuLimit')?.invalid && composeForm.get('resources.cpuLimit')?.touched">
+                      {{ getFieldError('resources.cpuLimit') }}
+                    </small>
                   </div>
                   <div>
                       <label for="memoryLimit">
@@ -809,8 +824,12 @@
                       id="memoryLimit" 
                       formControlName="memoryLimit"
                       placeholder="512"
-                      min="0">
+                      min="0"
+                      [class.error]="composeForm.get('resources.memoryLimit')?.invalid && composeForm.get('resources.memoryLimit')?.touched">
                     <small class="help-text">Examples: 512MB, 1024MB (1GB), 2048MB (2GB)</small>
+                    <small class="error-text" *ngIf="composeForm.get('resources.memoryLimit')?.invalid && composeForm.get('resources.memoryLimit')?.touched">
+                      {{ getFieldError('resources.memoryLimit') }}
+                    </small>
                   </div>
                 </div>
               </div>
@@ -1066,8 +1085,8 @@
               <div 
                 *ngFor="let template of getAvailableTemplates()"
                 class="template-item"
-                draggable="true"
-                (dragstart)="onTemplateDragStart($event, template.name)">
+                (mousedown)="onTemplateMouseDown($event, template.name)"
+                [class.dragging]="isDraggingTemplate && draggedTemplateName === template.name">
                 <span class="template-icon">
                   <svg-icon [type]="template.icon"></svg-icon>
                 </span>
@@ -1078,7 +1097,9 @@
 
           <div class="diagram-view" 
                (drop)="onDiagramDrop($event)"
-               (dragover)="onDiagramDragOver($event)">
+               (dragover)="onDiagramDragOver($event)"
+               (dragenter)="onDiagramDragEnter($event)"
+               (dragleave)="onDiagramDragLeave($event)">
             <svg class="diagram-svg" #diagramSvg viewBox="0 0 1000 700" preserveAspectRatio="xMidYMid meet">
               <!-- Arrow marker definition -->
               <defs>
@@ -1086,8 +1107,14 @@
                   <polygon points="0 0, 10 3, 0 6" fill="#007BFF" />
                 </marker>
               </defs>
+              <!-- Invisible drop zone overlay (behind everything, catches drops in empty areas) -->
+              <rect x="0" y="0" width="1000" height="700" fill="transparent" 
+                    style="pointer-events: all; cursor: copy;"
+                    (drop)="onDiagramDrop($event)"
+                    (dragover)="onDiagramDragOver($event)"
+                    (dragenter)="onDiagramDragEnter($event)"></rect>
               <!-- Render edges first (behind nodes) -->
-              <g class="edges">
+              <g class="edges" style="pointer-events: none;">
                 <line
                   *ngFor="let edge of composeGraph.edges; trackBy: trackByEdge"
                   [attr.x1]="getNodePosition(edge.from)?.x || 0"
@@ -1098,14 +1125,15 @@
                   [attr.marker-end]="'url(#arrowhead)'">
                 </line>
               </g>
-              <!-- Render nodes -->
-              <g class="nodes">
+              <!-- Render nodes (on top, can be clicked) -->
+              <g class="nodes" style="pointer-events: none;">
                 <g
                   *ngFor="let node of composeGraph.nodes; trackBy: trackByNode"
                   class="node-group"
                   [attr.transform]="'translate(' + (node.position?.x || 0) + ',' + (node.position?.y || 0) + ')'"
                   (click)="onNodeClick(node.id)"
-                  [class.selected]="services[selectedServiceIndex] && node.id === services[selectedServiceIndex].serviceName">
+                  [class.selected]="services[selectedServiceIndex] && node.id === services[selectedServiceIndex].serviceName"
+                  style="pointer-events: all;">
                   <rect class="node-rect" width="120" height="80" rx="8" x="0" y="0"></rect>
                   <foreignObject x="0" y="0" width="120" height="80">
                       <div class="node-content" xmlns="http://www.w3.org/1999/xhtml">

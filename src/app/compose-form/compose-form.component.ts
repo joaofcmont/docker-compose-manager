@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, AfterViewInit, inject } from '@angular/core';
 import { FormArray, FormControl, FormGroup, ReactiveFormsModule, Validators, FormsModule } from '@angular/forms';
 import { DockerComposeService } from '../services/docker-compose.service';
 import { AnalyticsService } from '../services/analytics.service';
@@ -22,7 +22,7 @@ import { RouterModule } from '@angular/router';
   styleUrl: './compose-form.component.scss'
 
 })
-export class ComposeFormComponent implements OnInit {
+export class ComposeFormComponent implements OnInit, AfterViewInit {
   // Inject services using inject() function
   private dockerComposeService = inject(DockerComposeService);
   private analyticsService = inject(AnalyticsService);
@@ -218,6 +218,20 @@ export class ComposeFormComponent implements OnInit {
     if (preset === '') {
       // Auto-detect - leave empty, service will handle it
       testControl.setValue([]);
+    } else if (preset === 'nginx') {
+      testControl.setValue(['CMD-SHELL', 'curl -f http://localhost/ || exit 1']);
+    } else if (preset === 'postgres') {
+      testControl.setValue(['CMD-SHELL', 'pg_isready -U ${POSTGRES_USER:-postgres} || exit 1']);
+    } else if (preset === 'mysql') {
+      testControl.setValue(['CMD-SHELL', 'mysqladmin ping -h localhost || exit 1']);
+    } else if (preset === 'redis') {
+      testControl.setValue(['CMD-SHELL', 'redis-cli ping || exit 1']);
+    } else if (preset === 'mongo') {
+      testControl.setValue(['CMD-SHELL', 'mongosh --eval "db.adminCommand(\'ping\')" || exit 1']);
+    } else if (preset === 'node') {
+      testControl.setValue(['CMD-SHELL', 'curl -f http://localhost:${PORT:-3000}/health || exit 1']);
+    } else if (preset === 'http') {
+      testControl.setValue(['CMD-SHELL', 'curl -f http://localhost:${PORT:-80}/health || exit 1']);
     } else if (preset === 'CMD-SHELL') {
       testControl.setValue(['CMD-SHELL', '']);
     } else if (preset === 'CMD') {
@@ -329,6 +343,14 @@ export class ComposeFormComponent implements OnInit {
   templateDescription: string = '';
   templateTags: string = '';
   isSavingTemplate: boolean = false;
+
+  // Custom drag and drop state
+  isDraggingTemplate: boolean = false;
+  draggedTemplateName: string = '';
+  dragGhostElement: HTMLElement | null = null;
+  dragStartX: number = 0;
+  dragStartY: number = 0;
+  isOverDiagram: boolean = false;
 
   // Generation success notification
   showGenerateSuccessPopup: boolean = false;
@@ -490,6 +512,21 @@ export class ComposeFormComponent implements OnInit {
     this.analyzeConfig();
   }
 
+  ngAfterViewInit(): void {
+    // Set up native drag handlers for template items after view init
+    setTimeout(() => {
+      this.setupTemplateDragHandlers();
+    }, 100);
+  }
+
+  private setupTemplateDragHandlers(): void {
+    const templateItems = document.querySelectorAll('.template-item');
+    templateItems.forEach((item) => {
+      // Ensure draggable is set
+      (item as HTMLElement).setAttribute('draggable', 'true');
+    });
+  }
+
   closeOnboardingModal(): void {
     this.showOnboardingModal = false;
     this.hasSeenOnboarding = true;
@@ -627,6 +664,42 @@ export class ComposeFormComponent implements OnInit {
     }
     
     return errors;
+  }
+
+  getFieldError(fieldPath: string): string {
+    const control = this.composeForm.get(fieldPath);
+    if (!control || !control.errors) return '';
+    
+    // Check if control is touched or if it's a nested control, check parent
+    const isTouched = control.touched || (fieldPath.includes('.') && this.composeForm.touched);
+    if (!isTouched) return '';
+    
+    if (control.errors['required']) {
+      return 'This field is required';
+    }
+    if (control.errors['portRange']) {
+      return control.errors['portRange'].message || 'Port must be between 1 and 65535';
+    }
+    if (control.errors['cpuFormat']) {
+      return control.errors['cpuFormat'].message || 'Invalid CPU format';
+    }
+    if (control.errors['memoryFormat']) {
+      return control.errors['memoryFormat'].message || 'Invalid memory format';
+    }
+    if (control.errors['pattern']) {
+      if (fieldPath.includes('Port')) {
+        return 'Port must be a number';
+      }
+      return 'Invalid format';
+    }
+    if (control.errors['min']) {
+      return `Value must be at least ${control.errors['min'].min}`;
+    }
+    if (control.errors['max']) {
+      return `Value must be at most ${control.errors['max'].max}`;
+    }
+    
+    return 'Invalid value';
   }
 
   nextWizardStep(): void {
@@ -1228,43 +1301,219 @@ export class ComposeFormComponent implements OnInit {
     return `${edge.from}-${edge.to}`;
   }
 
-  // Drag and drop handlers
-  onTemplateDragStart(event: DragEvent, templateName: string): void {
-    if (event.dataTransfer) {
-      event.dataTransfer.setData('template', templateName);
-      event.dataTransfer.effectAllowed = 'copy';
+  // Custom drag and drop handlers using mouse events
+  onTemplateMouseDown(event: MouseEvent, templateName: string): void {
+    // Only start drag on left mouse button
+    if (event.button !== 0) return;
+    
+    event.preventDefault();
+    event.stopPropagation();
+    
+    this.isDraggingTemplate = true;
+    this.draggedTemplateName = templateName;
+    this.dragStartX = event.clientX;
+    this.dragStartY = event.clientY;
+    
+    // Create drag ghost element
+    this.createDragGhost(event, templateName);
+    
+    // Add global event listeners
+    document.addEventListener('mousemove', this.onTemplateMouseMove);
+    document.addEventListener('mouseup', this.onTemplateMouseUp);
+    
+    // Prevent text selection during drag
+    document.body.style.userSelect = 'none';
+    document.body.style.cursor = 'grabbing';
+  }
+
+  onTemplateMouseMove = (event: MouseEvent): void => {
+    if (!this.isDraggingTemplate) return;
+    
+    // Update ghost position
+    if (this.dragGhostElement) {
+      this.dragGhostElement.style.left = (event.clientX + 10) + 'px';
+      this.dragGhostElement.style.top = (event.clientY + 10) + 'px';
+    }
+    
+    // Check if over diagram area
+    const diagramView = document.querySelector('.diagram-view') as HTMLElement;
+    if (diagramView) {
+      const rect = diagramView.getBoundingClientRect();
+      const isOver = event.clientX >= rect.left && 
+                     event.clientX <= rect.right && 
+                     event.clientY >= rect.top && 
+                     event.clientY <= rect.bottom;
+      
+      if (isOver !== this.isOverDiagram) {
+        this.isOverDiagram = isOver;
+        if (isOver) {
+          diagramView.classList.add('drag-over');
+        } else {
+          diagramView.classList.remove('drag-over');
+        }
+      }
     }
   }
 
-  onDiagramDrop(event: DragEvent): void {
-    event.preventDefault();
-    const templateName = event.dataTransfer?.getData('template');
-    if (templateName) {
-      this.createServiceFromTemplate(templateName, event);
+  onTemplateMouseUp = (event: MouseEvent): void => {
+    if (!this.isDraggingTemplate) return;
+    
+    // Check if dropped over diagram
+    if (this.isOverDiagram && this.draggedTemplateName) {
+      const diagramView = document.querySelector('.diagram-view') as HTMLElement;
+      if (diagramView) {
+        // Create a fake DragEvent for compatibility with existing createServiceFromTemplate
+        const fakeEvent = {
+          clientX: event.clientX,
+          clientY: event.clientY,
+          target: diagramView,
+          currentTarget: diagramView
+        } as any;
+        
+        this.createServiceFromTemplate(this.draggedTemplateName, fakeEvent);
+      }
+    }
+    
+    // Clean up
+    this.cleanupDrag();
+  }
+
+  private createDragGhost(event: MouseEvent, templateName: string): void {
+    const template = this.getAvailableTemplates().find(t => t.name === templateName);
+    if (!template) return;
+    
+    const ghost = document.createElement('div');
+    ghost.className = 'drag-ghost';
+    ghost.style.position = 'fixed';
+    ghost.style.left = (event.clientX + 10) + 'px';
+    ghost.style.top = (event.clientY + 10) + 'px';
+    ghost.style.padding = '8px 12px';
+    ghost.style.background = '#fff';
+    ghost.style.border = '2px solid #007BFF';
+    ghost.style.borderRadius = '6px';
+    ghost.style.boxShadow = '0 4px 12px rgba(0,0,0,0.15)';
+    ghost.style.pointerEvents = 'none';
+    ghost.style.zIndex = '10000';
+    ghost.style.display = 'flex';
+    ghost.style.alignItems = 'center';
+    ghost.style.gap = '8px';
+    ghost.style.fontSize = '14px';
+    ghost.style.whiteSpace = 'nowrap';
+    ghost.style.opacity = '0.9';
+    
+    // Add icon (simplified - you might want to use your SVG icon component)
+    const icon = document.createElement('span');
+    icon.textContent = '📦';
+    ghost.appendChild(icon);
+    
+    const text = document.createElement('span');
+    text.textContent = template.displayName;
+    ghost.appendChild(text);
+    
+    document.body.appendChild(ghost);
+    this.dragGhostElement = ghost;
+  }
+
+  private cleanupDrag(): void {
+    this.isDraggingTemplate = false;
+    this.isOverDiagram = false;
+    this.draggedTemplateName = '';
+    
+    // Remove event listeners
+    document.removeEventListener('mousemove', this.onTemplateMouseMove);
+    document.removeEventListener('mouseup', this.onTemplateMouseUp);
+    
+    // Remove ghost element
+    if (this.dragGhostElement && this.dragGhostElement.parentNode) {
+      this.dragGhostElement.parentNode.removeChild(this.dragGhostElement);
+      this.dragGhostElement = null;
+    }
+    
+    // Restore body styles
+    document.body.style.userSelect = '';
+    document.body.style.cursor = '';
+    
+    // Remove drag-over styling
+    const diagramView = document.querySelector('.diagram-view') as HTMLElement;
+    if (diagramView) {
+      diagramView.classList.remove('drag-over');
     }
   }
 
   onDiagramDragOver(event: DragEvent): void {
+    // Keep for compatibility, but not used with custom drag
     event.preventDefault();
     if (event.dataTransfer) {
       event.dataTransfer.dropEffect = 'copy';
     }
   }
 
+  onDiagramDragEnter(event: DragEvent): void {
+    // Keep for compatibility, but not used with custom drag
+    event.preventDefault();
+    if (event.dataTransfer) {
+      event.dataTransfer.dropEffect = 'copy';
+    }
+  }
+
+  onDiagramDragLeave(event: DragEvent): void {
+    // Keep for compatibility, but not used with custom drag
+    event.preventDefault();
+  }
+
+  onDiagramDrop(event: DragEvent): void {
+    // Keep for compatibility, but not used with custom drag
+    event.preventDefault();
+  }
+
   // Create service from template at drop position
-  private createServiceFromTemplate(templateName: string, event: DragEvent): void {
+  private createServiceFromTemplate(templateName: string, event: DragEvent | MouseEvent | any): void {
     const template = this.dockerComposeService.getServiceTemplate(templateName);
     if (!template) {
       return;
     }
 
-    // Get drop coordinates relative to diagram view container
-    const diagramView = (event.target as HTMLElement).closest('.diagram-view');
+    // Get drop coordinates relative to diagram view container or SVG
+    let diagramView = (event.target as HTMLElement)?.closest('.diagram-view') as HTMLElement;
+    if (!diagramView) {
+      // Try to find it from the SVG element
+      const svgElement = (event.target as Element)?.closest('svg');
+      if (svgElement) {
+        diagramView = svgElement.closest('.diagram-view') as HTMLElement;
+      }
+    }
+    // If still not found, try to get it directly
+    if (!diagramView) {
+      diagramView = document.querySelector('.diagram-view') as HTMLElement;
+    }
     if (!diagramView) return;
 
-    const rect = diagramView.getBoundingClientRect();
-    const x = event.clientX - rect.left;
-    const y = event.clientY - rect.top;
+    // If dropping on SVG, convert to SVG coordinates
+    const svg = diagramView.querySelector('svg') as SVGSVGElement | null;
+    let x: number;
+    let y: number;
+    
+    if (svg) {
+      const svgPoint = svg.createSVGPoint();
+      svgPoint.x = event.clientX;
+      svgPoint.y = event.clientY;
+      const ctm = svg.getScreenCTM();
+      if (ctm) {
+        const svgCoords = svgPoint.matrixTransform(ctm.inverse());
+        x = svgCoords.x;
+        y = svgCoords.y;
+      } else {
+        // Fallback: calculate relative to SVG viewBox
+        const svgRect = svg.getBoundingClientRect();
+        x = ((event.clientX - svgRect.left) / svgRect.width) * 1000;
+        y = ((event.clientY - svgRect.top) / svgRect.height) * 700;
+      }
+    } else {
+      // Fallback: use container coordinates
+      const rect = diagramView.getBoundingClientRect();
+      x = event.clientX - rect.left + diagramView.scrollLeft;
+      y = event.clientY - rect.top + diagramView.scrollTop;
+    }
 
     // Create new service from template
     const newService: ServiceConfig = {

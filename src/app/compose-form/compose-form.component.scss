@@ -16,6 +16,22 @@ body {
   line-height: 1.6;
 }
 
+// Error styles
+.error-text {
+  display: block;
+  color: #dc3545;
+  font-size: 0.875rem;
+  margin-top: 0.25rem;
+  font-weight: 500;
+}
+
+input.error,
+textarea.error,
+select.error {
+  border-color: #dc3545 !important;
+  box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.1) !important;
+}
+
 // Header Navigation
 header {
   position: sticky;
@@ -1837,14 +1853,22 @@ main {
     border: 2px solid transparent;
     cursor: grab;
     transition: all $trans;
+    user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    touch-action: none;
+    -webkit-touch-callout: none;
 
     &:hover {
       border-color: $primary;
       transform: translateX(4px);
     }
 
-    &:active {
+    &:active,
+    &.dragging {
       cursor: grabbing;
+      opacity: 0.6;
     }
 
     .template-icon {
@@ -1855,12 +1879,18 @@ main {
       justify-content: center;
       color: $primary;
       flex-shrink: 0;
+      pointer-events: none;
+      user-select: none;
+      -webkit-user-drag: none;
     }
 
     .template-name {
       font-size: 0.9rem;
       font-weight: 500;
       color: $secondary;
+      pointer-events: none;
+      user-select: none;
+      -webkit-user-drag: none;
     }
   }
 }
@@ -1875,6 +1905,12 @@ main {
   overflow: auto;
   min-width: 0;
   -webkit-overflow-scrolling: touch;
+  transition: background-color 0.2s ease;
+
+  &.drag-over {
+    background: rgba(0, 123, 255, 0.1);
+    border: 2px dashed $primary;
+  }
   
   &::-webkit-scrollbar {
     width: 8px;
@@ -1900,6 +1936,8 @@ main {
     height: 100%;
     display: block;
     background: transparent;
+    pointer-events: all;
+    min-height: 600px;
   }
 
   .edges {

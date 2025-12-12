@@ -15,7 +15,8 @@
         </a>
         <ul class="nav-links">
           <li><a routerLink="/home" class="nav-link">Home</a></li>
-          <li><a routerLink="/compose-form" class="nav-link">Editor</a></li>
+          <li><a routerLink="/editor" class="nav-link active">Editor</a></li>
+          <li><a routerLink="/templates" class="nav-link">Templates</a></li>
           <li class="contact_button"><a routerLink="/contact" class="nav-link contact-link">Contact</a></li>
         </ul>
       </nav>
@@ -80,6 +81,18 @@
           <div class="tab-actions">
             <button 
               type="button"
+              class="btn-template"
+              (click)="quickSaveTemplate()"
+              [disabled]="isSavingTemplate || services.length === 0"
+              title="Quick save current configuration as template">
+              <span *ngIf="!isSavingTemplate">Save Template</span>
+              <span *ngIf="isSavingTemplate" class="button-loading">
+                <span class="spinner-small"></span>
+                Saving...
+              </span>
+            </button>
+            <button 
+              type="button"
               class="btn-learning-center"
               (click)="openLearningCenter()"
               title="Open Learning Center">
@@ -91,7 +104,7 @@
               *ngIf="getConfigSuggestions().length > 0"
               (click)="openSuggestionsPopup()"
               [title]="'View ' + getConfigSuggestions().length + ' configuration suggestions'">
-              💡 Suggestions ({{ getConfigSuggestions().length }})
+              Suggestions ({{ getConfigSuggestions().length }})
             </button>
           </div>
         </div>
@@ -927,6 +940,99 @@
           </div>
         </div>
       </div>
+
+    <!-- Save Template Modal -->
+    <div class="modal-overlay" *ngIf="showSaveTemplateModal" (click)="closeSaveTemplateModal()">
+      <div class="modal-content" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h3>Save as Template</h3>
+          <button type="button" class="btn-close-modal" (click)="closeSaveTemplateModal()">×</button>
+        </div>
+        <div class="modal-body">
+          <div class="form-group">
+            <label for="templateName">Template Name *</label>
+            <input 
+              type="text" 
+              id="templateName"
+              [(ngModel)]="templateName"
+              placeholder="e.g., Web App with Database"
+              [ngModelOptions]="{standalone: true}"
+              class="form-input">
+          </div>
+          <div class="form-group">
+            <label for="templateDescription">Description</label>
+            <textarea 
+              id="templateDescription"
+              [(ngModel)]="templateDescription"
+              placeholder="Describe what this template is used for..."
+              [ngModelOptions]="{standalone: true}"
+              rows="3"
+              class="form-input"></textarea>
+          </div>
+          <div class="form-group">
+            <label for="templateTags">Tags (comma-separated)</label>
+            <input 
+              type="text" 
+              id="templateTags"
+              [(ngModel)]="templateTags"
+              placeholder="e.g., web, database, production"
+              [ngModelOptions]="{standalone: true}"
+              class="form-input">
+            <small class="help-text">Separate tags with commas</small>
+          </div>
+          <div class="template-preview">
+            <strong>This template will include:</strong>
+            <ul>
+              <li>{{ services.length }} service{{ services.length !== 1 ? 's' : '' }}</li>
+              <li *ngFor="let service of services">{{ service.serviceName || 'Unnamed Service' }}</li>
+            </ul>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn-secondary" (click)="closeSaveTemplateModal()">Cancel</button>
+          <button 
+            type="button" 
+            class="btn-primary" 
+            (click)="saveTemplate()"
+            [disabled]="isSavingTemplate || !templateName.trim()">
+            <span *ngIf="!isSavingTemplate">Save Template</span>
+            <span *ngIf="isSavingTemplate" class="button-loading">
+              <span class="spinner-small"></span>
+              Saving...
+            </span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Save Success Popup -->
+    <div class="save-success-popup" *ngIf="showSaveSuccessPopup">
+      <div class="success-content">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="success-icon">
+          <polyline points="20 6 9 17 4 12"></polyline>
+        </svg>
+        <div class="success-text">
+          <strong>Template Saved!</strong>
+          <p>{{ savedTemplateName }}</p>
+        </div>
+        <button type="button" class="btn-close-success" (click)="closeSaveSuccessPopup()">×</button>
+      </div>
+    </div>
+
+    <!-- Generate Success Popup -->
+    <div class="save-success-popup" *ngIf="showGenerateSuccessPopup">
+      <div class="success-content">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="success-icon">
+          <polyline points="20 6 9 17 4 12"></polyline>
+        </svg>
+        <div class="success-text">
+          <strong>Docker Compose File Generated!</strong>
+          <p>Your docker-compose.yml file has been downloaded.</p>
+        </div>
+        <button type="button" class="btn-close-success" (click)="closeGenerateSuccessPopup()">×</button>
+      </div>
+    </div>
+
     <!-- Suggestions Popup -->
     <div class="suggestions-popup-overlay" *ngIf="showSuggestionsPopup" (click)="closeSuggestionsPopup()">
       <div class="suggestions-popup" (click)="$event.stopPropagation()">
@@ -962,10 +1068,10 @@
             Open Learning Center
           </button>
         </div>
+        </div>
       </div>
-    </div>
     </main>
-
+  
     <footer>
       <p>© 2025 Docker Compose Manager. All rights reserved. | <a routerLink="/privacy">Privacy Policy</a></p>
     </footer>

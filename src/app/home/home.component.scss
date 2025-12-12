@@ -272,6 +272,16 @@ app-theme-toggle {
       margin-bottom: 2rem;
       opacity: 0.95;
       line-height: 1.6;
+      max-width: 700px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .waitlist-cta {
+      display: flex;
+      gap: 1rem;
+      justify-content: center;
+      flex-wrap: wrap;
     }
 
     .cta-waitlist {
@@ -285,6 +295,22 @@ app-theme-toggle {
 
       &:hover {
         background: $light-gray;
+        transform: translateY(-2px);
+      }
+    }
+
+    .cta-secondary-waitlist {
+      @include button-style;
+      background: transparent;
+      color: $white;
+      border: 2px solid $white;
+      text-decoration: none;
+      font-weight: 600;
+      padding: 12px 30px;
+      font-size: 1.1rem;
+
+      &:hover {
+        background: rgba(255, 255, 255, 0.1);
         transform: translateY(-2px);
       }
     }

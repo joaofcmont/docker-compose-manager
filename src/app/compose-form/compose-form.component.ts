@@ -5,6 +5,8 @@ import { AnalyticsService } from '../services/analytics.service';
 import { FirestoreService } from '../services/firestore.service';
 import { GraphService } from '../services/graph.service';
 import { LearningService, LearningTip, ConfigSuggestion } from '../services/learning.service';
+import { TemplateService } from '../services/template.service';
+import { Template } from '../models/template.model';
 import { ServiceConfig } from '../models/service-config.model';
 import { ComposeGraph } from '../models/compose-graph.model';
 import { SvgIconComponent } from '../shared/svg-icon.component';
@@ -27,6 +29,7 @@ export class ComposeFormComponent implements OnInit {
   private firestoreService = inject(FirestoreService);
   private graphService = inject(GraphService);
   private learningService = inject(LearningService);
+  private templateService = inject(TemplateService);
 
   services: ServiceConfig[] = [];
   selectedServiceIndex: number = 0;
@@ -318,8 +321,41 @@ export class ComposeFormComponent implements OnInit {
   activeFieldTips: LearningTip[] = [];
   activeFieldName: string = '';
 
+  // Template features
+  showSaveTemplateModal: boolean = false;
+  showSaveSuccessPopup: boolean = false;
+  savedTemplateName: string = '';
+  templateName: string = '';
+  templateDescription: string = '';
+  templateTags: string = '';
+  isSavingTemplate: boolean = false;
+
+  // Generation success notification
+  showGenerateSuccessPopup: boolean = false;
+
 
   ngOnInit() {
+    // Check if we need to load a template from the templates page
+    const loadTemplateData = sessionStorage.getItem('loadTemplate');
+    if (loadTemplateData) {
+      try {
+        const templateData = JSON.parse(loadTemplateData);
+        this.services = templateData.services;
+        if (this.services.length > 0) {
+          this.selectedServiceIndex = 0;
+          this.loadServiceIntoForm(0);
+          this.updateYamlPreview();
+          this.updateGraph();
+          this.analyzeConfig();
+        }
+        sessionStorage.removeItem('loadTemplate');
+        return;
+      } catch (error) {
+        console.error('Error loading template from session:', error);
+        sessionStorage.removeItem('loadTemplate');
+      }
+    }
+
     // Initialize with one empty service
     this.addNewService();
     this.setupFormSubscriptions();
@@ -847,8 +883,14 @@ export class ComposeFormComponent implements OnInit {
     this.isGenerating = true;
     try {
       const config = this.dockerComposeService.generateDockerComposeConfigFromServices(this.services);
-    this.dockerComposeService.generateAndDownloadFile(config);
+      this.dockerComposeService.generateAndDownloadFile(config);
       this.analyticsService.trackFileGenerated();
+      
+      // Show success notification
+      this.showGenerateSuccessPopup = true;
+      setTimeout(() => {
+        this.showGenerateSuccessPopup = false;
+      }, 3000);
     } catch (error: any) {
       // Show graceful error message instead of crashing
       const errorMessage = error?.message || 'An error occurred while generating the Docker Compose file. Please check your configuration.';
@@ -857,6 +899,10 @@ export class ComposeFormComponent implements OnInit {
     } finally {
       this.isGenerating = false;
     }
+  }
+
+  closeGenerateSuccessPopup(): void {
+    this.showGenerateSuccessPopup = false;
   }
 
   // Validate all services in the array
@@ -1297,6 +1343,145 @@ export class ComposeFormComponent implements OnInit {
       this.feedbackSubmitted = true;
       this.feedbackComment = '';
       this.showFeedbackComment = false;
+    }
+  }
+
+  // Template methods - Quick save with auto-generated name
+  async quickSaveTemplate(): Promise<void> {
+    if (this.services.length === 0) {
+      alert('Cannot save an empty template. Please add at least one service.');
+      return;
+    }
+
+    this.isSavingTemplate = true;
+    try {
+      // Save current service state
+      this.saveCurrentServiceToArray();
+
+      // Auto-generate template name
+      let templateName = 'My Docker Compose Stack';
+      if (this.services.length > 0) {
+        const serviceNames = this.services
+          .map(s => s.serviceName)
+          .filter(Boolean)
+          .slice(0, 3) // Limit to first 3 services
+          .join('-');
+        
+        if (serviceNames) {
+          templateName = serviceNames;
+        }
+      }
+
+      // Check if name already exists and add number if needed
+      const existingTemplates = this.templateService.getLocalTemplateMetadata();
+      let finalName = templateName;
+      let counter = 1;
+      while (existingTemplates.some(t => t.name === finalName)) {
+        finalName = `${templateName} (${counter})`;
+        counter++;
+      }
+
+      const template: Template = {
+        name: finalName,
+        services: JSON.parse(JSON.stringify(this.services)) // Deep copy
+      };
+
+      // Save to localStorage
+      const templateId = this.templateService.saveTemplateLocally(template);
+
+      this.analyticsService.trackEvent('template_saved', {
+        template_name: template.name,
+        service_count: template.services.length
+      });
+
+      // Show success popup
+      this.savedTemplateName = template.name;
+      this.showSaveSuccessPopup = true;
+
+      // Auto-hide after 3 seconds
+      setTimeout(() => {
+        this.showSaveSuccessPopup = false;
+      }, 3000);
+    } catch (error: any) {
+      console.error('Error saving template:', error);
+      alert(`Failed to save template: ${error.message || 'Unknown error'}`);
+    } finally {
+      this.isSavingTemplate = false;
+    }
+  }
+
+  closeSaveSuccessPopup(): void {
+    this.showSaveSuccessPopup = false;
+  }
+
+  openSaveTemplateModal(): void {
+    // Pre-fill with a default name based on services
+    if (this.services.length > 0) {
+      const serviceNames = this.services.map(s => s.serviceName).filter(Boolean).join('-');
+      this.templateName = serviceNames || 'My Docker Compose Stack';
+    } else {
+      this.templateName = 'My Docker Compose Stack';
+    }
+    this.templateDescription = '';
+    this.templateTags = '';
+    this.showSaveTemplateModal = true;
+  }
+
+  closeSaveTemplateModal(): void {
+    this.showSaveTemplateModal = false;
+    this.templateName = '';
+    this.templateDescription = '';
+    this.templateTags = '';
+  }
+
+  async saveTemplate(): Promise<void> {
+    if (!this.templateName.trim()) {
+      alert('Please enter a template name');
+      return;
+    }
+
+    if (this.services.length === 0) {
+      alert('Cannot save an empty template. Please add at least one service.');
+      return;
+    }
+
+    this.isSavingTemplate = true;
+    try {
+      // Save current service state
+      this.saveCurrentServiceToArray();
+
+      const template: Template = {
+        name: this.templateName.trim(),
+        description: this.templateDescription.trim() || undefined,
+        tags: this.templateTags.split(',').map(t => t.trim()).filter(Boolean),
+        services: JSON.parse(JSON.stringify(this.services)) // Deep copy
+      };
+
+      // Save to localStorage (always)
+      const templateId = this.templateService.saveTemplateLocally(template);
+      
+      // Optionally save to Firestore (for future cloud sync)
+      // await this.templateService.saveTemplateToFirestore(template);
+
+      this.analyticsService.trackEvent('template_saved', {
+        template_name: template.name,
+        service_count: template.services.length
+      });
+
+      // Show success popup
+      this.savedTemplateName = template.name;
+      this.closeSaveTemplateModal();
+      this.showSaveSuccessPopup = true;
+
+      // Auto-hide after 3 seconds
+      setTimeout(() => {
+        this.showSaveSuccessPopup = false;
+      }, 3000);
+    } catch (error: any) {
+      console.error('Error saving template:', error);
+      alert(`Failed to save template: ${error.message || 'Unknown error'}`);
+    } finally {
+      this.isSavingTemplate = false;
     }
   }
 }

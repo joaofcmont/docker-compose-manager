@@ -198,24 +198,120 @@ main {
       white-space: nowrap;
     }
 
-    .btn-learning-center {
+    .btn-template {
       background: $primary;
+      color: #fff;
+      border: none;
+
+      &:hover:not(:disabled) {
+        background: darken($primary, 10%);
+        transform: translateY(-1px);
+      }
+
+      &:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+      }
+    }
+
+    .btn-learning-center {
+      background: darken($primary, 5%);
       color: #fff;
 
       &:hover {
-        background: darken($primary, 10%);
+        background: darken($primary, 15%);
         transform: translateY(-1px);
       }
     }
 
     .btn-suggestions {
-      background: #fff3cd;
-      color: #856404;
-      border: 1px solid #ffc107;
+      background: lighten($primary, 25%);
+      color: darken($primary, 10%);
+      border: 1px solid lighten($primary, 15%);
 
       &:hover {
-        background: #ffc107;
+        background: lighten($primary, 20%);
         transform: translateY(-1px);
+      }
+    }
+  }
+}
+
+// Save Success Popup
+.save-success-popup {
+  position: fixed;
+  top: 2rem;
+  right: 2rem;
+  z-index: 1100;
+  animation: slideInRight 0.3s ease-out;
+
+  @keyframes slideInRight {
+    from {
+      transform: translateX(400px);
+      opacity: 0;
+    }
+    to {
+      transform: translateX(0);
+      opacity: 1;
+    }
+  }
+
+  .success-content {
+    background: $primary;
+    color: #fff;
+    padding: 1rem 1.5rem;
+    border-radius: 8px;
+    box-shadow: 0 4px 16px rgba(0, 123, 255, 0.3);
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    min-width: 300px;
+    max-width: 400px;
+
+    .success-icon {
+      width: 20px;
+      height: 20px;
+      flex-shrink: 0;
+      stroke: currentColor;
+    }
+
+    .success-text {
+      flex: 1;
+
+      strong {
+        display: block;
+        font-size: 1rem;
+        margin-bottom: 0.25rem;
+      }
+
+      p {
+        margin: 0;
+        font-size: 0.9rem;
+        opacity: 0.9;
+        word-break: break-word;
+      }
+    }
+
+    .btn-close-success {
+      background: transparent;
+      border: none;
+      color: #fff;
+      font-size: 1.25rem;
+      cursor: pointer;
+      padding: 0;
+      width: 24px;
+      height: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      transition: all $trans;
+      flex-shrink: 0;
+      opacity: 0.8;
+
+      &:hover {
+        opacity: 1;
+        background: rgba(255, 255, 255, 0.2);
       }
     }
   }

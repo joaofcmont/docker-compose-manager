@@ -1,0 +1,166 @@
+<header>
+  <nav>
+    <a routerLink="/home" class="logo-link">
+      <img
+        src="assets/favicon.png"
+        alt="Docker Compose Manager"
+        class="logo"
+      />
+    </a>
+
+    <ul class="nav-links">
+      <li>
+        <a routerLink="/home" class="nav-link">Home</a>
+      </li>
+      <li>
+        <a routerLink="/editor" class="nav-link">Editor</a>
+      </li>
+      <li>
+        <a routerLink="/templates" class="nav-link active">Templates</a>
+      </li>
+      <li class="contact_button">
+        <a routerLink="/contact" class="nav-link contact-link">Contact</a>
+      </li>
+    </ul>
+  </nav>
+</header>
+
+<main>
+  <div class="templates-container">
+    <div class="templates-header">
+      <div class="header-content">
+        <h1>Template Library</h1>
+        <p class="subtitle">Save, manage, and reuse your Docker Compose configurations</p>
+      </div>
+      <a routerLink="/editor" class="btn-primary">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="12" y1="5" x2="12" y2="19"></line>
+          <line x1="5" y1="12" x2="19" y2="12"></line>
+        </svg>
+        Create New
+      </a>
+    </div>
+
+    <!-- Filters -->
+    <div class="filters-section">
+      <div class="search-box">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="11" cy="11" r="8"></circle>
+          <path d="m21 21-4.35-4.35"></path>
+        </svg>
+        <input 
+          type="text" 
+          [(ngModel)]="searchQuery"
+          placeholder="Search templates..."
+          class="search-input">
+      </div>
+
+      <div class="tags-filter" *ngIf="availableTags.length > 0">
+        <button 
+          *ngFor="let tag of availableTags"
+          type="button"
+          class="tag-button"
+          [class.active]="selectedTag === tag"
+          (click)="selectedTag = selectedTag === tag ? '' : tag">
+          {{ tag }}
+        </button>
+      </div>
+
+      <button 
+        *ngIf="hasActiveFilters()"
+        type="button"
+        class="btn-clear-filters"
+        (click)="clearFilters()">
+        Clear Filters
+      </button>
+    </div>
+
+    <!-- Templates Grid -->
+    <div class="templates-grid" *ngIf="!isLoading">
+      <div *ngIf="filteredTemplates.length === 0" class="empty-state">
+        <div class="empty-icon">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+            <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+          </svg>
+        </div>
+        <h2>{{ hasActiveFilters() ? 'No templates match your filters' : 'No templates yet' }}</h2>
+        <p *ngIf="!hasActiveFilters()">
+          Save your first template from the editor to get started!
+        </p>
+        <p *ngIf="hasActiveFilters()">
+          Try adjusting your search or filters.
+        </p>
+        <a routerLink="/editor" class="btn-primary" *ngIf="!hasActiveFilters()">
+          Go to Editor
+        </a>
+      </div>
+
+      <div *ngFor="let template of filteredTemplates" class="template-card">
+        <div class="template-card-header">
+          <h3>{{ template.name }}</h3>
+          <div class="template-actions">
+            <button 
+              type="button"
+              class="btn-load"
+              (click)="loadTemplate(template.id)"
+              title="Load this template">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="7 10 12 15 17 10"></polyline>
+                <line x1="12" y1="15" x2="12" y2="3"></line>
+              </svg>
+              Load
+            </button>
+            <button 
+              type="button"
+              class="btn-delete"
+              (click)="deleteTemplate(template.id, template.name)"
+              title="Delete template">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="3 6 5 6 21 6"></polyline>
+                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <p class="template-description" *ngIf="template.description">
+          {{ template.description }}
+        </p>
+
+        <div class="template-meta">
+          <span class="meta-badge">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+              <line x1="3" y1="9" x2="21" y2="9"></line>
+              <line x1="9" y1="21" x2="9" y2="9"></line>
+            </svg>
+            {{ template.serviceCount }} service{{ template.serviceCount !== 1 ? 's' : '' }}
+          </span>
+          <span class="meta-badge" *ngIf="template.updatedAt">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"></circle>
+              <polyline points="12 6 12 12 16 14"></polyline>
+            </svg>
+            {{ template.updatedAt | date:'shortDate' }}
+          </span>
+        </div>
+
+        <div class="template-tags" *ngIf="template.tags && template.tags.length > 0">
+          <span *ngFor="let tag of template.tags" class="tag">{{ tag }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Loading State -->
+    <div class="loading-state" *ngIf="isLoading">
+      <div class="spinner"></div>
+      <p>Loading templates...</p>
+    </div>
+  </div>
+</main>
+
+<footer>
+  <p>© 2025 Docker Compose Manager. All rights reserved. | <a routerLink="/privacy">Privacy Policy</a></p>
+</footer>

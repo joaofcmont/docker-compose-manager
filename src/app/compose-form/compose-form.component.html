@@ -309,13 +309,67 @@
               <button type="button" class="hint-close" (click)="dismissMultiServiceHint()" title="Dismiss">×</button>
             </div>
           </div>
+          
+          <!-- Service Search -->
+          <div class="service-search" *ngIf="services.length > 3">
+            <div class="search-input-wrapper">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="search-icon">
+                <circle cx="11" cy="11" r="8"></circle>
+                <path d="m21 21-4.35-4.35"></path>
+              </svg>
+              <input 
+                type="text" 
+                class="service-search-input"
+                placeholder="Search services..."
+                [(ngModel)]="serviceSearchQuery"
+                [ngModelOptions]="{standalone: true}">
+              <button 
+                type="button" 
+                class="search-clear"
+                *ngIf="serviceSearchQuery"
+                (click)="clearServiceSearch()"
+                title="Clear search">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <line x1="18" y1="6" x2="6" y2="18"></line>
+                  <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          <!-- Resource Usage Summary -->
+          <div class="resource-summary" *ngIf="services.length > 0">
+            <div class="resource-summary-header">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
+                <line x1="8" y1="21" x2="16" y2="21"></line>
+                <line x1="12" y1="17" x2="12" y2="21"></line>
+              </svg>
+              <span class="resource-summary-title">Total Resources</span>
+            </div>
+            <div class="resource-summary-content">
+              <div class="resource-item">
+                <span class="resource-label">CPU:</span>
+                <span class="resource-value">{{ totalCpu.toFixed(1) }} cores</span>
+              </div>
+              <div class="resource-item">
+                <span class="resource-label">Memory:</span>
+                <span class="resource-value">{{ (totalMemory / 1024).toFixed(2) }} GB</span>
+              </div>
+            </div>
+          </div>
+
           <div class="service-list">
             <div 
-              *ngFor="let service of services; let i = index" 
+              *ngFor="let service of getFilteredServices(); let i = index" 
               class="service-item"
-              [class.selected]="i === selectedServiceIndex"
-              (click)="selectService(i)">
+              [class.selected]="services.indexOf(service) === selectedServiceIndex"
+              [class]="getServiceStatusClass(service)"
+              (click)="selectService(services.indexOf(service))">
               <div class="service-item-content">
+                <span class="service-status-badge" [class]="getServiceStatusClass(service)" [title]="'Status: ' + getServiceStatus(service)">
+                  {{ getServiceStatusIcon(service) }}
+                </span>
                 <span class="service-icon">
                   <svg-icon [type]="getServiceIcon(service)"></svg-icon>
                 </span>
@@ -603,6 +657,19 @@
                       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
                     </button>
                   </label>
+                  <div class="presets-section" *ngIf="getEnvironmentPresets().length > 0">
+                    <small class="presets-label">Quick presets:</small>
+                    <div class="preset-buttons-small">
+                      <button 
+                        *ngFor="let preset of getEnvironmentPresets()"
+                        type="button" 
+                        class="preset-btn-small"
+                        (click)="applyEnvironmentPreset(preset)"
+                        [title]="preset.description">
+                        {{ preset.name }}
+                      </button>
+                    </div>
+                  </div>
                 <textarea 
                   id="environment" 
                   formControlName="environment"
@@ -622,6 +689,19 @@
                       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
                     </button>
                   </label>
+                  <div class="presets-section" *ngIf="getVolumePresets().length > 0">
+                    <small class="presets-label">Quick presets:</small>
+                    <div class="preset-buttons-small">
+                      <button 
+                        *ngFor="let preset of getVolumePresets()"
+                        type="button" 
+                        class="preset-btn-small"
+                        (click)="applyVolumePreset(preset)"
+                        [title]="preset.description">
+                        {{ preset.name }}
+                      </button>
+                    </div>
+                  </div>
                 <textarea 
                   id="volumes" 
                   formControlName="volumes"

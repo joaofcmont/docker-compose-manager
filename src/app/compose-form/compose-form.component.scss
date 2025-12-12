@@ -890,6 +890,105 @@ main {
   top: 1.5rem;
   align-self: flex-start;
 
+  // Service Search
+  .service-search {
+    margin-bottom: 1rem;
+    
+    .search-input-wrapper {
+      position: relative;
+      display: flex;
+      align-items: center;
+      
+      .search-icon {
+        position: absolute;
+        left: 0.75rem;
+        color: $gray;
+        pointer-events: none;
+      }
+      
+      .service-search-input {
+        width: 100%;
+        padding: 0.5rem 0.75rem 0.5rem 2.5rem;
+        border: 2px solid $light;
+        border-radius: 6px;
+        font-size: 0.9rem;
+        transition: border-color $trans;
+        
+        &:focus {
+          outline: none;
+          border-color: $primary;
+        }
+      }
+      
+      .search-clear {
+        position: absolute;
+        right: 0.5rem;
+        background: transparent;
+        border: none;
+        color: $gray;
+        cursor: pointer;
+        padding: 0.25rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        opacity: 0.6;
+        transition: opacity $trans;
+        
+        &:hover {
+          opacity: 1;
+        }
+      }
+    }
+  }
+
+  // Resource Summary
+  .resource-summary {
+    margin-bottom: 1rem;
+    padding: 0.75rem;
+    background: $light;
+    border-radius: 6px;
+    border-left: 3px solid $primary;
+    
+    .resource-summary-header {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-bottom: 0.5rem;
+      
+      svg {
+        color: $primary;
+      }
+      
+      .resource-summary-title {
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: $secondary;
+      }
+    }
+    
+    .resource-summary-content {
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+      
+      .resource-item {
+        display: flex;
+        justify-content: space-between;
+        font-size: 0.8rem;
+        
+        .resource-label {
+          color: $gray;
+          font-weight: 500;
+        }
+        
+        .resource-value {
+          color: $secondary;
+          font-weight: 600;
+        }
+      }
+    }
+  }
+
   .service-list-header {
     display: flex;
     flex-direction: column;
@@ -1062,6 +1161,33 @@ main {
       flex: 1;
       min-width: 0;
 
+      .service-status-badge {
+        width: 18px;
+        height: 18px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.7rem;
+        font-weight: 700;
+        flex-shrink: 0;
+        
+        &.status-complete {
+          background: #28a745;
+          color: #fff;
+        }
+        
+        &.status-incomplete {
+          background: #ffc107;
+          color: #000;
+        }
+        
+        &.status-error {
+          background: #dc3545;
+          color: #fff;
+        }
+      }
+
       .service-icon {
         width: 24px;
         height: 24px;
@@ -1079,6 +1205,19 @@ main {
         text-overflow: ellipsis;
         white-space: nowrap;
       }
+    }
+    
+    // Status-based styling
+    &.status-error {
+      border-left: 3px solid #dc3545;
+    }
+    
+    &.status-incomplete {
+      border-left: 3px solid #ffc107;
+    }
+    
+    &.status-complete {
+      border-left: 3px solid #28a745;
     }
 
     .service-item-actions {
@@ -2604,6 +2743,49 @@ main {
       color: $gray;
       margin-top: 0.25rem;
       display: block;
+    }
+
+    // Presets Section
+    .presets-section {
+      margin-bottom: 0.75rem;
+      
+      .presets-label {
+        display: block;
+        font-size: 0.75rem;
+        color: $gray;
+        margin-bottom: 0.5rem;
+        font-weight: 500;
+      }
+      
+      .preset-buttons-small {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        
+        .preset-btn-small {
+          padding: 0.375rem 0.75rem;
+          background: #fff;
+          border: 1px solid #ddd;
+          border-radius: 4px;
+          font-size: 0.8rem;
+          font-weight: 500;
+          color: $secondary;
+          cursor: pointer;
+          transition: all $trans;
+          white-space: nowrap;
+          
+          &:hover {
+            background: $primary;
+            color: #fff;
+            border-color: $primary;
+            transform: translateY(-1px);
+          }
+          
+          &:active {
+            transform: translateY(0);
+          }
+        }
+      }
     }
 
     .help-icon {

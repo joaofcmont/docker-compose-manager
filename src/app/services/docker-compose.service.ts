@@ -58,6 +58,32 @@ export class DockerComposeService {
         timeout: '5s',
         retries: 3,
       },
+    },
+    mysql: {
+      serviceName: 'db',
+      dockerImage: 'mysql:8',
+      ports: [{ host: '3306', container: '3306' }],
+      environment: ['MYSQL_ROOT_PASSWORD=rootpassword', 'MYSQL_DATABASE=mydb'],
+      volumes: ['mysql-data:/var/lib/mysql'],
+      healthcheck: {
+        test: ['CMD', 'mysqladmin', 'ping', '-h', 'localhost'],
+        interval: '10s',
+        timeout: '5s',
+        retries: 5,
+      },
+    },
+    mongo: {
+      serviceName: 'db',
+      dockerImage: 'mongo:7',
+      ports: [{ host: '27017', container: '27017' }],
+      environment: ['MONGO_INITDB_ROOT_USERNAME=admin', 'MONGO_INITDB_ROOT_PASSWORD=password'],
+      volumes: ['mongo-data:/data/db'],
+      healthcheck: {
+        test: ['CMD', 'mongosh', '--eval', 'db.adminCommand("ping")'],
+        interval: '10s',
+        timeout: '5s',
+        retries: 5,
+      },
     }
   };
 

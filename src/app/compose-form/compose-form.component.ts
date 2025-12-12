@@ -359,6 +359,13 @@ export class ComposeFormComponent implements OnInit, AfterViewInit {
   showOnboardingModal: boolean = false;
   hasSeenOnboarding: boolean = false;
 
+  // Service search/filter
+  serviceSearchQuery: string = '';
+  
+  // Resource calculator
+  totalCpu: number = 0;
+  totalMemory: number = 0;
+
   // Form organization
   expandedSections: { basic: boolean; configuration: boolean; healthcheck: boolean; resources: boolean } = {
     basic: true,
@@ -510,6 +517,9 @@ export class ComposeFormComponent implements OnInit, AfterViewInit {
     
     // Analyze config for suggestions
     this.analyzeConfig();
+    
+    // Initialize resource calculator
+    this.calculateResourceUsage();
   }
 
   ngAfterViewInit(): void {
@@ -1222,6 +1232,8 @@ export class ComposeFormComponent implements OnInit, AfterViewInit {
         }
         // Analyze config for suggestions
         this.analyzeConfig();
+        // Update resource calculator
+        this.calculateResourceUsage();
         // Auto-save wizard progress when form changes
         if (this.wizardMode) {
           this.saveWizardProgressToStorage();
@@ -2038,7 +2050,27 @@ export class ComposeFormComponent implements OnInit, AfterViewInit {
       throw new Error('Invalid Docker Compose file. No services found.');
     }
 
-    this.populateFormFromYaml(parsedYaml);
+    // Check if we have existing services
+    this.saveCurrentServiceToArray();
+    const hasExistingServices = this.services.length > 0 && 
+                                this.services.some(s => s.serviceName && s.serviceName.trim());
+
+    if (hasExistingServices) {
+      const shouldMerge = confirm(
+        `You have ${this.services.length} existing service(s). Do you want to merge the imported services with your existing ones?\n\n` +
+        `Click OK to merge (imported services will be added to existing ones).\n` +
+        `Click Cancel to replace all services with the imported ones.`
+      );
+      
+      if (shouldMerge) {
+        this.mergeServicesFromYaml(parsedYaml);
+      } else {
+        this.populateFormFromYaml(parsedYaml);
+      }
+    } else {
+      this.populateFormFromYaml(parsedYaml);
+    }
+    
     this.checkAdvancedFeatures(parsedYaml);
   }
 
@@ -2055,9 +2087,27 @@ export class ComposeFormComponent implements OnInit, AfterViewInit {
       throw new Error('No services found in the configuration file.');
     }
 
-    // Clear current services and load imported ones
-    // Be lenient - allow empty fields and provide defaults
-    this.services = config.services.map((service: any, index: number) => {
+    // Check if we have existing services
+    this.saveCurrentServiceToArray();
+    const hasExistingServices = this.services.length > 0 && 
+                                this.services.some(s => s.serviceName && s.serviceName.trim());
+    let shouldMerge = false;
+
+    if (hasExistingServices) {
+      shouldMerge = confirm(
+        `You have ${this.services.length} existing service(s). Do you want to merge the imported services with your existing ones?\n\n` +
+        `Click OK to merge (imported services will be added to existing ones).\n` +
+        `Click Cancel to replace all services with the imported ones.`
+      );
+      
+      if (!shouldMerge) {
+        // Replace all services
+        this.services = [];
+      }
+    }
+
+    // Parse imported services
+    const importedServices = config.services.map((service: any, index: number) => {
       // Ensure serviceName exists (use index as fallback for unnamed services)
       const serviceName = service.serviceName?.trim() || `service-${index + 1}`;
       
@@ -2102,17 +2152,34 @@ export class ComposeFormComponent implements OnInit, AfterViewInit {
       };
     });
 
+    // Merge imported services with existing ones (make names unique)
+    importedServices.forEach((importedService: ServiceConfig) => {
+      let serviceName = importedService.serviceName;
+      let counter = 1;
+      
+      // Make service name unique if it conflicts
+      while (this.services.some(s => s.serviceName === serviceName)) {
+        serviceName = `${importedService.serviceName}-${counter}`;
+        counter++;
+      }
+      
+      importedService.serviceName = serviceName;
+      this.services.push(importedService);
+    });
+
     // Select first service and load into form
     if (this.services.length > 0) {
-      this.selectedServiceIndex = 0;
-      this.loadServiceIntoForm(0);
+      this.selectedServiceIndex = this.services.length - 1; // Select the last imported service
+      this.loadServiceIntoForm(this.selectedServiceIndex);
       this.updateYamlPreview();
       this.updateGraph();
       this.analyzeConfig();
+      this.calculateResourceUsage();
       
       this.analyticsService.trackEvent('config_imported', {
-        service_count: this.services.length,
-        format: 'json'
+        service_count: importedServices.length,
+        format: 'json',
+        merged: hasExistingServices
       });
     }
   }
@@ -2157,7 +2224,7 @@ export class ComposeFormComponent implements OnInit, AfterViewInit {
     }
   }
 
-  // Method to populate form from parsed YAML
+  // Method to populate form from parsed YAML (replaces all services)
   private populateFormFromYaml(yamlData: any): void {
     if (!yamlData || !yamlData.services) {
       alert('Invalid Docker Compose file. No services found.');
@@ -2183,6 +2250,49 @@ export class ComposeFormComponent implements OnInit, AfterViewInit {
     this.selectedServiceIndex = 0;
     this.loadServiceIntoForm(0);
     this.updateGraph();
+    this.updateYamlPreview();
+    this.analyzeConfig();
+    this.calculateResourceUsage();
+  }
+
+  // Method to merge services from YAML (adds to existing services)
+  private mergeServicesFromYaml(yamlData: any): void {
+    if (!yamlData || !yamlData.services) {
+      return;
+    }
+
+    const serviceNames = Object.keys(yamlData.services);
+    if (serviceNames.length === 0) {
+      return;
+    }
+
+    // Save current service before merging
+    this.saveCurrentServiceToArray();
+
+    // Add imported services, making names unique
+    serviceNames.forEach(serviceName => {
+      const service = yamlData.services[serviceName];
+      const serviceConfig = this.parseServiceFromYaml(serviceName, service);
+      
+      // Make service name unique if it conflicts
+      let uniqueName = serviceConfig.serviceName;
+      let counter = 1;
+      while (this.services.some(s => s.serviceName === uniqueName)) {
+        uniqueName = `${serviceConfig.serviceName}-${counter}`;
+        counter++;
+      }
+      serviceConfig.serviceName = uniqueName;
+      
+      this.services.push(serviceConfig);
+    });
+
+    // Select the last imported service
+    this.selectedServiceIndex = this.services.length - 1;
+    this.loadServiceIntoForm(this.selectedServiceIndex);
+    this.updateGraph();
+    this.updateYamlPreview();
+    this.analyzeConfig();
+    this.calculateResourceUsage();
   }
 
   // Parse a single service from YAML format to ServiceConfig
@@ -2652,5 +2762,180 @@ export class ComposeFormComponent implements OnInit, AfterViewInit {
     } finally {
       this.isSavingTemplate = false;
     }
+  }
+
+  // ========== QUICK WINS FEATURES ==========
+
+  // 1. Service Search/Filter
+  getFilteredServices(): ServiceConfig[] {
+    if (!this.serviceSearchQuery.trim()) {
+      return this.services;
+    }
+    
+    const query = this.serviceSearchQuery.toLowerCase().trim();
+    return this.services.filter(service => {
+      const name = (service.serviceName || '').toLowerCase();
+      const image = (service.dockerImage || '').toLowerCase();
+      const port = (service.hostPort || '').toLowerCase();
+      return name.includes(query) || image.includes(query) || port.includes(query);
+    });
+  }
+
+  clearServiceSearch(): void {
+    this.serviceSearchQuery = '';
+  }
+
+  // 2. Service Status Indicators
+  getServiceStatus(service: ServiceConfig): 'complete' | 'incomplete' | 'error' {
+    // Check for errors
+    if (!service.serviceName || !service.serviceName.trim()) {
+      return 'error';
+    }
+    if (!service.dockerImage || !service.dockerImage.trim()) {
+      return 'error';
+    }
+    if (!service.hostPort || !service.containerPort) {
+      return 'error';
+    }
+
+    // Check if complete (has all essential fields)
+    const hasName = service.serviceName && service.serviceName.trim();
+    const hasImage = service.dockerImage && service.dockerImage.trim();
+    const hasPorts = service.hostPort && service.containerPort;
+    
+    if (hasName && hasImage && hasPorts) {
+      return 'complete';
+    }
+
+    return 'incomplete';
+  }
+
+  getServiceStatusClass(service: ServiceConfig): string {
+    const status = this.getServiceStatus(service);
+    return `status-${status}`;
+  }
+
+  getServiceStatusIcon(service: ServiceConfig): string {
+    const status = this.getServiceStatus(service);
+    switch (status) {
+      case 'complete':
+        return '✓';
+      case 'incomplete':
+        return '⚠';
+      case 'error':
+        return '✗';
+      default:
+        return '';
+    }
+  }
+
+  // 3. Resource Usage Calculator
+  calculateResourceUsage(): void {
+    this.saveCurrentServiceToArray();
+    
+    let totalCpu = 0;
+    let totalMemory = 0;
+
+    this.services.forEach(service => {
+      if (service.resources) {
+        totalCpu += service.resources.cpuLimit || 0;
+        totalMemory += service.resources.memoryLimit || 0;
+      }
+    });
+
+    this.totalCpu = totalCpu;
+    this.totalMemory = totalMemory;
+  }
+
+  getResourceUsageText(): string {
+    if (this.services.length === 0) {
+      return 'No services';
+    }
+    const memoryGB = (this.totalMemory / 1024).toFixed(2);
+    return `${this.totalCpu.toFixed(1)} CPU cores, ${memoryGB} GB RAM`;
+  }
+
+  // 4. Environment Variable Presets
+  getEnvironmentPresets(): Array<{ name: string; description: string; variables: string }> {
+    return [
+      {
+        name: 'PostgreSQL',
+        description: 'Database credentials',
+        variables: 'POSTGRES_USER=admin\nPOSTGRES_PASSWORD=password\nPOSTGRES_DB=mydb'
+      },
+      {
+        name: 'MySQL',
+        description: 'Database credentials',
+        variables: 'MYSQL_ROOT_PASSWORD=rootpassword\nMYSQL_DATABASE=mydb\nMYSQL_USER=user\nMYSQL_PASSWORD=password'
+      },
+      {
+        name: 'Node.js',
+        description: 'Node.js environment',
+        variables: 'NODE_ENV=production\nPORT=3000'
+      },
+      {
+        name: 'Redis',
+        description: 'Redis configuration',
+        variables: 'REDIS_HOST=localhost\nREDIS_PORT=6379'
+      },
+      {
+        name: 'MongoDB',
+        description: 'MongoDB credentials',
+        variables: 'MONGO_INITDB_ROOT_USERNAME=admin\nMONGO_INITDB_ROOT_PASSWORD=password'
+      },
+      {
+        name: 'Python',
+        description: 'Python environment',
+        variables: 'PYTHONUNBUFFERED=1\nFLASK_APP=app.py'
+      }
+    ];
+  }
+
+  applyEnvironmentPreset(preset: { variables: string }): void {
+    const currentEnv = this.composeForm.get('environment')?.value || '';
+    const newEnv = currentEnv ? `${currentEnv}\n${preset.variables}` : preset.variables;
+    this.composeForm.get('environment')?.setValue(newEnv);
+  }
+
+  // 5. Volume Mount Presets
+  getVolumePresets(): Array<{ name: string; description: string; volume: string }> {
+    return [
+      {
+        name: 'Data Directory',
+        description: 'Local data directory',
+        volume: './data:/app/data'
+      },
+      {
+        name: 'Config Directory',
+        description: 'Local config directory',
+        volume: './config:/etc/config'
+      },
+      {
+        name: 'Logs Directory',
+        description: 'Local logs directory',
+        volume: './logs:/var/log/app'
+      },
+      {
+        name: 'Named Volume (Data)',
+        description: 'Persistent named volume',
+        volume: 'app-data:/app/data'
+      },
+      {
+        name: 'Named Volume (Config)',
+        description: 'Persistent named volume',
+        volume: 'app-config:/etc/config'
+      },
+      {
+        name: 'Read-Only Config',
+        description: 'Read-only config mount',
+        volume: './config:/etc/config:ro'
+      }
+    ];
+  }
+
+  applyVolumePreset(preset: { volume: string }): void {
+    const currentVolumes = this.composeForm.get('volumes')?.value || '';
+    const newVolumes = currentVolumes ? `${currentVolumes}\n${preset.volume}` : preset.volume;
+    this.composeForm.get('volumes')?.setValue(newVolumes);
   }
 }

@@ -1167,21 +1167,6 @@ main {
   margin-bottom: 1.5rem;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 
-  .wizard-progress-bar {
-    height: 8px;
-    background: #e9ecef;
-    border-radius: 4px;
-    overflow: hidden;
-    margin-bottom: 1.5rem;
-
-    .wizard-progress-fill {
-      height: 100%;
-      background: linear-gradient(90deg, $primary 0%, lighten($primary, 10%) 100%);
-      border-radius: 4px;
-      transition: width 0.3s ease;
-    }
-  }
-
   .wizard-steps-indicator {
     display: flex;
     justify-content: space-between;
@@ -1284,18 +1269,158 @@ main {
   margin-bottom: 1.5rem;
 
   .wizard-instruction-content {
-    h3 {
-      font-size: 1.25rem;
-      color: $primary;
-      margin: 0 0 0.5rem 0;
-      font-weight: 600;
+    .wizard-instruction-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 1rem;
+      margin-bottom: 1rem;
+
+      h3 {
+        font-size: 1.25rem;
+        color: $primary;
+        margin: 0 0 0.5rem 0;
+        font-weight: 600;
+      }
+
+      p {
+        color: $secondary;
+        margin: 0;
+        line-height: 1.6;
+        font-size: 0.95rem;
+      }
+
+      .btn-wizard-help {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.5rem 1rem;
+        background: rgba(0, 123, 255, 0.1);
+        border: 1px solid rgba(0, 123, 255, 0.3);
+        border-radius: 6px;
+        color: $primary;
+        font-size: 0.875rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all $trans;
+        white-space: nowrap;
+
+        &:hover {
+          background: rgba(0, 123, 255, 0.2);
+          border-color: $primary;
+        }
+
+        svg {
+          width: 18px;
+          height: 18px;
+        }
+      }
     }
 
-    p {
-      color: $secondary;
-      margin: 0;
-      line-height: 1.6;
-      font-size: 0.95rem;
+    .wizard-help-panel {
+      background: #fff;
+      border: 1px solid rgba(0, 123, 255, 0.2);
+      border-radius: 8px;
+      padding: 1.25rem;
+      margin-top: 1rem;
+
+      .wizard-help-content {
+        h4 {
+          font-size: 1rem;
+          color: $primary;
+          margin: 0 0 1rem 0;
+          font-weight: 600;
+        }
+
+        .wizard-help-tips {
+          list-style: none;
+          padding: 0;
+          margin: 0 0 1rem 0;
+
+          li {
+            padding: 0.5rem 0 0.5rem 1.5rem;
+            color: $secondary;
+            font-size: 0.9rem;
+            line-height: 1.6;
+            position: relative;
+
+            &::before {
+              content: '•';
+              position: absolute;
+              left: 0;
+              color: $primary;
+              font-weight: bold;
+            }
+          }
+        }
+
+        .wizard-help-example {
+          background: #f8f9fa;
+          border-left: 3px solid $primary;
+          padding: 0.75rem 1rem;
+          border-radius: 4px;
+          margin-top: 1rem;
+
+          strong {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: $primary;
+            font-size: 0.875rem;
+          }
+
+          code {
+            display: block;
+            color: $secondary;
+            font-size: 0.875rem;
+            white-space: pre-wrap;
+            font-family: 'Courier New', monospace;
+          }
+        }
+      }
+    }
+
+    .wizard-validation-errors {
+      background: #fff3cd;
+      border: 1px solid #ffc107;
+      border-radius: 8px;
+      padding: 1rem;
+      margin-top: 1rem;
+
+      .validation-error-header {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-bottom: 0.75rem;
+        color: #856404;
+
+        svg {
+          width: 20px;
+          height: 20px;
+        }
+
+        strong {
+          font-size: 0.95rem;
+        }
+      }
+
+      .validation-error-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+
+        li {
+          padding: 0.5rem 0 0.5rem 1.5rem;
+          color: #856404;
+          font-size: 0.9rem;
+          position: relative;
+
+          &::before {
+            content: '⚠';
+            position: absolute;
+            left: 0;
+          }
+        }
+      }
     }
   }
 }

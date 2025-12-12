@@ -348,6 +348,7 @@ export class ComposeFormComponent implements OnInit {
   // Wizard mode
   wizardMode: boolean = false;
   wizardStep: number = 1;
+  showWizardHelp: boolean = false;
   wizardSteps: string[] = ['basic', 'configuration', 'healthcheck', 'resources', 'review'];
   wizardStepNames: { [key: string]: string } = {
     'basic': 'Basic Configuration',
@@ -362,6 +363,62 @@ export class ComposeFormComponent implements OnInit {
     'healthcheck': 'Set up health checks to monitor your service\'s status (optional).',
     'resources': 'Configure resource limits, restart policies, dependencies, and networking.',
     'review': 'Review your configuration and generate your Docker Compose file.'
+  };
+  wizardStepHelp: { [key: string]: { title: string; tips: string[]; examples?: string } } = {
+    'basic': {
+      title: 'Basic Configuration Tips',
+      tips: [
+        'Service names should be lowercase and contain only letters, numbers, hyphens, and underscores.',
+        'Use official Docker images from Docker Hub (e.g., nginx:latest, postgres:15).',
+        'Port mappings connect your host machine to the container (host:container format).',
+        'Common ports: 80 (HTTP), 443 (HTTPS), 3306 (MySQL), 5432 (PostgreSQL), 6379 (Redis).'
+      ],
+      examples: 'Service: web-server, Image: nginx:latest, Ports: 8080:80'
+    },
+    'configuration': {
+      title: 'Environment & Volumes Tips',
+      tips: [
+        'Environment variables are key-value pairs that configure your application.',
+        'Use one variable per line in the format KEY=value.',
+        'Volumes map directories from your host to the container.',
+        'Use relative paths (./data) or named volumes (my-volume:/app/data).',
+        'Environment variables are useful for database credentials, API keys, and configuration.'
+      ],
+      examples: 'ENV: NODE_ENV=production\nVOLUMES: ./app:/usr/src/app'
+    },
+    'healthcheck': {
+      title: 'Health Check Tips',
+      tips: [
+        'Health checks help Docker monitor if your service is running correctly.',
+        'Interval: How often to check (e.g., 30s, 1m).',
+        'Timeout: Maximum time to wait for a response (e.g., 10s).',
+        'Retries: Number of failures before marking unhealthy (typically 3).',
+        'Start period: Time to wait before starting checks (useful for slow-starting services).',
+        'Test command: Leave empty for auto-detection, or specify custom command.'
+      ],
+      examples: 'Interval: 30s, Timeout: 10s, Retries: 3'
+    },
+    'resources': {
+      title: 'Resources & Deployment Tips',
+      tips: [
+        'CPU limit: 0.5 = half a core, 1.0 = one full core, 2.5 = two and a half cores.',
+        'Memory limit: Specify in MB (e.g., 512 = 512MB, 1024 = 1GB).',
+        'Restart policy: "always" restarts on failure, "unless-stopped" keeps running until manually stopped.',
+        'Dependencies: Services listed here will start before this service.',
+        'Networks: Connect services to custom networks for isolation.',
+        'Labels: Add metadata to your services (useful for orchestration tools).'
+      ],
+      examples: 'CPU: 1.0, Memory: 512MB, Restart: always'
+    },
+    'review': {
+      title: 'Review & Generate',
+      tips: [
+        'Review all your settings before generating the Docker Compose file.',
+        'You can go back to any step to make changes.',
+        'The generated file is ready to use with docker-compose up.',
+        'Save your configuration as a template for future use.'
+      ]
+    }
   };
 
   // Progress tracking
@@ -483,6 +540,8 @@ export class ComposeFormComponent implements OnInit {
         healthcheck: false,
         resources: false
       };
+      this.saveWizardProgressToStorage();
+      this.setupWizardAutoSave();
       this.analyticsService.trackEvent('wizard_mode_enabled', {});
     } else {
       // Exit wizard: expand all sections
@@ -492,6 +551,7 @@ export class ComposeFormComponent implements OnInit {
         healthcheck: true,
         resources: true
       };
+      this.clearWizardProgress();
       this.analyticsService.trackEvent('wizard_mode_disabled', {});
     }
   }
@@ -532,6 +592,43 @@ export class ComposeFormComponent implements OnInit {
     return true;
   }
 
+  getWizardStepValidationErrors(): string[] {
+    const errors: string[] = [];
+    const currentStep = this.getCurrentWizardStep();
+    
+    if (currentStep === 'basic') {
+      if (this.composeForm.get('serviceName')?.invalid) {
+        errors.push('Service name is required and must be valid');
+      }
+      if (this.composeForm.get('dockerImage')?.invalid) {
+        errors.push('Docker image is required');
+      }
+      if (this.composeForm.get('hostPort')?.invalid) {
+        errors.push('Host port is required and must be between 1 and 65535');
+      }
+      if (this.composeForm.get('containerPort')?.invalid) {
+        errors.push('Container port is required and must be between 1 and 65535');
+      }
+    }
+    
+    if (currentStep === 'healthcheck') {
+      const healthCheck = this.composeForm.get('healthCheck');
+      if (healthCheck?.get('enabled')?.value) {
+        if (healthCheck.get('interval')?.invalid) {
+          errors.push('Health check interval is required (e.g., 30s, 1m)');
+        }
+        if (healthCheck.get('timeout')?.invalid) {
+          errors.push('Health check timeout is required (e.g., 10s, 5m)');
+        }
+        if (healthCheck.get('retries')?.invalid) {
+          errors.push('Health check retries must be a number');
+        }
+      }
+    }
+    
+    return errors;
+  }
+
   nextWizardStep(): void {
     if (!this.canGoToNextStep()) {
       // Mark fields as touched to show validation errors
@@ -549,6 +646,9 @@ export class ComposeFormComponent implements OnInit {
       // Move to next step
       this.wizardStep++;
       const nextStep = this.getCurrentWizardStep();
+      
+      // Save progress
+      this.saveWizardProgressToStorage();
       
       // Expand next step
       if (nextStep !== 'review') {
@@ -590,6 +690,9 @@ export class ComposeFormComponent implements OnInit {
       
       // Expand previous step
       this.expandedSections[prevStep as keyof typeof this.expandedSections] = true;
+      
+      // Save progress
+      this.saveWizardProgressToStorage();
       
       // Scroll to the previous section - wait for Angular to update the DOM
       setTimeout(() => {
@@ -683,6 +786,85 @@ export class ComposeFormComponent implements OnInit {
         healthCheck.get('timeout')?.markAsTouched();
         healthCheck.get('retries')?.markAsTouched();
       }
+    }
+  }
+
+  // Auto-save wizard progress
+  saveWizardProgressToStorage(): void {
+    if (!this.wizardMode) return;
+    
+    try {
+      const progress = {
+        wizardStep: this.wizardStep,
+        services: this.services,
+        selectedServiceIndex: this.selectedServiceIndex,
+        formData: this.composeForm.value,
+        timestamp: Date.now()
+      };
+      localStorage.setItem('wizardProgress', JSON.stringify(progress));
+    } catch (error) {
+      console.error('Error saving wizard progress:', error);
+    }
+  }
+
+  restoreWizardProgress(): void {
+    try {
+      const savedProgress = localStorage.getItem('wizardProgress');
+      if (savedProgress) {
+        const progress = JSON.parse(savedProgress);
+        // Only restore if progress is less than 24 hours old
+        const hoursSinceSave = (Date.now() - progress.timestamp) / (1000 * 60 * 60);
+        if (hoursSinceSave < 24 && progress.services && progress.services.length > 0) {
+          // Show restore notification first
+          const shouldRestore = confirm('We found your previous wizard progress. Would you like to continue where you left off?');
+          if (shouldRestore) {
+            this.services = progress.services;
+            this.selectedServiceIndex = progress.selectedServiceIndex || 0;
+            this.wizardStep = progress.wizardStep || 1;
+            this.wizardMode = true;
+            
+            // Restore expanded sections based on current step
+            const currentStep = this.getCurrentWizardStep();
+            this.expandedSections = {
+              basic: currentStep === 'basic',
+              configuration: currentStep === 'configuration',
+              healthcheck: currentStep === 'healthcheck',
+              resources: currentStep === 'resources'
+            };
+            
+            if (this.services.length > 0 && this.selectedServiceIndex < this.services.length) {
+              this.loadServiceIntoForm(this.selectedServiceIndex);
+              this.updateYamlPreview();
+              this.updateGraph();
+              this.analyzeConfig();
+            }
+          } else {
+            // User chose not to restore, clear the saved progress
+            this.clearWizardProgress();
+          }
+        } else {
+          // Progress is too old, clear it
+          this.clearWizardProgress();
+        }
+      }
+    } catch (error) {
+      console.error('Error restoring wizard progress:', error);
+      this.clearWizardProgress();
+    }
+  }
+
+  clearWizardProgress(): void {
+    localStorage.removeItem('wizardProgress');
+  }
+
+  setupWizardAutoSave(): void {
+    // Auto-save every 30 seconds when in wizard mode
+    if (this.wizardMode) {
+      setInterval(() => {
+        if (this.wizardMode) {
+          this.saveWizardProgressToStorage();
+        }
+      }, 30000);
     }
   }
 
@@ -957,17 +1139,21 @@ export class ComposeFormComponent implements OnInit {
       }
     });
 
-    this.composeForm.valueChanges.subscribe(() => {
-      // Save current service when form changes
-      this.saveCurrentServiceToArray();
-      this.updateYamlPreview();
-      // Only update graph if we're on the diagram tab to avoid unnecessary re-renders
-      if (this.activeTab === 'diagram') {
-        this.updateGraph();
-      }
-      // Analyze config for suggestions
-      this.analyzeConfig();
-    });
+      this.composeForm.valueChanges.subscribe(() => {
+        // Save current service when form changes
+        this.saveCurrentServiceToArray();
+        this.updateYamlPreview();
+        // Only update graph if we're on the diagram tab to avoid unnecessary re-renders
+        if (this.activeTab === 'diagram') {
+          this.updateGraph();
+        }
+        // Analyze config for suggestions
+        this.analyzeConfig();
+        // Auto-save wizard progress when form changes
+        if (this.wizardMode) {
+          this.saveWizardProgressToStorage();
+        }
+      });
   }
 
   // Update graph from services

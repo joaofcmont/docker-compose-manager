@@ -43,11 +43,8 @@
           </button>
         </div>
 
-        <!-- Wizard Progress Bar -->
+        <!-- Wizard Steps Indicator -->
         <div class="wizard-progress" *ngIf="wizardMode && activeTab === 'form'">
-          <div class="wizard-progress-bar">
-            <div class="wizard-progress-fill" [style.width]="getWizardProgress() + '%'"></div>
-          </div>
           <div class="wizard-steps-indicator">
             <div 
               *ngFor="let step of wizardSteps; let i = index"
@@ -65,18 +62,56 @@
         <!-- Wizard Step Instructions -->
         <div class="wizard-instructions" *ngIf="wizardMode && activeTab === 'form'">
           <div class="wizard-instruction-content">
-            <h3>{{ wizardStepNames[getCurrentWizardStep()] }}</h3>
-            <p>{{ wizardStepDescriptions[getCurrentWizardStep()] }}</p>
+            <div class="wizard-instruction-header">
+              <div>
+                <h3>{{ wizardStepNames[getCurrentWizardStep()] }}</h3>
+                <p>{{ wizardStepDescriptions[getCurrentWizardStep()] }}</p>
+              </div>
+              <button 
+                type="button" 
+                class="btn-wizard-help"
+                (click)="showWizardHelp = !showWizardHelp"
+                [title]="showWizardHelp ? 'Hide tips' : 'Show tips'">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="12" cy="12" r="10"></circle>
+                  <line x1="12" y1="16" x2="12" y2="12"></line>
+                  <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                </svg>
+                <span>{{ showWizardHelp ? 'Hide Tips' : 'Show Tips' }}</span>
+              </button>
+            </div>
+            
+            <!-- Wizard Help Panel -->
+            <div class="wizard-help-panel" *ngIf="showWizardHelp && wizardStepHelp[getCurrentWizardStep()]">
+              <div class="wizard-help-content">
+                <h4>{{ wizardStepHelp[getCurrentWizardStep()].title }}</h4>
+                <ul class="wizard-help-tips">
+                  <li *ngFor="let tip of wizardStepHelp[getCurrentWizardStep()].tips">{{ tip }}</li>
+                </ul>
+                <div class="wizard-help-example" *ngIf="wizardStepHelp[getCurrentWizardStep()].examples">
+                  <strong>Example:</strong>
+                  <code>{{ wizardStepHelp[getCurrentWizardStep()].examples }}</code>
+                </div>
+              </div>
+            </div>
+
+            <!-- Validation Errors -->
+            <div class="wizard-validation-errors" *ngIf="wizardMode && getWizardStepValidationErrors().length > 0">
+              <div class="validation-error-header">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="12" cy="12" r="10"></circle>
+                  <line x1="12" y1="8" x2="12" y2="12"></line>
+                  <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                </svg>
+                <strong>Please fix the following errors before continuing:</strong>
+              </div>
+              <ul class="validation-error-list">
+                <li *ngFor="let error of getWizardStepValidationErrors()">{{ error }}</li>
+              </ul>
+            </div>
           </div>
         </div>
 
-        <!-- Progress Indicator (shown when not in wizard mode) -->
-        <div class="progress-indicator" *ngIf="!wizardMode && services.length > 0 && activeTab === 'form'">
-          <div class="progress-bar">
-            <div class="progress-fill" [style.width.%]="formProgress"></div>
-          </div>
-          <span class="progress-text">{{ formProgress }}% Complete</span>
-        </div>
       </div>
   
       <section id="import-section">

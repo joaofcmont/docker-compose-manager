@@ -333,8 +333,43 @@ export class ComposeFormComponent implements OnInit {
   // Generation success notification
   showGenerateSuccessPopup: boolean = false;
 
+  // Onboarding
+  showOnboardingModal: boolean = false;
+  hasSeenOnboarding: boolean = false;
+
+  // Form organization
+  expandedSections: { basic: boolean; configuration: boolean; healthcheck: boolean; resources: boolean } = {
+    basic: true,
+    configuration: true,
+    healthcheck: false,
+    resources: false
+  };
+
+  // Progress tracking
+  get formProgress(): number {
+    if (this.services.length === 0) return 0;
+    const currentService = this.services[this.selectedServiceIndex];
+    if (!currentService) return 0;
+
+    let completed = 0;
+    let total = 6; // Total required/important fields
+
+    if (currentService.serviceName) completed++;
+    if (currentService.dockerImage) completed++;
+    if (currentService.hostPort) completed++;
+    if (currentService.containerPort) completed++;
+    if (currentService.restart) completed++;
+    if (currentService.healthCheck?.enabled === false || (currentService.healthCheck?.enabled && currentService.healthCheck?.test && currentService.healthCheck.test.length > 0)) completed++;
+
+    return Math.round((completed / total) * 100);
+  }
+
 
   ngOnInit() {
+    // Check if user has seen onboarding FIRST (before loading template)
+    const seenOnboarding = localStorage.getItem('hasSeenOnboarding');
+    this.hasSeenOnboarding = seenOnboarding === 'true';
+    
     // Check if we need to load a template from the templates page
     const loadTemplateData = sessionStorage.getItem('loadTemplate');
     if (loadTemplateData) {
@@ -349,11 +384,20 @@ export class ComposeFormComponent implements OnInit {
           this.analyzeConfig();
         }
         sessionStorage.removeItem('loadTemplate');
+        // Don't show onboarding if loading a template (user already knows what they're doing)
         return;
       } catch (error) {
         console.error('Error loading template from session:', error);
         sessionStorage.removeItem('loadTemplate');
       }
+    }
+
+    // Show onboarding for first-time users (only if not loading a template)
+    if (!this.hasSeenOnboarding) {
+      // Use a small delay to ensure the page is fully rendered
+      setTimeout(() => {
+        this.showOnboardingModal = true;
+      }, 300);
     }
 
     // Initialize with one empty service
@@ -368,6 +412,48 @@ export class ComposeFormComponent implements OnInit {
     
     // Analyze config for suggestions
     this.analyzeConfig();
+  }
+
+  closeOnboardingModal(): void {
+    this.showOnboardingModal = false;
+    this.hasSeenOnboarding = true;
+    localStorage.setItem('hasSeenOnboarding', 'true');
+  }
+
+  startFromTemplate(): void {
+    this.closeOnboardingModal();
+    // Expand template selector
+    this.expandedSections.basic = true;
+    // Focus on template selector
+    setTimeout(() => {
+      const templateSelect = document.getElementById('serviceTemplate');
+      if (templateSelect) {
+        templateSelect.focus();
+      }
+    }, 100);
+  }
+
+  startFromScratch(): void {
+    this.closeOnboardingModal();
+    // Focus on service name
+    setTimeout(() => {
+      const serviceNameInput = document.getElementById('serviceName');
+      if (serviceNameInput) {
+        serviceNameInput.focus();
+      }
+    }, 100);
+  }
+
+  toggleSection(section: 'basic' | 'configuration' | 'healthcheck' | 'resources'): void {
+    this.expandedSections[section] = !this.expandedSections[section];
+  }
+
+  applyExample(field: string, example: string): void {
+    const control = this.composeForm.get(field);
+    if (control) {
+      control.setValue(example);
+      control.markAsTouched();
+    }
   }
 
   dismissMultiServiceHint(): void {

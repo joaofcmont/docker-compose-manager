@@ -26,6 +26,12 @@
       <div class="content-header">
         <h1>Docker Compose Editor</h1>
         <p class="subheading">Create, edit, and manage your Docker Compose configurations visually</p>
+        <div class="progress-indicator" *ngIf="services.length > 0 && activeTab === 'form'">
+          <div class="progress-bar">
+            <div class="progress-fill" [style.width.%]="formProgress"></div>
+          </div>
+          <span class="progress-text">{{ formProgress }}% Complete</span>
+        </div>
       </div>
   
       <section id="import-section">
@@ -47,7 +53,7 @@
           </label>
         </div>
         <div class="advanced-features-note" *ngIf="hasAdvancedFeatures">
-          <span class="note-icon">ℹ️</span>
+          <span class="note-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg></span>
           <span>{{ advancedFeaturesNote }}</span>
         </div>
       </section>
@@ -254,9 +260,14 @@
         <div class="form-container" *ngIf="activeTab === 'form'">
           <form [formGroup]="composeForm" (ngSubmit)="generateDockerComposeFile()">
             <!-- Basic Service Configuration -->
-            <div class="form-section">
-              <h3>Basic Configuration</h3>
-              
+            <div class="form-section collapsible" [class.expanded]="expandedSections.basic">
+              <div class="section-header" (click)="toggleSection('basic')">
+                <h3>Basic Configuration</h3>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="section-toggle-icon">
+                  <polyline points="6 9 12 15 18 9"></polyline>
+                </svg>
+              </div>
+              <div class="section-content">
               <div class="form-group">
                 <label for="serviceTemplate">Service Template</label>
                 <select id="serviceTemplate" formControlName="serviceTemplate">
@@ -275,15 +286,28 @@
                     class="help-trigger"
                     (click)="showTipsForField('serviceName')"
                     title="Get tips for this field">
-                    ℹ️
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <circle cx="12" cy="12" r="10"></circle>
+                      <line x1="12" y1="16" x2="12" y2="12"></line>
+                      <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                    </svg>
                   </button>
                 </label>
-                <input 
-                  type="text" 
-                  id="serviceName" 
-                  formControlName="serviceName"
-                  placeholder="Enter service name"
-                  [class.error]="composeForm.get('serviceName')?.invalid && composeForm.get('serviceName')?.touched">
+                <div class="input-with-example">
+                  <input 
+                    type="text" 
+                    id="serviceName" 
+                    formControlName="serviceName"
+                    placeholder="e.g., web-server, database, api"
+                    [class.error]="composeForm.get('serviceName')?.invalid && composeForm.get('serviceName')?.touched">
+                  <button 
+                    type="button" 
+                    class="btn-example"
+                    (click)="applyExample('serviceName', 'web-server')"
+                    title="Use example">
+                    Example
+                  </button>
+                </div>
                 <div class="error-message" *ngIf="composeForm.get('serviceName')?.hasError('required') && composeForm.get('serviceName')?.touched">
                   Service name is required
                 </div>
@@ -309,15 +333,24 @@
                     class="help-trigger"
                     (click)="showTipsForField('dockerImage')"
                     title="Get tips for this field">
-                    ℹ️
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
                   </button>
                 </label>
-                <input 
-                  type="text" 
-                  id="dockerImage" 
-                  formControlName="dockerImage"
-                  placeholder="e.g., nginx:latest"
-                  [class.error]="composeForm.get('dockerImage')?.invalid && composeForm.get('dockerImage')?.touched">
+                <div class="input-with-example">
+                  <input 
+                    type="text" 
+                    id="dockerImage" 
+                    formControlName="dockerImage"
+                    placeholder="e.g., nginx:latest, postgres:15, node:18"
+                    [class.error]="composeForm.get('dockerImage')?.invalid && composeForm.get('dockerImage')?.touched">
+                  <button 
+                    type="button" 
+                    class="btn-example"
+                    (click)="applyExample('dockerImage', 'nginx:latest')"
+                    title="Use example">
+                    Example
+                  </button>
+                </div>
                 <div class="error-message" *ngIf="composeForm.get('dockerImage')?.hasError('required') && composeForm.get('dockerImage')?.touched">
                   Docker image is required
                 </div>
@@ -335,7 +368,7 @@
                       class="help-trigger"
                       (click)="showTipsForField('hostPort')"
                       title="Get tips for this field">
-                      ℹ️
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
                     </button>
                   </label>
                   <input 
@@ -361,7 +394,7 @@
                       class="help-trigger"
                       (click)="showTipsForField('containerPort')"
                       title="Get tips for this field">
-                      ℹ️
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
                     </button>
                   </label>
                   <input 
@@ -380,12 +413,18 @@
                   </div>
                 </div>
               </div>
+              </div>
             </div>
   
             <!-- Environment and Volumes -->
-            <div class="form-section">
-              <h3>Configuration</h3>
-              
+            <div class="form-section collapsible" [class.expanded]="expandedSections.configuration">
+              <div class="section-header" (click)="toggleSection('configuration')">
+                <h3>Configuration</h3>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="section-toggle-icon">
+                  <polyline points="6 9 12 15 18 9"></polyline>
+                </svg>
+              </div>
+              <div class="section-content">
               <div class="form-group">
                   <label for="environment">
                     Environment Variables
@@ -394,7 +433,7 @@
                       class="help-trigger"
                       (click)="showTipsForField('environment')"
                       title="Get tips for this field">
-                      ℹ️
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
                     </button>
                   </label>
                 <textarea 
@@ -413,7 +452,7 @@
                       class="help-trigger"
                       (click)="showTipsForField('volumes')"
                       title="Get tips for this field">
-                      ℹ️
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
                     </button>
                   </label>
                 <textarea 
@@ -434,7 +473,7 @@
         class="help-trigger"
         (click)="showTipsForField('healthCheck')"
         title="Get tips for health checks">
-        ℹ️
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
       </button>
     </h3>
   
@@ -481,7 +520,7 @@
         <div>
           <label for="healthCheckStartPeriod">
             Start Period
-            <span class="help-icon" title="Time to wait before starting health checks (e.g., 40s, 1m). Useful for services that need time to initialize.">ℹ️</span>
+            <span class="help-icon" title="Time to wait before starting health checks (e.g., 40s, 1m). Useful for services that need time to initialize."><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg></span>
           </label>
           <input 
             type="text" 
@@ -494,7 +533,7 @@
       <div class="form-group">
         <label for="healthCheckTest">
           Test Command
-          <span class="help-icon" title="Custom health check command. Leave empty to auto-detect based on image type.">ℹ️</span>
+          <span class="help-icon" title="Custom health check command. Leave empty to auto-detect based on image type."><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg></span>
         </label>
         <div class="healthcheck-test-options">
           <select 
@@ -541,13 +580,19 @@
         </small>
       </div>
     </div>
+    </div>
   </div>
     
   
             <!-- Resources and Deployment -->
-            <div class="form-section">
-              <h3>Resources & Deployment</h3>
-              
+            <div class="form-section collapsible" [class.expanded]="expandedSections.resources">
+              <div class="section-header" (click)="toggleSection('resources')">
+                <h3>Resources & Deployment</h3>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="section-toggle-icon">
+                  <polyline points="6 9 12 15 18 9"></polyline>
+                </svg>
+              </div>
+              <div class="section-content">
               <div formGroupName="resources">
                 <div class="form-group grid-2">
                   <div>
@@ -558,7 +603,7 @@
                         class="help-trigger"
                         (click)="showTipsForField('cpuLimit')"
                         title="Get tips for CPU limits">
-                        ℹ️
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
                       </button>
                     </label>
                     <div class="preset-buttons">
@@ -582,7 +627,7 @@
                           class="help-trigger"
                           (click)="showTipsForField('memoryLimit')"
                           title="Get tips for memory limits">
-                          ℹ️
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
                         </button>
                       </label>
                     <input 
@@ -614,7 +659,7 @@
                       class="help-trigger"
                       (click)="showTipsForField('restart')"
                       title="Get tips for restart policies">
-                      ℹ️
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
                     </button>
                   </label>
                   <select id="restart" formControlName="restart">
@@ -635,7 +680,7 @@
                     class="help-trigger"
                     (click)="showTipsForField('depends_on')"
                     title="Get tips for dependencies">
-                    ℹ️
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
                   </button>
                 </label>
                 <div class="dependencies-checkboxes" *ngIf="getAvailableServicesForDependencies().length > 0">
@@ -669,7 +714,7 @@
                     class="help-trigger"
                     (click)="showTipsForField('networks')"
                     title="Get tips for networks">
-                    ℹ️
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
                   </button>
                 </label>
                 <div class="networks-checkboxes" *ngIf="getAllNetworks().length > 0">
@@ -711,7 +756,7 @@
                     class="help-trigger"
                     (click)="showTipsForField('labels')"
                     title="Get tips for labels">
-                    ℹ️
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
                   </button>
                 </label>
                 <div class="labels-section">
@@ -772,6 +817,7 @@
                 <small class="help-text">
                   Add key-value pairs for service metadata. Common labels: com.docker.compose.project, traefik.*, etc.
                 </small>
+              </div>
               </div>
             </div>
   
@@ -1072,6 +1118,75 @@
       </div>
     </main>
   
+    <!-- Onboarding Modal -->
+    <div class="onboarding-overlay" *ngIf="showOnboardingModal" (click)="closeOnboardingModal()">
+      <div class="onboarding-modal" (click)="$event.stopPropagation()">
+        <div class="onboarding-header">
+          <h2>Welcome to Docker Compose Editor</h2>
+          <p>Let's get you started building Docker applications the easy way.</p>
+        </div>
+        <div class="onboarding-content">
+          <div class="onboarding-options">
+            <div class="onboarding-option" (click)="startFromTemplate()">
+              <div class="option-icon">
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                  <line x1="9" y1="3" x2="9" y2="21"></line>
+                  <line x1="3" y1="9" x2="21" y2="9"></line>
+                </svg>
+              </div>
+              <h3>Start from Template</h3>
+              <p>Choose a pre-configured template (Nginx, PostgreSQL, Redis, etc.) and customize it to your needs. Perfect for beginners!</p>
+              <button type="button" class="btn-option">Start with Template</button>
+            </div>
+            <div class="onboarding-option" (click)="startFromScratch()">
+              <div class="option-icon">
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                  <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                </svg>
+              </div>
+              <h3>Start from Scratch</h3>
+              <p>Build your Docker configuration from the ground up. We'll guide you through each step.</p>
+              <button type="button" class="btn-option">Start Building</button>
+            </div>
+          </div>
+          <div class="onboarding-features">
+            <h4>What you can do:</h4>
+            <ul>
+              <li>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="20 6 9 17 4 12"></polyline>
+                </svg>
+                Build Docker applications visually - no YAML knowledge needed
+              </li>
+              <li>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="20 6 9 17 4 12"></polyline>
+                </svg>
+                Get real-time suggestions and tips as you build
+              </li>
+              <li>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="20 6 9 17 4 12"></polyline>
+                </svg>
+                See your application structure in a visual diagram
+              </li>
+              <li>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="20 6 9 17 4 12"></polyline>
+                </svg>
+                Save your work as templates for later use
+              </li>
+            </ul>
+          </div>
+        </div>
+        <div class="onboarding-footer">
+          <button type="button" class="btn-skip" (click)="closeOnboardingModal()">Skip for now</button>
+        </div>
+      </div>
+    </div>
+
     <footer>
       <p>© 2025 Docker Compose Manager. All rights reserved. | <a routerLink="/privacy">Privacy Policy</a></p>
     </footer>
